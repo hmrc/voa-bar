@@ -19,8 +19,8 @@ Changes 1.0 to 1.1
 			<Metadata xmlns="http://www.govtalk.gov.uk/metadata/egms">
 				<Contributor>e-champions, Government Schema Group, IDeA</Contributor>
 				<Contributor Href="mailto:paul.spencer@boynings.co.uk">Paul Spencer, Boynings Consulting</Contributor>
-				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gsi.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
-				<Creator Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
+				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
+				<Creator Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
 				<Created>2001-12-19</Created>
 				<Modified>2002-01-30</Modified>
 				<Modified>2003-02-17</Modified>
@@ -31,7 +31,7 @@ Changes 1.0 to 1.1
 				<Format Scheme="http://www.iana.org/assignments/media-types/">text/xml</Format>
 				<Identifier Href="http://www.govtalk.gov.uk/gdsc/schemas/AddressTypes-v2-0.xsd">AddressTypes-v2-0</Identifier>
 				<Language codeListID="ISO639-2">eng</Language>
-				<Publisher Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
+				<Publisher Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
 				<ConformsTo>http://www.w3.org/2001/XMLSchema</ConformsTo>
 				<ProvidesDefinitionOf Namespace="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails">InternationalAddressStructure</ProvidesDefinitionOf>
 				<ProvidesDefinitionOf Namespace="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails">UKPostalAddressStructure</ProvidesDefinitionOf>

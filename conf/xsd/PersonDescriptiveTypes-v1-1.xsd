@@ -7,17 +7,17 @@
 	<xsd:annotation>
 		<xsd:appinfo>
 			<Metadata>
-				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gsi.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
+				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
 				<Contributor Href="mailto:paul.spencer@boynings.co.uk">Paul Spencer, Boynings Consulting</Contributor>
 				<Contributor>Adrian Kent, Office e-Envoy</Contributor>
-				<Creator Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
+				<Creator Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
 				<Created>2003-02-11</Created>
 				<Modified>2004-12-08</Modified>
 				<Description>Person descriptive types for use within UK Government</Description>
 				<Format Scheme="http://www.iana.org/assignments/media-types/">text/xml</Format>
 				<Identifier Href="http://www.govtalk.gov.uk/gdsc/schemas/PersonDescriptiveTypes-v1-1.xsd">PersonDescriptiveTypes-v1-1</Identifier>
 				<Language codeListID="ISO639-2">eng</Language>
-				<Publisher Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
+				<Publisher Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
 				<ConformsTo>http://www.w3.org/2001/XMLSchema</ConformsTo>
 				
 				<ProvidesDefinitionOf Namespace="http://www.govtalk.gov.uk/people/PersonDescriptives">VerificationLevelType</ProvidesDefinitionOf>

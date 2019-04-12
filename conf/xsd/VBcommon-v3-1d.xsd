@@ -6,7 +6,7 @@
 	<xsd:annotation>
 		<xsd:appinfo>
 			<Metadata xmlns="http://www.govtalk.gov.uk/metadata/egms">
-				<Contributor Href="mailto:govtalk@cabinet-office.gsi.gov.uk">Technology Policy Team, e-Government Unit</Contributor>
+				<Contributor Href="mailto:govtalk@cabinet-office.gov.uk">Technology Policy Team, e-Government Unit</Contributor>
 				<Contributor Href="mailto:valuebill@tuckwood.co.uk">Valuebill Project, Project Manager - Barry Tuckwood</Contributor>
 				<Contributor Href="mailto:info@legsb.gov.uk">Local e-Government Standards Body</Contributor>
 				<Creator Href="mailto:bay@egic.ltd.uk">Bruce Yeoman, EGiC</Creator>

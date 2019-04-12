@@ -11,7 +11,7 @@
 			<Metadata xmlns="http://www.govtalk.gov.uk/metadata/egms">
 				<Contributor>e-champions,Government Schema Group, IDeA</Contributor>
 				<Contributor Href="mailto:paul.spencer@boynings.co.uk">Paul Spencer, Boynings Consulting</Contributor>
-				<Creator Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
+				<Creator Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
 				<Created>2001-12-19</Created>
 				<Modified>2002-01-30</Modified>
 				<Modified>2003-02-25</Modified>
@@ -19,7 +19,7 @@
 				<Format Scheme="http://www.iana.org/assignments/media-types/">text/xml</Format>
 				<Identifier Href="http://www.govtalk.gov.uk/gdsc/schemas/ContactTypes-v1-3.xsd">ContactTypes-v1-3</Identifier>
 				<Language codeListID="ISO639-2">eng</Language>
-				<Publisher Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
+				<Publisher Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
 				<ConformsTo>http://www.w3.org/2001/XMLSchema</ConformsTo>
 				<Copyright>Crown Copyright 2002,2003</Copyright>
 				<ProtectiveMarking>Unclassified</ProtectiveMarking>

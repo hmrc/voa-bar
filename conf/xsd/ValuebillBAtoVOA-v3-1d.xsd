@@ -41,7 +41,7 @@
 	<xsd:annotation>
 		<xsd:appinfo>
 			<Metadata >
-				<Contributor Href="mailto:govtalk@cabinet-office.gsi.gov.uk">Technology Policy Team, e-Government Unit</Contributor>
+				<Contributor Href="mailto:govtalk@cabinet-office.gov.uk">Technology Policy Team, e-Government Unit</Contributor>
 				<Contributor Href="mailto:valuebill@tuckwood.co.uk">Valuebill Project, Project Manager - Barry Tuckwood</Contributor>
 				<Creator Href="mailto:bay@egic.ltd.uk">Bruce Yeoman, EGiC</Creator>
 				<Created>2004-01-17</Created>

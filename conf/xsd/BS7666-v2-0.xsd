@@ -29,12 +29,12 @@
 	<xsd:annotation>
 		<xsd:appinfo>
 			<Metadata xmlns="http://www.govtalk.gov.uk/metadata/egms">
-				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gsi.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
+				<Contributor Href="mailto:adam.bailin@cabinet-office.x.gov.uk">Adam Bailin, e-Government Unit, Cabinet Office</Contributor>
 				<Contributor Href="mailto:paul.spencer@boynings.co.uk"/>
 				<Contributor>e-champions, Government Schema Group, IDeA</Contributor>
 				<Contributor>Adrian Kent, Office e-Envoy</Contributor>
 				<Contributor Href="mailto:bruce@egic.ltd.uk">Bruce Yeoman, EGIC</Contributor>
-				<Creator Href="maito:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
+				<Creator Href="maito:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Creator>
 				<Created>2003-02-11</Created>
 				<Modified>2004-12-08</Modified>
 				<Description>Schema for BS7666 definitions including address and postcode. BS7666 provides a geo-spatial reference and is particularly suitable for local gazeteer applications. For a postal address format, use the UKPostalAddressStructure defined in the Address Types schema.</Description>
@@ -42,7 +42,7 @@
 				<Format Scheme="http://www.iana.org/assignments/media-types/">text/xml</Format>
 				<Identifier Href="http://www.govtalk.gov.uk/gdsc/schemas/bs7666-v2-0.xsd">BS7666-v2-0</Identifier>
 				<Language codeListID="ISO639-2">eng</Language>
-				<Publisher Href="mailto:govtalk@cabinet-office.x.gsi.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
+				<Publisher Href="mailto:govtalk@cabinet-office.x.gov.uk">e-Government Unit, Cabinet Office, UK Government</Publisher>
 				<ConformsTo>http://www.w3.org/2001/XMLSchema</ConformsTo>
 				<IsPartOf>http://www.govtalk.gov.uk/gdsc/schemas/AddressTypes-v2-0.xsd</IsPartOf>
 				<ProvidesDefinitionOf Namespace="http://www.govtalk.gov.uk/people/bs7666">BSaddressStructure</ProvidesDefinitionOf>
