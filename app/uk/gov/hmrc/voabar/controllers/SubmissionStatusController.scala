@@ -25,13 +25,15 @@ import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import play.api.libs.json.Json
+import uk.gov.hmrc.voabar.services.WebBarsService
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmissionStatusController @Inject() (
                                            submissionStatusRepository: SubmissionStatusRepository,
-                                           controllerComponents: ControllerComponents
+                                           controllerComponents: ControllerComponents,
+                                           webBarsService: WebBarsService
                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
@@ -89,7 +91,12 @@ class SubmissionStatusController @Inject() (
   private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
     submissionStatusRepository.insertOrMerge(reportStatus).map(_.fold(
       _ => Left(InternalServerError),
-      _ => Right(Unit)
+      _ => {
+        if(reportStatus.report.isDefined) {
+          webBarsService.newSubmission(reportStatus.id) //Fire and forget.
+        }
+        Right(Unit)
+      }
     ))
   }
 
