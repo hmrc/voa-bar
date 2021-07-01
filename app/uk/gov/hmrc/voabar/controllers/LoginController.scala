@@ -24,13 +24,13 @@ import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginController @Inject()(val legacyConnector: LegacyConnector, controllerComponents: ControllerComponents)
+class LoginController @Inject()(val legacyConnector: LegacyConnector, audit: VoaBarAuditConnector, controllerComponents: ControllerComponents)
   extends BackendController(controllerComponents) {
   def verifyLogin(json: Option[JsValue]): Either[String, LoginDetails] = {
     json match {
@@ -50,7 +50,10 @@ class LoginController @Inject()(val legacyConnector: LegacyConnector, controller
       case Right(loginDetails) => {
         val result = legacyConnector.validate(loginDetails)
         result map {
-          case Success(s) => Ok
+          case Success(s) => {
+            audit.userLogin(loginDetails.username)
+            Ok
+          }
           case Failure(ex) =>
             Logger.warn("Validating login fails with message " + ex.getMessage)
             BadRequest("Validating login fails with message " + ex.getMessage)

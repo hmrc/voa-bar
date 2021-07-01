@@ -28,7 +28,7 @@ import models.Purpose
 import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector}
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector, VoaBarAuditConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
@@ -41,7 +41,9 @@ import scala.util.{Failure, Success, Try}
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           legacyConnector: LegacyConnector,
-                          emailConnector: EmailConnector, upscanConnector: UpscanConnector)(implicit executionContext: ExecutionContext) {
+                          emailConnector: EmailConnector,
+                          upscanConnector: UpscanConnector,
+                          audit: VoaBarAuditConnector)(implicit executionContext: ExecutionContext) {
 
   val ebarsValidator = new EbarsValidator()
   val voaBarValidator = new XmlValidator()
@@ -64,6 +66,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   def upload(baLogin: LoginDetails, baReports: BAreports, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
     val processingResult = for {
       _ <- EitherT(ebarsUpload(baReports, baLogin, uploadReference))
+      _  = audit.successfulReportUploaded(baLogin.username, baReports.getBApropertyReport.size())
       _ <- EitherT(statusRepository.update(uploadReference, Done, baReports.getBApropertyReport.size()))
       _ <- EitherT(sendConfirmationEmail(uploadReference, baLogin))
     } yield ("ok")
@@ -71,7 +74,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     handleUploadResult(processingResult.value, baLogin, uploadReference)
   }
 
-  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String):Future[String] = {
+  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
     result
       .recover {
         case exception: Exception => {
@@ -82,6 +85,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       .map {
         case Right(v) => v
         case Left(a) => {
+          audit.reportUploadFailed(login.username, a)
           handleError(uploadReference, a, login)
           "failed"
         }
