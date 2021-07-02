@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.voabar.models
 
+import play.api.libs.json.{JsObject, Json, OWrites}
 import reactivemongo.api.commands.UpdateWriteResult
 
 sealed trait BarError
-
 
 case class BarXmlError(message: String) extends BarError
 
@@ -36,3 +36,20 @@ case class BarEbarError(ebarError: String) extends BarError
 case class BarEmailError(ebarError: String) extends BarError
 
 case class UnknownError(detail: String) extends BarError
+
+object BarError {
+
+  implicit val barXmlErrorFormat = Json.writes[BarXmlError]
+  implicit val barXmlValidationErrorFormat = Json.writes[BarXmlValidationError]
+  implicit val barValidationErrorFormat = Json.writes[BarValidationError]
+  implicit val barSubmissionValidationErrorFormat = Json.writes[BarSubmissionValidationError]
+  implicit val barMongoErrorFormat = new OWrites[BarMongoError] {
+    override def writes(o: BarMongoError): JsObject = Json.obj("mongoError" -> o.error)
+  }
+  implicit val barEbarErrorFormat = Json.writes[BarEbarError]
+  implicit val barEmailErrorFormat = Json.writes[BarEmailError]
+  implicit val unknownErrorFormat = Json.writes[UnknownError]
+
+
+  implicit val format = Json.writes[BarError]
+}

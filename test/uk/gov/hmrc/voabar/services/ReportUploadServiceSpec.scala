@@ -19,8 +19,8 @@ package uk.gov.hmrc.voabar.services
 import java.net.URL
 import java.nio.file.Paths
 import java.time.ZonedDateTime
-
 import ebars.xml.BAreports
+
 import javax.xml.bind.JAXBContext
 import org.apache.commons.io.IOUtils
 import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
@@ -41,7 +41,8 @@ import org.mockito.Mockito.times
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector, VoaBarAuditConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
@@ -61,7 +62,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   "ReportUploadServiceSpec" must {
     "proces request " in {
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "ok"
@@ -69,7 +70,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     }
 
     "proces request for jaxbInput " in {
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val jaxbInput = aJaxbInput(getClass.getResource("/xml/CTValid1.xml"))
       val res = reportUploadService.upload(loginDetails, jaxbInput, uploadReference)
       res.map { result =>
@@ -81,7 +82,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
       val statusRepository = aCorrectStatusRepository()
 
-      val reportUploadService = new ReportUploadService(statusRepository, aValidationThrowError(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(statusRepository, aValidationThrowError(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
 
       res.map { result =>
@@ -99,7 +100,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val legacyConnector = aLegacyConnector()
       val xmlParser = mock[XmlParser]
 
-      val reportUploadService = new ReportUploadService(statusRepository, validationService,  legacyConnector, aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(statusRepository, validationService,  legacyConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         verify(statusRepository, times(1)).updateStatus(meq(uploadReference), meq(Pending))
@@ -110,7 +111,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
     "handle full XML" in {
       val fullXmlUrl = Paths.get("test/resources/xml/CTValid2.xml").toAbsolutePath.toUri.toURL.toString
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, fullXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "ok"
@@ -122,7 +123,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val baReport = Paths.get("test/resources/xml/CTValid2.xml").toAbsolutePath.toUri.toURL.toString
       val legacyConnector = aLegacyConnector()
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  legacyConnector, aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  legacyConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, baReport, uploadReference)
 
       res.map { result =>
@@ -144,7 +145,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val validationService = mock[ValidationService]
       when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Left(BarXmlError("validation error")))
       val statusRepository = aCorrectStatusRepository()
-      val reportUploadService = new ReportUploadService(statusRepository, validationService,  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(statusRepository, validationService,  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val resutl = reportUploadService.upload(loginDetails, aXmlUrl, "reference1")
 
       resutl.map { value =>
@@ -166,7 +167,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val validationService = mock[ValidationService]
       when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Left(xmlValidationError))
       val statusRepository = aCorrectStatusRepository()
-      val reportUploadService = new ReportUploadService(statusRepository, validationService,  aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(statusRepository, validationService,  aLegacyConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val resutl = reportUploadService.upload(loginDetails, aXmlUrl, "reference1")
 
 
@@ -186,7 +187,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         Future.failed(new RuntimeException("email sending failed"))
       }
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), emailConnector, aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  aLegacyConnector(), emailConnector, aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
@@ -200,7 +201,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         Future.failed(new RuntimeException("Can't send data to ebars."))
       }
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  legacyConnector, aEmailConnector(), aUpscanConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(),  legacyConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
@@ -316,8 +317,11 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
       }
     }
+  }
 
-
+  def aAuditConnector() = {
+    val hmrcAudit = mock[AuditConnector]
+    new VoaBarAuditConnector(hmrcAudit)
   }
 
 }
