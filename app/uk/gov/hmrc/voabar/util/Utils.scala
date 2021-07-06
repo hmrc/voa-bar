@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar
 import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.voabar.models.LoginDetails
 import javax.inject.{Inject, Singleton}
 
