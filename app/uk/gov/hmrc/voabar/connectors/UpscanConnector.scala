@@ -36,9 +36,10 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: Execu
   val logger = Logger(this.getClass)
 
   def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
+    import uk.gov.hmrc.http.HeaderNames._
 
     httpClient.url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID)): _*)
       .get().map { wsResponse =>
       Right(wsResponse.body[Array[Byte]])
     }.recover {

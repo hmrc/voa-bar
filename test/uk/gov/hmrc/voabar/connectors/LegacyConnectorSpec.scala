@@ -65,7 +65,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
     when(httpMock.POSTString(anyString, any[String], any[Seq[(String, String)]])(any[HttpReads[Any]],
       any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
-    when(httpMock.GET(anyString)(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
+    when(httpMock.GET(anyString, any[Seq[(String, String)]], any[Seq[(String, String)]])(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
     httpMock
   }
 

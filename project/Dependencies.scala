@@ -6,9 +6,9 @@ object Dependencies {
 
   private val mockitoAllVersion = "1.10.19"
   private val scalaTestPlusPlayVersion = "3.1.3"
-  private val httpCachingClientVersion = "9.2.0-play-26"
-  private val reactiveMongoVersion = "7.31.0-play-26"
-  private val bootstrapVersion = "2.3.0"
+  private val httpCachingClientVersion = "9.5.0-play-26"
+  private val reactiveMongoVersion = "8.0.0-play-26"
+  private val bootstrapVersion = "4.0.0"
   private val autobarsXsdVersion = "9.1.0"
   private val guiceUtilsVersion = "4.2.9"
   private val saxonHeVersion = "9.9.1-7"

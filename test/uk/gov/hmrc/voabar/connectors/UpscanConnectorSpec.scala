@@ -23,7 +23,7 @@ import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, WsTestClient}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.RequestId
+import uk.gov.hmrc.http.RequestId
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
