@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import akka.stream.Materializer
-import org.mockito.Mockito
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.test.FakeRequest
@@ -27,8 +25,6 @@ import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.voabar.models.UploadDetails
 import uk.gov.hmrc.voabar.services.ReportUploadService
 import play.api.test.Helpers.stubControllerComponents
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
@@ -64,9 +60,6 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   }
 
   "Return status 200 (OK) for a post carrying xml" in {
-
-    val xx = controller.upload().apply()
-
     val result = controller.upload()(fakeRequestWithXML)
     status(result) mustBe 200
   }

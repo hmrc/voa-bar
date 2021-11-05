@@ -23,8 +23,8 @@ import models.Purpose.Purpose
 import play.api.{Configuration, Environment}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.voabar.util.Utils
 import uk.gov.hmrc.voabar.models.LoginDetails
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,12 +35,17 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
                                        utils: Utils,
                                        environment: Environment)(implicit ec: ExecutionContext)
   extends EmailConnector {
-  val emailConfig = configuration.getConfig("microservice.services.email")
-    .getOrElse(throw new ConfigException.Missing("microservice.services.email"))
-  val emailUrl = s"${emailConfig.getString("protocol").getOrElse("http")}://${emailConfig.getString("host").get}:${emailConfig.getString("port").get}"
-  val needsToSendEmail = configuration.getBoolean("needToSendEmail").getOrElse(false)
-  val email = configuration.getString("email")
+
+  private val emailConfigPrefix = "microservice.services.email"
+  if (!configuration.has(emailConfigPrefix)) throw new ConfigException.Missing(emailConfigPrefix)
+  private val protocol = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
+  private val host = configuration.get[String](s"$emailConfigPrefix.host")
+  private val port = configuration.get[String](s"$emailConfigPrefix.port")
+  private val emailUrl = s"$protocol://$host:$port"
+  private val needsToSendEmail = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
+  private val email = configuration.getOptional[String]("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
+
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
     override def read(method: String, url: String, response: HttpResponse): Unit = Unit
   }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 import ebars.xml.BAreports
 
-import java.io.{ByteArrayInputStream, InputStream, StringReader}
+import java.io.InputStream
 import javax.xml.XMLConstants
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
@@ -104,7 +104,7 @@ class XmlValidator {
    * @param xmlInput
    * @return
    */
-  def validateInputXmlForXEE(xmlInput : InputStream) : Either[BarError, Unit] = {
+  def validateInputXmlForXEE(xmlInput : InputStream) : Either[BarError, Boolean] = {
 
     val errorHandler = new XmlErrorHandler
 

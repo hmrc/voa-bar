@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.models
 
 import ebars.xml.BAreports
-import play.api.libs.json.Json
 
 /**
   * Created by rgallet on 16/02/16.

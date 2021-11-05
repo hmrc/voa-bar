@@ -99,6 +99,7 @@ object DefaultWebBarsService {
           case JsString("Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
           case JsString("Cr01Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
           case JsString(Cr05Submission.REPORT_SUBMISSION_KEY) => Cr05Submission.format.reads(x("submission")).asOpt
+          case _ => None
         }
       }
   }

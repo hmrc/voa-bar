@@ -17,9 +17,11 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BandType, CtaxReasonForReportCodeContentType}
-import javax.xml.transform.stream.StreamSource
 import org.scalatest.{Matchers, OptionValues, WordSpecLike}
 import services.EbarsValidator
+
+import javax.xml.transform.stream.StreamSource
+import scala.collection.JavaConverters._
 
 /**
   * Created by rgallet on 09/12/15.
@@ -455,12 +457,11 @@ class EbarsXmlCutterCTSpec extends WordSpecLike with Matchers with OptionValues 
     "remove BS7666Address" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      import scala.collection.JavaConversions._
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
+      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
 
       EbarsXmlCutter.removeBS7666Address(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.find (_.getName.getLocalPart == "BS7666Address") should be(None)
+      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
     }
   }
 
@@ -468,12 +469,11 @@ class EbarsXmlCutterCTSpec extends WordSpecLike with Matchers with OptionValues 
     "remove PropertyGridCoords" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      import scala.collection.JavaConversions._
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
+      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
 
       EbarsXmlCutter.removePropertyGridCoords(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
+      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
 }

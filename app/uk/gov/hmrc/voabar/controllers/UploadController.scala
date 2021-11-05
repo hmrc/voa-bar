@@ -18,18 +18,17 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{ControllerComponents, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.models.{LoginDetails, UploadDetails}
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
-import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UploadController @Inject()(reportUploadService: ReportUploadService, configuration: Configuration, controllerComponents: ControllerComponents)
-                                (implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+  extends BackendController(controllerComponents) {
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 

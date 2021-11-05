@@ -31,7 +31,7 @@ import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 import javax.xml.bind.{JAXBContext, Marshaller}
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 
 
 class XmlSubmissionGeneratorScalacheckSpec extends FlatSpec with MustMatchers with EitherValues with ScalaCheckPropertyChecks {

@@ -22,6 +22,7 @@ import org.scalatest.Matchers._
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.BarXmlError
 
+import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml._
 
 class XmlParserSpec extends PlaySpec with EitherValues {
@@ -162,7 +163,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
 
   }
 
-  val multipleReportBatch = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+  val multipleReportBatch = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
 
   "A BAReport containing multiple BAReports" must {
 
@@ -177,7 +178,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
 
   "A BA batch submission" must  {
 
-    val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+    val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
     val result = xmlParser.oneReportPerBatch(report)
 
     "be parsed into multiple smaller batches" in {

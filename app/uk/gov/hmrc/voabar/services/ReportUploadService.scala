@@ -34,7 +34,6 @@ import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
-import javax.xml.parsers.DocumentBuilderFactory
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 

@@ -17,9 +17,9 @@
 package uk.gov.hmrc.voabar.controllers
 
 import org.mockito.Matchers._
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.when
 import org.scalatestplus.play.PlaySpec
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
 import play.api.libs.json.Json

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.connectors
 
-import play.api.libs.json.{JsString, OWrites, Writes}
+import play.api.libs.json.{JsString, OWrites}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.voabar.util.BillingAuthorities

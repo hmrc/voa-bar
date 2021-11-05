@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.connectors
 import models.Purpose
 import org.mockito.Matchers.{any, anyString}
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status
@@ -28,20 +28,20 @@ import play.api.inject.Injector
 import play.api.libs.json.{JsObject, JsValue, Writes}
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.voabar.util.Utils
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar  {
+class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
   private def injector: Injector = app.injector
+
   private val configuration = injector.instanceOf[Configuration]
   private val environment = injector.instanceOf[Environment]
   private val crypto = new ApplicationCrypto(configuration.underlying)
   private val utils = new Utils(crypto.JsonCrypto)
-  private implicit val hc = mock[HeaderCarrier]
   private val username = "username"
   private val password = "password"
   private val baCode = "BA1234"
@@ -52,25 +52,22 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
 
   def getHttpMock(returnedStatus: Int): HttpClient = {
     val httpMock = mock[HttpClient]
-    when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[Any]], any[HttpReads[Any]],
-      any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, None))
+    when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[JsValue]], any[HttpReads[Any]],
+      any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
     when(httpMock.POSTString(anyString, any[String], any[Seq[(String, String)]])(any[HttpReads[Any]],
-      any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, None))
-    when(httpMock.GET(anyString, any[Seq[(String, String)]], any[Seq[(String, String)]])(any[HttpReads[Any]], any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, None))
+      any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
+    when(httpMock.GET(anyString, any[Seq[(String, String)]], any[Seq[(String, String)]])(any[HttpReads[Any]], any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
     httpMock
   }
 
-  def getConfiguration(sendEmail: Boolean = true): Configuration = {
-    val configuration = mock[Configuration]
-    val emailConfig = mock[Configuration]
-    when(emailConfig.getString("host")).thenReturn(Some("localhost"))
-    when(emailConfig.getString("port")).thenReturn(Some("80"))
-    when(emailConfig.getString("protocol")).thenReturn(Some("http"))
-    when(configuration.getConfig("microservice.services.email")).thenReturn(Some(emailConfig))
-    when(configuration.getBoolean("needToSendEmail")).thenReturn(Some(sendEmail))
-    when(configuration.getString("email")).thenReturn(Some("foo@bar.co.uk"))
-    configuration
-  }
+  def getConfiguration(sendEmail: Boolean = true): Configuration =
+    Configuration(
+      "microservice.services.email.host"-> "localhost",
+      "microservice.services.email.port" -> "80",
+      "microservice.services.email.protocol" -> "http",
+      "needToSendEmail" -> sendEmail,
+      "email" -> "foo@bar.co.uk"
+    )
 
   "EmailConnector" must {
     "verify that the email service gets called when email needs to be sent" in {

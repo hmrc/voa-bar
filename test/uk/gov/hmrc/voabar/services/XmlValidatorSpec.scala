@@ -22,6 +22,7 @@ import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.voabar.util.{INVALID_XML_XSD, XmlTestParser}
 
+import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML
 
 class XmlValidatorSpec extends PlaySpec with EitherValues {
@@ -70,7 +71,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   "A invalid XML " must {
     "fail for wrong namespace" in {
-      val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+      val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"), UTF_8)
         .replaceAll("http://www.govtalk.gov.uk/LG/Valuebill", "uri:wrong")
 
       val doc = XmlTestParser.parseXml(invalidNamespaceDocument)
@@ -85,7 +86,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
     "fail for misspelled root element" in {
 
-      val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+      val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"), UTF_8)
         .replaceAll("BAreports", "bareports")
 
       val doc = XmlTestParser.parseXml(invalidNamespaceDocument)
@@ -100,7 +101,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   }
 
-  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
+  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8)
 
   "Xml validator" should {
 
@@ -130,7 +131,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
 //TODO - we are getting only one error. Should we validate with original file?
   "another test" should {
-    val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"))
+    val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"), UTF_8)
 
     "return a list of errors when a batch containing 32 reports has multiple errors" in {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors).toString()

@@ -18,11 +18,10 @@ package uk.gov.hmrc.voabar.controllers
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.mockito.MockitoSugar
+import akka.stream.Materializer
+import akka.stream.testkit.NoMaterializer
+import com.typesafe.config.ConfigFactory
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import org.mockito.Mockito.when
@@ -39,8 +38,9 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+
+  implicit val materializer: Materializer = NoMaterializer
+
   val id = "id"
   val date = ZonedDateTime.now
   val userId = "userId"
@@ -101,7 +101,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Right(Seq(reportStatus))))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getByUser()(fakeRequest).run()
+      val response = submissionStatusController.getByUser()(fakeRequest)
 
       status(response) mustBe OK
       contentAsJson(response) mustBe reportStatusesJson
@@ -111,7 +111,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Left(error)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getByUser()(fakeRequest).run()
+      val response = submissionStatusController.getByUser()(fakeRequest)
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
@@ -120,7 +120,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getByReference(any[String])) thenReturn(Future.successful(Right(reportStatus)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getByReference(id)(fakeRequest).run()
+      val response = submissionStatusController.getByReference(id)(fakeRequest)
 
       status(response) mustBe OK
       contentAsJson(response) mustBe reportStatusJson
@@ -130,7 +130,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getByReference(any[String])) thenReturn(Future.successful(Left(error)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getByReference(id)(fakeRequest).run()
+      val response = submissionStatusController.getByReference(id)(fakeRequest)
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
@@ -139,7 +139,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getAll()) thenReturn (Future.successful(Right(Seq(reportStatus))))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getAll()(fakeRequest).run()
+      val response = submissionStatusController.getAll()(fakeRequest)
 
       status(response) mustBe OK
       contentAsJson(response) mustBe reportStatusesJson
@@ -150,7 +150,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       when(submissionStatusRepositoryMock.getAll()) thenReturn(Future.successful(Left(error)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
-      val response = submissionStatusController.getAll()(fakeRequest).run()
+      val response = submissionStatusController.getAll()(fakeRequest)
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }

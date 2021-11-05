@@ -30,10 +30,10 @@ import services.EbarsValidator
 import uk.gov.hmrc.WiremockHelper
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.voabar.Utils
-import uk.gov.hmrc.voabar.connectors.{DefaultLegacyConnector, LegacyConnector}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.voabar.util.Utils
+import uk.gov.hmrc.voabar.connectors.DefaultLegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
 import scala.concurrent.duration._
@@ -45,8 +45,7 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with Gui
 
     val config = inject[Configuration]
 
-    val servicesConfig = new ServicesConfig(config ++ Configuration("microservice.services.autobars-stubs.port" -> port),
-      inject[RunMode])
+    val servicesConfig = new ServicesConfig(Configuration("microservice.services.autobars-stubs.port" -> port).withFallback(config))
 
     new DefaultLegacyConnector(inject[HttpClient], servicesConfig, inject[Utils], inject[ApplicationCrypto])
 

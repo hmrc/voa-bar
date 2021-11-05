@@ -18,8 +18,7 @@ package uk.gov.hmrc.repositories
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -32,7 +31,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.voabar.util.{CHARACTER, ErrorCode, INVALID_XML_XSD, TIMEOUT_ERROR}
+import uk.gov.hmrc.voabar.util.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -51,7 +50,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   "repository" should {
 
     "add error" in {
-      await(repo.collection.insert(BSONDocument(
+      await(repo.collection.insert(ordered = false).one(BSONDocument(
         "_id" -> "111"
       )))
 
@@ -64,7 +63,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     }
 
     "add error without description" in {
-      await(repo.collection.insert(BSONDocument(
+      await(repo.collection.insert(ordered = false).one(BSONDocument(
         "_id" -> "ggggg"
       )))
 
@@ -77,7 +76,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     }
 
     "update status" in {
-      await(repo.collection.insert(BSONDocument(
+      await(repo.collection.insert(ordered = false).one(BSONDocument(
         "_id" -> "222"
       )))
 
@@ -189,7 +188,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, created = ZonedDateTime.now().minusDays(91))
         ,true))
 
-      val reports = await(repo.collection.count(None))
+      val reports = await(repo.collection.count(None, None, 0, None, ReadConcern.Local))
 
       val submissionsFromDb = await(repo.getByUser("BA2020", None)).right.value
 

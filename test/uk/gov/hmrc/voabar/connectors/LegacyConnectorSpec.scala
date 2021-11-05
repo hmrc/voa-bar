@@ -19,31 +19,26 @@ package uk.gov.hmrc.voabar.connectors
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{any, anyString}
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.{AsyncFeatureSpec, AsyncWordSpecLike}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Configuration, Environment, Play}
 import play.api.http.Status
-import play.api.inject.Injector
 import play.api.libs.json.{JsValue, Writes}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.voabar.models.LoginDetails
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.voabar.util.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
 import scala.io.Source
 
 class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
-
-  private def injector: Injector = app.injector
 
   private def servicesConfig = app.injector.instanceOf[ServicesConfig]
   private def crypto = app.injector.instanceOf[ApplicationCrypto]
@@ -61,11 +56,11 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
   def getHttpMock(returnedStatus: Int): HttpClient = {
     val httpMock = mock[HttpClient]
-    when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[Any]], any[HttpReads[Any]],
-      any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
+    when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[JsValue]], any[HttpReads[Any]],
+      any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
     when(httpMock.POSTString(anyString, any[String], any[Seq[(String, String)]])(any[HttpReads[Any]],
-      any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
-    when(httpMock.GET(anyString, any[Seq[(String, String)]], any[Seq[(String, String)]])(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
+      any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
+    when(httpMock.GET(anyString, any[Seq[(String, String)]], any[Seq[(String, String)]])(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, ""))
     httpMock
   }
 
@@ -116,8 +111,6 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
     "provided with JSON directly" must {
       "call the Microservice" in {
-        implicit val headerCarrierNapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
-        implicit val httpReadsNapper = ArgumentCaptor.forClass(classOf[HttpReads[Any]])
         val urlCaptor = ArgumentCaptor.forClass(classOf[String])
         val httpMock = getHttpMock(Status.OK)
 

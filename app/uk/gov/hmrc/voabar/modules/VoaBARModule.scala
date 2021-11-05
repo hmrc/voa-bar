@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.modules
 
 import com.google.inject.Provides
-import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
 import services.EbarsValidator

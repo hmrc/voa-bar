@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.{ByteArrayInputStream, FilterInputStream, InputStream}
+import java.io.{FilterInputStream, InputStream}
 import java.math.BigInteger
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.GregorianCalendar

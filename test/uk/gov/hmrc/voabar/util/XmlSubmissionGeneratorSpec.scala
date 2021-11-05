@@ -21,7 +21,7 @@ import org.scalatest.{EitherValues, FlatSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import org.xmlunit.builder.Input
 import org.xmlunit.xpath.JAXPXPathEngine
-import uk.gov.hmrc.voabar.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, RemovalReasonType, RemoveProperty}
+import uk.gov.hmrc.voabar.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, RemoveProperty}
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
 
 import java.io.StringWriter

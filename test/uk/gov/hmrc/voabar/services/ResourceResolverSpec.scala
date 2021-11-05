@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 import org.scalatestplus.play.PlaySpec
-import org.w3c.dom.ls.LSInput
 
 class ResourceResolverSpec extends PlaySpec {
   val resolver = new ResourceResolver
@@ -33,7 +32,7 @@ class ResourceResolverSpec extends PlaySpec {
 
     "Throw an exception if the given file name doesn't exists in the specified path" in {
       intercept[Exception] {
-        val result = resolver.resolveResource("type", "namespace", "publicID", nonExistingFile, "publicURI")
+        resolver.resolveResource("type", "namespace", "publicID", nonExistingFile, "publicURI")
       }
     }
   }

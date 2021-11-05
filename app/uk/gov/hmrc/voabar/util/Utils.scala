@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar
+package uk.gov.hmrc.voabar.util
 
 import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted}
@@ -23,13 +23,12 @@ import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.voabar.models.LoginDetails
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.ExecutionContext
 
 @Singleton
 class Utils @Inject() (crypto: CompositeSymmetricCrypto) {
   def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
 
-  def generateHeader(loginDetails: LoginDetails)(implicit ec: ExecutionContext): HeaderCarrier = {
+  def generateHeader(loginDetails: LoginDetails): HeaderCarrier = {
     val decryptedPassword = loginDetails.password //TODO - should be encrypted. In next version.
     val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${decryptedPassword}".getBytes("UTF-8"))
     HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
