@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.nio.charset.StandardCharsets.UTF_8
 import org.apache.commons.io.IOUtils
-import org.scalatest.WordSpec
-import org.scalatest.Matchers._
 import org.scalatestplus.play.PlaySpec
 
 import scala.xml._
@@ -54,7 +53,7 @@ class MockBAReportBuilderSpec extends PlaySpec{
 
     "the mock BA report builder" must {
 
-      val batchSubmission = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+      val batchSubmission = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
 
       "modify a given report by replacing an existing element label with a new label" in {
         val result = reportBuilder.invalidateBatch(batchSubmission, Map("BAreportHeader" -> "invalidHeader"))

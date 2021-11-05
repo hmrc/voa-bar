@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 import java.io.Reader
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
 class InputSpec extends PlaySpec with MockitoSugar {

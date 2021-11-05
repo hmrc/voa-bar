@@ -18,11 +18,12 @@ package uk.gov.hmrc.voabar.controllers
 
 import cats.data.EitherT
 import cats.implicits._
+
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController}
+import play.api.mvc.{ControllerComponents, Request, Result}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,9 +31,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class UserReportUploadsController @Inject() (userReportUploadsRepository: UserReportUploadsRepository,
                                              controllerComponents: ControllerComponents
-                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) with Logging {
 
-  def getById(id: String) = Action.async(parse.empty) { implicit request =>
+  def getById(id: String) = Action.async {
     userReportUploadsRepository.getById(id).map(_.fold(
       _ => InternalServerError,
       userReportUpload => Ok(Json.toJson(userReportUpload))
@@ -43,7 +44,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
     request.body.validate[UserReportUpload] match {
       case userReportUpload: JsSuccess[UserReportUpload] => Right(userReportUpload.get)
       case _ => {
-        Logger.error(s"Couln't parse:\n${request.body.toString}")
+        logger.error(s"Couln't parse:\n${request.body.toString}")
         Left(BadRequest)
       }
     }

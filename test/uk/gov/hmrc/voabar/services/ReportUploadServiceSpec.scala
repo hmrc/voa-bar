@@ -24,7 +24,7 @@ import ebars.xml.BAreports
 import javax.xml.bind.JAXBContext
 import org.apache.commons.io.IOUtils
 import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.WsScalaTestClient
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
@@ -263,7 +263,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     val xmlParser = new XmlParser()
 
     val domDocument = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
-    val scalaNode = xmlParser.domToScala(domDocument).right.get
+    xmlParser.domToScala(domDocument).right.get
 
     val validationService = mock[ValidationService]
     when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Right(()))

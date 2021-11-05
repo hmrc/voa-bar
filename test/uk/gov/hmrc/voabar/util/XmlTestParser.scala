@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.voabar.util
 
-import java.io.StringReader
-
 import org.apache.commons.io.input.ReaderInputStream
 import org.w3c.dom.Document
 import uk.gov.hmrc.voabar.services.XmlParser
+
+import java.io.StringReader
+import java.nio.charset.StandardCharsets.UTF_8
 
 object XmlTestParser {
 
@@ -28,7 +29,7 @@ object XmlTestParser {
     val xmlParser = new XmlParser()
 
     val docBuilder = xmlParser.documentBuilderFactory.newDocumentBuilder()
-    docBuilder.parse(new ReaderInputStream(new StringReader(xml)))
+    docBuilder.parse(new ReaderInputStream(new StringReader(xml), UTF_8))
 
 
   }

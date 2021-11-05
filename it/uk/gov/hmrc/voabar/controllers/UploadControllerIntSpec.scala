@@ -22,7 +22,7 @@ import java.time.ZonedDateTime
 
 import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite

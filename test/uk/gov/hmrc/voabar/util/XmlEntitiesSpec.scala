@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.util
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.ByteArrayInputStream
 
 import io.inbot.utils.ReplacingInputStream
 import javax.xml.parsers.DocumentBuilderFactory

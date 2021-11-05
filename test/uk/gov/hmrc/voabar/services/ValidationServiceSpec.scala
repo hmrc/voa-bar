@@ -17,14 +17,12 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.xml.transform.stream.StreamSource
-import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError, ReportErrorDetail, ReportErrorDetailCode}
 import uk.gov.hmrc.voabar.util._
 
-import scala.xml.{Node, XML}
 
 class ValidationServiceSpec extends PlaySpec with EitherValues {
 

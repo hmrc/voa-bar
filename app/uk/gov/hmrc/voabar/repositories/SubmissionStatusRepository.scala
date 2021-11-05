@@ -26,11 +26,11 @@ import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDocument, BSONLong}
+import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
-import uk.gov.hmrc.voabar.util.{ErrorCode, TIMEOUT_ERROR, UNKNOWN_ERROR}
+import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -102,7 +102,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve BA reports with '$baCode'"
-          Logger.warn(s"$errorMsg\n${ex.getMessage}")
+          logger.warn(s"$errorMsg\n${ex.getMessage}")
           Left(BarMongoError(errorMsg))
         }
       }
@@ -119,7 +119,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve BA reports for reference $reference"
-          Logger.warn(s"$errorMsg\n${ex.getMessage}")
+          logger.warn(s"$errorMsg\n${ex.getMessage}")
           Left(BarMongoError(errorMsg))
         }
       }
@@ -134,7 +134,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve all BA reports"
-          Logger.warn(s"$errorMsg\n${ex.getMessage}")
+          logger.warn(s"$errorMsg\n${ex.getMessage}")
           Left(BarMongoError(errorMsg))
         }
       }
@@ -156,7 +156,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => {
           val errorMsg = "Error while saving submission"
-          Logger.error(errorMsg, ex)
+          logger.error(errorMsg, ex)
           Left(BarMongoError(errorMsg))
         }
       }
@@ -164,7 +164,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   private def getError(error: String): BarError = {
     val errorMsg = "Error while saving report status"
-    Logger.error(s"$errorMsg\n$error")
+    logger.error(s"$errorMsg\n$error")
     BarMongoError(errorMsg)
   }
 

@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import org.scalatest.mockito.MockitoSugar
+import akka.stream.testkit.NoMaterializer
+import akka.stream.Materializer
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
@@ -33,8 +33,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
+
+  implicit val materializer: Materializer = NoMaterializer
+
   val error = BarMongoError("error")
   val id = "id"
   val userReportUpload = UserReportUpload(
@@ -68,7 +69,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
       when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Right(Some(userReportUpload)))
       val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
-      val response = userReportUploadsController.getById(id)(fakeRequest).run()
+      val response = userReportUploadsController.getById(id)(fakeRequest)
 
       status(response) mustBe OK
       contentAsJson(response) mustBe json
@@ -78,7 +79,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
       when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Left(error))
       val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
-      val response = userReportUploadsController.getById(id)(fakeRequest).run()
+      val response = userReportUploadsController.getById(id)(fakeRequest)
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }

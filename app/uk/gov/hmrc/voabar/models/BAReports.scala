@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import uk.gov.hmrc.http.HeaderCarrier
-
 object EbarsRequests {
   case class BAReportRequest(
                               uuid: String,

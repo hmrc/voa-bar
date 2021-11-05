@@ -16,16 +16,14 @@
 
 package uk.gov.hmrc.voabar.util
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted, PlainText}
-import uk.gov.hmrc.voabar.Utils
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import uk.gov.hmrc.voabar.models.LoginDetails
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.http.HeaderCarrier
 

@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.FileUtils
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.voabar.services.{V1ValidationService, ValidationService}
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.voabar.services.V1ValidationService
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
@@ -39,7 +39,7 @@ class ValidateController @Inject() (controllerComponents: ControllerComponents,
 
     Future {
 
-      val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
+      val headerCarrier = HeaderCarrierConverter.fromRequest(request)
 
       val requestId = headerCarrier.requestId.map(_.value).getOrElse("None")
 

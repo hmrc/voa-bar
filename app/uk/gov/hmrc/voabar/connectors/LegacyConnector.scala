@@ -18,15 +18,17 @@ package uk.gov.hmrc.voabar.connectors
 
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
+
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
-import play.api.{Configuration, Logger}
+import play.api.Logging
 import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.voabar.util.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests._
 import uk.gov.hmrc.voabar.models.LoginDetails
 
@@ -38,7 +40,7 @@ import scala.concurrent.ExecutionContext
 class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 servicesConfig: ServicesConfig,
                                 utils: Utils,
-                                       applicationCrypto: ApplicationCrypto) extends LegacyConnector {
+                                       applicationCrypto: ApplicationCrypto) extends LegacyConnector with Logging {
 
   def  crypto = applicationCrypto.JsonCrypto
 
@@ -56,14 +58,14 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
         case Status.UNAUTHORIZED => Failure(new RuntimeException(
           s"Login attempt fails with username = ${loginDetails.username} password = ****, UNAUTHORIZED"))
         case _ => {
-          Logger.warn(s"Unable to authenticate user, other problem : status: ${response.status}, headers: ${response.allHeaders.mkString(",")}")
+          logger.warn(s"Unable to authenticate user, other problem : status: ${response.status}, headers: ${response.headers.mkString(",")}")
           Failure(new RuntimeException(
             s"Login attempt fails with username = ${loginDetails.username} password = ****, response code: ${response.status}"))
         }
       }
     } recover {
       case ex =>
-        Logger.warn("Legacy validation fails with exception " + ex.getMessage)
+        logger.warn("Legacy validation fails with exception " + ex.getMessage)
         Failure(new RuntimeException("Legacy validation fails with exception " + ex.getMessage))
     }
   }
@@ -73,6 +75,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   private val X_EBARS_ATTEMPT = "X-ebars-attempt"
   private val X_EBARS_UUID = "X-ebars-uuid"
   def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+
 
     val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password), headerCarrier)
       .withExtraHeaders(HeaderNames.CONTENT_TYPE ->  "text/plain; charset=UTF-8")
@@ -84,7 +87,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
         X_EBARS_PASSWORD -> crypto.encrypt(PlainText(baReport.password)).value,
         X_EBARS_ATTEMPT -> s"${baReport.attempt}",
         X_EBARS_UUID -> baReport.uuid)
-    )(HttpReads.readRaw, authHc, ec).flatMap { response =>
+    )(readRaw, authHc, ec).flatMap { response =>
       response.status match {
         case Status.OK => Future.successful(Status.OK)
         case Status.UNAUTHORIZED => Future.failed(new  RuntimeException("UNAUTHORIZED"))
@@ -95,7 +98,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
     } recoverWith {
       case ex =>
         val errorMsg = "Couldn't send BA Reports"
-        Logger.warn(s"$errorMsg\n${ex.getMessage}")
+        logger.warn(s"$errorMsg\n${ex.getMessage}")
         Future.failed(ex)
     }
   }

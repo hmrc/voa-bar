@@ -21,9 +21,9 @@ import java.time.ZonedDateTime
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError}
 import play.api.libs.json.{Format, Json}
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.ReadPreference
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -54,21 +54,20 @@ class DefaultUserReportUploadsRepository @Inject() (
   with UserReportUploadsRepository
 {
   private val indexName = UserReportUpload.name
-  private val key = "_id"
   private val expireAfterSeconds = "expireAfterSeconds"
   private val ttlPath = s"${UserReportUpload.name}.timeToLiveInSeconds"
-  private val ttl = config.getInt(ttlPath)
+  private val ttl = config.getOptional[Int](ttlPath)
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
   private def createIndex(): Unit = {
     collection.indexesManager.ensure(Index(Seq(("lastUpdated", IndexType.Descending)), Some(indexName),
       options = BSONDocument(expireAfterSeconds -> ttl))) map {
       result => {
-        Logger.debug(s"set [$indexName] with value $ttl -> result : $result")
+        logger.debug(s"set [$indexName] with value $ttl -> result : $result")
         result
       }
     } recover {
-      case e => Logger.error("Failed to set TTL index", e)
+      case e => logger.error("Failed to set TTL index", e)
         false
     }
   }
@@ -78,7 +77,7 @@ class DefaultUserReportUploadsRepository @Inject() (
       .recover {
         case e: Throwable => {
           val errorMsg = s"Error saving user report upload entry"
-          Logger.error(errorMsg)
+          logger.error(errorMsg)
           Left(models.BarMongoError(errorMsg))
         }
       }
@@ -90,7 +89,7 @@ class DefaultUserReportUploadsRepository @Inject() (
       .recover {
         case e: Throwable => {
           val errorMsg = s"Error getting user report upload entry for $id"
-          Logger.error(errorMsg)
+          logger.error(errorMsg)
           Left(BarMongoError(errorMsg))
         }
       }

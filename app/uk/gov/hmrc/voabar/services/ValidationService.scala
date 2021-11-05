@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
-import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, TextAddressStructure}
+import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports}
 
 import javax.inject.Singleton
 import javax.xml.bind.JAXBElement
@@ -26,7 +26,7 @@ import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarVal
 import uk.gov.hmrc.voabar.util._
 
 import scala.collection.JavaConverters._
-import scala.util.{Random, Try}
+import scala.util.Try
 
 @Singleton
 class ValidationService {
