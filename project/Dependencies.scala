@@ -9,7 +9,7 @@ object Dependencies {
   private val bootstrapVersion = "5.16.0"
   private val autobarsXsdVersion = "9.1.0"
   private val guiceUtilsVersion = "5.0.2"
-  private val catsEffectVersion = "3.2.8" // "2.1.4"
+  private val catsEffectVersion = "3.2.9"
   private val saxonHeVersion = "9.9.1-7"
   private val xercesVersion = "2.12.0"
   private val persistenceMoxyVersion = "2.6.9"
