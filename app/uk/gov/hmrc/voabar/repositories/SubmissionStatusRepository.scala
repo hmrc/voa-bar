@@ -54,8 +54,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   private val log = Logger(this.getClass)
   override def indexes: Seq[Index] = Seq (
-    Index(Seq("baCode" -> IndexType.Hashed), name = Some(s"${collectionName}_baCodeIdx")),
-    Index(Seq("created" -> IndexType.Descending), name = Some(s"${collectionName}_createdIdx")
+    // VOA-3276 For Mongo 4.2 index name must be the original index name used on creating index
+    Index(Seq("baCode" -> IndexType.Hashed), name = Some("null_baCodeIdx")),
+    Index(Seq("created" -> IndexType.Descending), name = Some("null_createdIdx")
       ,options = BSONDocument("expireAfterSeconds" -> ttl)) //TODO - This is broken, data are store as String(VOA-2189)
   )
 
