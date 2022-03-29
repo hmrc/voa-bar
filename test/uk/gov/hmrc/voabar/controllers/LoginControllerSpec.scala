@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.mockito.Matchers._
-import org.mockito.Mockito.when
+import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
 import play.api.libs.json.Json
@@ -34,13 +32,14 @@ import scala.concurrent.ExecutionContext
 
 class LoginControllerSpec extends PlaySpec with MockitoSugar {
   val fakeRequest = FakeRequest("GET", "/")
+
   def fakeRequestWithJson(jsonStr: String) = {
     val json = Json.parse(jsonStr)
     FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> "1234").withJsonBody(json)
   }
 
   val mockLegacyConnector = mock[LegacyConnector]
-  when (mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(200))
+  when(mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(OK))
 
   val mockLegacyConnectorFailed = mock[LegacyConnector]
   when (mockLegacyConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
@@ -91,6 +90,5 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
   }
-
 
 }

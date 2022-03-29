@@ -23,7 +23,7 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
@@ -60,7 +60,7 @@ class UserReportUploadsRepositorySpecextends extends PlaySpec with BeforeAndAfte
 
       resultFromDatabase mustBe('right)
 
-      val optionResultFromDatabase = resultFromDatabase.right.value
+      val optionResultFromDatabase = resultFromDatabase.value
 
       optionResultFromDatabase mustBe defined
       optionResultFromDatabase.value mustBe userReportUpload

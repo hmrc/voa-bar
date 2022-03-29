@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.voabar.util
 
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted, PlainText}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
 import uk.gov.hmrc.voabar.models.LoginDetails
 
 import org.apache.commons.codec.binary.Base64
@@ -46,7 +44,6 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
       "include some basic authorization in the header" in {
         val cryptoMock = mock[CompositeSymmetricCrypto]
-        when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
         val utils = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
@@ -62,7 +59,6 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
       "include some basic authorization in the header for existing header carrier" in {
         val cryptoMock = mock[CompositeSymmetricCrypto]
-        when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
         val utils = new Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 

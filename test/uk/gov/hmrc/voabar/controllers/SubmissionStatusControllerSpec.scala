@@ -21,11 +21,9 @@ import java.util.UUID
 import akka.stream.Materializer
 import akka.stream.testkit.NoMaterializer
 import com.typesafe.config.ConfigFactory
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
-import org.mockito.Mockito.when
-import org.mockito.Matchers.any
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.test.FakeRequest

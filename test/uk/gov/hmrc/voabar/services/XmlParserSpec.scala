@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
-import org.scalatest.Matchers._
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.BarXmlError
 
@@ -39,7 +38,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
     "successfuly parse xml to DOM" in {
       val document = xmlParser.parse(xmlBatchSubmissionAsString)
       document mustBe('right)
-      document.right.value.getDocumentElement().getNodeName mustBe("BAreports")
+      document.value.getDocumentElement.getNodeName mustBe("BAreports")
     }
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
@@ -203,7 +202,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
     "each batch should contain a single (non-empty) property report" in {
       val nonEmptyPropertyReports:Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
 
-      nonEmptyPropertyReports.size shouldBe 4
+      nonEmptyPropertyReports.size mustBe 4
       nonEmptyPropertyReports.forall(_.size == 1) mustBe true
     }
   }

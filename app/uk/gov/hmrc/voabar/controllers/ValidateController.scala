@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.apache.commons.io.FileUtils
-
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.ControllerComponents
@@ -25,6 +23,7 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.services.V1ValidationService
 
+import java.nio.file.Files
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
 @Singleton
@@ -46,7 +45,7 @@ class ValidateController @Inject() (controllerComponents: ControllerComponents,
       val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
 
       val rawXmlData = blocking {
-        FileUtils.readFileToByteArray(request.body.path.toFile)
+        Files.readAllBytes(request.body.path)
       }
 
       v1ValidationService.fixAndValidateAsV2(rawXmlData, baLogin, requestId, v1ProcessingStatus)

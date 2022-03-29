@@ -17,15 +17,18 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.xml.transform.stream.StreamSource
-import org.scalatest.{Matchers, OptionValues, WordSpecLike}
+import org.scalatest.OptionValues
+import org.scalatest.matchers.should
+import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.services.NdrRules.{Rt01AndRt02AndRt03AndRt04MissingProposedEntry, Rt01AndRt02AndRt03AndRt04RemoveExistingEntries, Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry, Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries}
+import uk.gov.hmrc.voabar.services.NdrRules._
+
 import scala.collection.JavaConverters._
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineNdrSpec extends WordSpecLike with Matchers with OptionValues {
+class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with OptionValues {
   val ebarsValidator = new EbarsValidator
 
   "RemoveBS7666Addresses" should {

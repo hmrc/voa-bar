@@ -16,14 +16,17 @@
 
 package uk.gov.hmrc.voabar.services
 
+import org.scalatest.matchers.should
+import org.scalatest.wordspec.AnyWordSpec
+
 import javax.xml.transform.stream.StreamSource
-import org.scalatest.{Matchers, OptionValues, WordSpecLike}
+import org.scalatest.OptionValues
 import services.EbarsValidator
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterNDRSpec extends WordSpecLike with Matchers with OptionValues {
+class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues {
   val ebarsValidator = new EbarsValidator
 
   "extracting CR code" should {

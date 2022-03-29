@@ -17,7 +17,9 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BandType, CtaxReasonForReportCodeContentType}
-import org.scalatest.{Matchers, OptionValues, WordSpecLike}
+import org.scalatest.matchers.should
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.OptionValues
 import services.EbarsValidator
 
 import javax.xml.transform.stream.StreamSource
@@ -26,7 +28,7 @@ import scala.collection.JavaConverters._
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterCTSpec extends WordSpecLike with Matchers with OptionValues {
+class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionValues {
   val ebarsValidator = new EbarsValidator
 
   "extracting CR code" should {

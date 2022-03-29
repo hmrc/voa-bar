@@ -18,7 +18,7 @@ package uk.gov.hmrc.repositories
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -110,7 +110,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       res mustBe ('right)
 
-      res.right.value mustBe reportStatus
+      res.value mustBe reportStatus
 
 
     }
@@ -123,9 +123,9 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val reportFromDb = await(repo.getByReference(report.id))
 
-      reportFromDb.right.value.status.value mustBe(Failed.value)
+      reportFromDb.value.status.value mustBe Failed.value
 
-      reportFromDb.right.value.errors.value mustBe(Seq(Error(TIMEOUT_ERROR)))
+      reportFromDb.value.errors.value mustBe Seq(Error(TIMEOUT_ERROR))
 
     }
 
@@ -144,11 +144,11 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
         val reportFromDb = await(repo.getByReference(report.id))
 
-        reportFromDb.right.value.status.value mustBe(finalState)
+        reportFromDb.value.status.value mustBe finalState
 
-        reportFromDb.right.value.errors mustBe errors
+        reportFromDb.value.errors mustBe errors
 
-        reportFromDb.right.value mustBe report
+        reportFromDb.value mustBe report
       }
     }
 
@@ -165,7 +165,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
         Some(10),
       )
       await(repo.saveOrUpdate(submissionToStore,true))
-      val submissionFromDb = await(repo.getByReference(submissionToStore.id)).right.value
+      val submissionFromDb = await(repo.getByReference(submissionToStore.id)).value
       submissionFromDb.baCode.value mustBe(submissionToStore.baCode.get)
 
     }
@@ -190,7 +190,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val reports = await(repo.collection.count(None, None, 0, None, ReadConcern.Local))
 
-      val submissionsFromDb = await(repo.getByUser("BA2020", None)).right.value
+      val submissionsFromDb = await(repo.getByUser("BA2020", None)).value
 
       reports mustBe(2)
 
