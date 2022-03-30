@@ -4,10 +4,10 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val httpCachingClientVersion = "9.6.0-play-28"
-  private val reactiveMongoVersion = "8.0.0-play-28"
   private val bootstrapVersion = "5.21.0"
+  private val hmrcMongoVersion = "0.62.0"
   private val autobarsXsdVersion = "9.1.0"
+  private val httpCachingClientVersion = "9.6.0-play-28"
   private val guiceUtilsVersion = "5.0.2"
   private val catsEffectVersion = "3.3.8"
   private val saxonHeVersion = "11.2"
@@ -27,9 +27,9 @@ object Dependencies {
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "simple-reactivemongo"         % reactiveMongoVersion,
     ws,
     "uk.gov.hmrc" %% "bootstrap-backend-play-28"    % bootstrapVersion,
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"     % hmrcMongoVersion,
     "uk.gov.hmrc" %% "autobars-xsd"                 % autobarsXsdVersion,
     "uk.gov.hmrc" %% "http-caching-client"          % httpCachingClientVersion,
     "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
