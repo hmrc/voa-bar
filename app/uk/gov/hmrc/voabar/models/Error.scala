@@ -17,14 +17,16 @@
 package uk.gov.hmrc.voabar.models
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 import uk.gov.hmrc.voabar.util.ErrorCode
+import org.bson.types._
+import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.model._
 
 
 case class Error(code: ErrorCode, values: Seq[String] = Seq(), submissionDetail: Option[String] = None)
 
 object Error {
   implicit val format = Json.format[Error]
-  implicit val errorHandler: BSONHandler[BSONDocument, Error] =  Macros.handler[Error]
+  implicit val errorHandler: BSONHandler[BsonDocument, Error] =  Macros.handler[Error]
 
 }

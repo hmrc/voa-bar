@@ -18,7 +18,8 @@ package uk.gov.hmrc.voabar.util
 
 import scala.reflect.runtime.universe._
 import play.api.libs.json._
-import reactivemongo.bson.{BSONReader, BSONString, BSONWriter}
+import org.bson.types._
+import org.mongodb.scala.model._
 
 sealed trait ErrorCode { val errorCode: String }
 case object CHARACTER extends ErrorCode {val errorCode = "1000"}
@@ -73,4 +74,3 @@ object ErrorCode {
 
   implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
 }
-
