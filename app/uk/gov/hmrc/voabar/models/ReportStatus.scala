@@ -17,9 +17,8 @@
 package uk.gov.hmrc.voabar.models
 
 import java.time.ZonedDateTime
-
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats.mongoEntity
 
 sealed trait ReportStatusType {
   val value: String = {
@@ -59,9 +58,9 @@ final case class ReportStatus(
 }
 
 object ReportStatus {
-  import ReactiveMongoFormats.mongoEntity
 
-  implicit val format =  mongoEntity {
+  implicit val format: Format[ReportStatus] = mongoEntity {
     Json.using[Json.WithDefaultValues].format[ReportStatus]
   }
+
 }

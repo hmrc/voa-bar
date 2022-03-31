@@ -17,8 +17,11 @@
 package uk.gov.hmrc.voabar.util
 
 import com.typesafe.config.ConfigException
-import org.mongodb.scala.model.IndexOptions
-import play.api.Configuration
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.{Filters, IndexOptions}
+import play.api.{Configuration, Logger}
+import uk.gov.hmrc.mongo.play.json.Codecs
+import uk.gov.hmrc.voabar.models.BarMongoError
 
 import java.util.concurrent.TimeUnit
 
@@ -27,13 +30,27 @@ import java.util.concurrent.TimeUnit
  */
 object PlayMongoUtil {
 
+  val _id = "_id"
+
+  def byId(id: String): Bson = Filters.equal(_id, Codecs.toBson(id))
+
+  def handleMongoError(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] = {
+    logger.error(errorMsg, ex)
+    Left(BarMongoError(errorMsg))
+  }
+
+  def handleMongoWarn(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] = {
+    logger.warn(s"$errorMsg\n${ex.getMessage}")
+    Left(BarMongoError(errorMsg))
+  }
+
   def indexOptionsWithTTL(indexName: String, collectionName: String, config: Configuration): IndexOptions =
     IndexOptions().name(indexName)
       .expireAfter(ttlSeconds(collectionName, config), TimeUnit.SECONDS)
 
   private def ttlSeconds(collectionName: String, config: Configuration): Long = {
     val ttlPath = s"$collectionName.timeToLiveInSeconds"
-    config.getOptional[Int](ttlPath)
+    config.getOptional[Long](ttlPath)
       .getOrElse(throw new ConfigException.Missing(ttlPath))
   }
 

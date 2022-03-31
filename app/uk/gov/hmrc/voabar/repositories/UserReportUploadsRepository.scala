@@ -20,18 +20,17 @@ import java.time.ZonedDateTime
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError}
+import uk.gov.hmrc.voabar.models.BarError
 import play.api.libs.json.Json
 import play.api.{Configuration, Logging}
-import uk.gov.hmrc.voabar.models
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.bson.types._
 import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import uk.gov.hmrc.voabar.util.PlayMongoUtil.indexOptionsWithTTL
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptionsWithTTL}
 
 final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpdated: ZonedDateTime = ZonedDateTime.now)
 
@@ -58,23 +57,17 @@ class DefaultUserReportUploadsRepository @Inject() (
     collection.insertOne(userReportUpload).toFuture
       .map(_ => Right(Unit))
       .recover {
-        case e: Throwable =>
-          val errorMsg = s"Error saving user report upload entry"
-          logger.error(errorMsg, e)
-          Left(models.BarMongoError(errorMsg))
+        case ex: Throwable => handleMongoError("Error saving user report upload entry", ex, logger)
       }
   }
 
   override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] = {
     //implicit val idf: Format[String] = implicitly[Format[String]]
     collection.withReadPreference(ReadPreference.primary)
-      .find(Filters.equal("_id", Codecs.toBson(id))).headOption
+      .find(byId(id)).headOption
       .map(Right(_))
       .recover {
-        case e: Throwable =>
-          val errorMsg = s"Error getting user report upload entry for $id"
-          logger.error(errorMsg, e)
-          Left(BarMongoError(errorMsg))
+        case ex: Throwable => handleMongoError(s"Error getting user report upload entry for $id", ex, logger)
       }
   }
 
