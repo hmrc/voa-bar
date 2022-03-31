@@ -21,21 +21,19 @@ import java.time.format.DateTimeFormatter
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import scala.concurrent.{ExecutionContext, Future}
-import org.bson.types._
 import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Projections._
-import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Filters.{and, equal, gt}
+import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
-import org.mongodb.scala.model._
+import org.mongodb.scala.model.{FindOneAndReplaceOptions, _}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
@@ -65,14 +63,13 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   val timeoutMinutes = 120
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
-    val reportDataJson = Json.toJson(reportStatus).as[JsObject] - _id
-    val modifier = Seq(
-      set(reportDataJson.as[BsonDocument])
-    )
-
-    atomicSaveOrUpdate(reportStatus.id, modifier, upsert)
-  }
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] =
+    collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
+      .toFutureOption()
+      .map(_ => Right(Unit))
+      .recover {
+        case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
+      }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
     val modifier = Seq(
@@ -89,17 +86,15 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .withMinute(0)
       .format(DateTimeFormatter.ISO_DATE_TIME)
 
-    val q = Json.obj(
-      "baCode" -> baCode,
-      "created" -> Json.obj(
-        "$gt" -> isoDate
-      )
-    )
+    val filters = Seq(
+      equal("baCode", baCode),
+      gt("created", isoDate)
+    ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
-    val finder = filterStatus.fold(q)(status => q.+("status" -> JsString(status)))
+    val finder = and(filters: _*)
 
-    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus]()
-      .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
+    collection.withReadPreference(ReadPreference.primary)
+      .find(finder).sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
@@ -109,8 +104,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
-    collection.find(byId(reference)).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
-      .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
+    collection.withReadPreference(ReadPreference.primary)
+      .find(byId(reference)).sort(descending("created")).toFuture()
       .flatMap { res =>
         checkAndUpdateSubmissionStatus(res.head).map(Right(_))
       }
@@ -120,8 +115,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
-    collection.find().sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
-      .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
+    collection.withReadPreference(ReadPreference.primary)
+      .find().sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
@@ -169,7 +164,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
     collection.deleteOne(deleteSelector).toFutureOption()
       .map { deleteResult =>
-        val response = Json.obj("n" -> deleteResult.map(_.getDeletedCount).getOrElse(0L))
+        val deletedCount = deleteResult.map(_.getDeletedCount).getOrElse(0L)
+        val response = Json.obj("n" -> deletedCount)
         logger.warn(s"Deletion on $collectionName done, returning response : $response")
         Right(response)
       }
@@ -193,7 +189,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
     val update = Seq(
       set("status", Failed.value),
-      set("errors", Json.arr(Error(TIMEOUT_ERROR))) // TODO: BSON array !!!
+      push("errors", Error(TIMEOUT_ERROR))
     )
 
     collection

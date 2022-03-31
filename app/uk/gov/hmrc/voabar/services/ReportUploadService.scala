@@ -84,6 +84,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       .map {
         case Right(v) => v
         case Left(a) => {
+          import BarError._
           audit.reportUploadFailed(login.username, a)
           handleError(uploadReference, a, login)
           "failed"
@@ -214,9 +215,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
             .map(_ => sendConfirmationEmail(submissionId, login))
         }
       }
-      case BarMongoError(error, updateWriteResult) => {
-        //Something really, really bad, bad bad, we don't have mongo :(
-        logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+      case BarMongoError(error) => {
+        logger.warn(s"Mongo exception, unable to update status of submission, submissionId: $submissionId. $error")
       }
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))).flatMap { _ =>
@@ -257,7 +257,5 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     resutl.value
   }
-
-
 
 }

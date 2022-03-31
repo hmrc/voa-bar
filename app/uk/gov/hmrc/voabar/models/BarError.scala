@@ -50,5 +50,5 @@ object BarError {
   implicit val unknownErrorFormat = Json.writes[UnknownError]
 
 
-  implicit val format = Json.writes[BarError]
+  implicit val format: OWrites[BarError] = Json.writes[BarError]
 }
