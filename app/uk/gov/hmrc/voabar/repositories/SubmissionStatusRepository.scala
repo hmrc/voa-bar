@@ -21,14 +21,13 @@ import java.time.format.DateTimeFormatter
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.mongodb.scala.ReadPreference
-import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal, gt}
 import org.mongodb.scala.model.Sorts.descending

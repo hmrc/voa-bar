@@ -92,7 +92,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     "stop any work after update error" ignore { //Status update removed, we record only final status or error
       val statusRepository = mock[SubmissionStatusRepository]
       when(statusRepository.updateStatus(any[String], any[ReportStatusType]))
-        .thenReturn(Future.successful(Left(BarMongoError("mongo is broken", None))))
+        .thenReturn(Future.successful(Left(BarMongoError("mongo is broken"))))
       val validationService = aValidationService()
       val legacyConnector = aLegacyConnector()
       val xmlParser = mock[XmlParser]

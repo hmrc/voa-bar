@@ -83,12 +83,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
       .map {
         case Right(v) => v
-        case Left(a) => {
-          import BarError._
-          audit.reportUploadFailed(login.username, a)
-          handleError(uploadReference, a, login)
+        case Left(barError) =>
+          audit.reportUploadFailed(login.username, barError)
+          handleError(uploadReference, barError, login)
           "failed"
-        }
       }
   }
 

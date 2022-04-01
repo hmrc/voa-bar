@@ -21,11 +21,10 @@ import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.voabar.models.BarError
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
-import org.bson.types._
 import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.MongoComponent
@@ -35,7 +34,7 @@ import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptio
 final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpdated: ZonedDateTime = ZonedDateTime.now)
 
 object UserReportUpload {
-  implicit val format = Json.format[UserReportUpload]
+  implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
   final val name = classOf[UserReportUpload].getSimpleName.toLowerCase
 }
 
