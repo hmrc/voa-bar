@@ -89,7 +89,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, dateTime, None, None, Option(Seq()), Seq.empty, Option("BA2220"), Some(Failed.value))
+      val reportStatus = ReportStatus(guid, dateTime, None, None, Seq(), Seq.empty, Option("BA2220"), Some(Failed.value))
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
 
@@ -111,18 +111,18 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       reportFromDb.value.status.value mustBe Failed.value
 
-      reportFromDb.value.errors.value mustBe Seq(Error(TIMEOUT_ERROR))
+      reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
     }
 
     "Not change status or anything else for final submission state" in {
       import org.scalatest.prop.TableDrivenPropertyChecks._
       val finalStates = Table(("Final state", "errors"),
-        (Submitted.value, Option(Seq())),
-        (Done.value, Option(Seq())),
-        (Failed.value, Option(Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
+        (Submitted.value, Seq()),
+        (Done.value, Seq()),
+        (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters"))))
       )
 
-      forAll (finalStates) { case (finalState: String, errors: Option[Seq[Error]]) =>
+      forAll (finalStates) { case (finalState: String, errors: Seq[Error]) =>
         val report = aReport().copy(created = ZonedDateTime.now.minusDays(21), status = Option(finalState), errors = errors)
 
         await(repo.collection.insertOne(report).toFutureOption())
@@ -142,7 +142,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
-        Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         Seq.empty,
         Option("BA2020"),
         Option(Submitted.value),
@@ -161,7 +161,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
-        Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         Seq.empty,
         Option("BA2020"),
         Option(Submitted.value),
@@ -184,7 +184,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   }
 
   def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now, None, None, None, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None)
+    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now, None, None, Seq.empty, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None)
 
   override protected def afterAll(): Unit = {
     await(mongoComponent.database.drop().toFutureOption())

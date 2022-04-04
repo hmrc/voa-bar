@@ -153,7 +153,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
       reportStatus.created.toString,
-      reportStatus.errors.getOrElse(Seq()).map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
+      reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(Unit))
       .recover{
         case ex: Throwable => {

@@ -42,7 +42,7 @@ final case class ReportStatus(
                                created: ZonedDateTime,
                                url: Option[String] = None,
                                checksum: Option[String] = None,          //TODO -  Do we nee this?
-                               errors: Option[Seq[Error]] = Some(Seq()), //TODO - doesn't need to be Option, Seq is also Option
+                               errors: Seq[Error] = Seq(),
                                reportErrors: Seq[ReportError] = Seq(),
                                baCode: Option[String] = None,            //TODO - Make mandatory. Submission without BA can't exist.
                                status: Option[String] = Some(Pending.value), //TODO - Make this mandatory and for all new put default values in deserialisation
