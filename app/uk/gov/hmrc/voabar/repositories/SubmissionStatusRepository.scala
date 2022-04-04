@@ -74,12 +74,12 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
-    val modifier = Seq(
+    val modifierSeq = Seq(
       set("baCode", userId),
       set("created", ZonedDateTime.now.toString)
     )
 
-    atomicSaveOrUpdate(reference, modifier, upsert)
+    atomicSaveOrUpdate(reference, modifierSeq, upsert)
   }
 
   override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
@@ -128,23 +128,19 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
-    val modifier = Seq(
-      pushEach("errors", errors: _*)
-    )
+    val modifier = pushEach("errors", errors: _*)
 
     addErrorsByModifier(submissionId, modifier)
   }
 
   override def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]] = {
-    val modifier = Seq(
-      push("errors", error)
-    )
+    val modifier = push("errors", error)
 
     addErrorsByModifier(submissionId, modifier)
   }
 
   override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
-    val modifier = Seq(
+    val modifier = Updates.combine(
       set("status", status.value)
     )
 
@@ -152,7 +148,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]] = {
-    val modifier = Seq(
+    val modifier = Updates.combine(
       set("status", status.value),
       set("totalReports", totalReports)
     )
@@ -189,7 +185,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
-    val update = Seq(
+    val update = Updates.combine(
       set("status", Failed.value),
       push("errors", Error(TIMEOUT_ERROR))
     )
@@ -204,7 +200,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  private def updateStatusByModifier(submissionId: String, modifier: Seq[Bson]): Future[Either[BarMongoError, Boolean]] =
+  private def updateStatusByModifier(submissionId: String, modifier: Bson): Future[Either[BarMongoError, Boolean]] =
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
@@ -217,7 +213,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
         case ex: Throwable => handleMongoError(s"Unable to update report status for $submissionId", ex, logger)
       }
 
-  private def addErrorsByModifier(submissionId: String, modifier: Seq[Bson]): Future[Either[BarMongoError, Boolean]] =
+  private def addErrorsByModifier(submissionId: String, modifier: Bson): Future[Either[BarMongoError, Boolean]] =
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
@@ -230,14 +226,14 @@ class SubmissionStatusRepositoryImpl @Inject()(
         case ex: Throwable => handleMongoError(s"Unable to record error message for $submissionId", ex, logger)
       }
 
-  private def atomicSaveOrUpdate(id: String, update: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit.type]] = {
-    val updateDocument = if (upsert) {
-      update :+ setOnInsert(_id, id)
+  private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit.type]] = {
+    val updateSeq = if (upsert) {
+      modifierSeq :+ setOnInsert(_id, id)
     } else {
-      update
+      modifierSeq
     }
 
-    collection.findOneAndUpdate(byId(id), updateDocument, FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
+    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
       .map(_ => Right(Unit))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)

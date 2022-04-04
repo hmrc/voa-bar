@@ -37,7 +37,7 @@ import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
-import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, SubmissionStatusRepositoryImpl}
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,8 +60,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   lazy val controller = app.injector.instanceOf[UploadController]
   lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
-  lazy val collection = mongoComponent.database.getCollection[ReportStatus]("submissions")
-  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepository].asInstanceOf[SubmissionStatusRepositoryImpl]
+  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
   lazy val configuration = app.injector.instanceOf[play.api.Configuration]
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto

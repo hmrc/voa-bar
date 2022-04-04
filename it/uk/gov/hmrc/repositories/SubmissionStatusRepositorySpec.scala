@@ -19,14 +19,13 @@ package uk.gov.hmrc.repositories
 import java.time.ZonedDateTime
 import java.util.UUID
 import org.mockito.scalatest.MockitoSugar
-import org.mongodb.scala.model.{Filters, InsertOneOptions}
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.voabar.util.PlayMongoUtil._id
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR}
@@ -47,8 +46,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     "add error" in {
       val submissionId = "111"
-      await(repo.collection.insertOne(ReportStatus(submissionId, ZonedDateTime.now),
-        InsertOneOptions().bypassDocumentValidation(false)).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus(submissionId, ZonedDateTime.now)).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
 
@@ -113,7 +111,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       reportFromDb.value.status.value mustBe Failed.value
 
-      reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
+      reportFromDb.value.errors.value mustBe Seq(Error(TIMEOUT_ERROR))
     }
 
     "Not change status or anything else for final submission state" in {
@@ -159,7 +157,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     "Not return submission older 90 days" in {
       import uk.gov.hmrc.voabar.util._
 
-      await(repo.collection.deleteMany(Filters.ne(_id, "deleteAll")).toFutureOption())
+      await(repo.collection.deleteMany(Document()).toFutureOption())
 
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
