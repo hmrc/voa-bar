@@ -19,21 +19,17 @@ package uk.gov.hmrc.repositories
 import java.time.ZonedDateTime
 import java.util.UUID
 import org.mockito.scalatest.MockitoSugar
+import org.mongodb.scala.model.{Filters, InsertOneOptions}
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.ReadConcern
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.voabar.util.PlayMongoUtil._id
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   with EitherValues with DefaultAwaitTimeout with FutureAwaits  with GuiceOneAppPerSuite with MockitoSugar {
@@ -42,82 +38,74 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
     .build()
 
-  lazy val mongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+  lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
 
 
-  val repo = app.injector.instanceOf(classOf[SubmissionStatusRepositoryImpl])
+  val repo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
 
   "repository" should {
 
     "add error" in {
-      await(repo.collection.insert(ordered = false).one(BSONDocument(
-        "_id" -> "111"
-      )))
+      val submissionId = "111"
+      await(repo.collection.insertOne(ReportStatus(submissionId, ZonedDateTime.now),
+        InsertOneOptions().bypassDocumentValidation(false)).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
 
-      val dbResult = await(repo.addError("111", reportStatusError))
+      val dbResult = await(repo.addError(submissionId, reportStatusError))
 
       dbResult must be('right)
 
+      val submission = await(repo.getByReference(submissionId))
+      println(submission)
     }
 
     "add error without description" in {
-      await(repo.collection.insert(ordered = false).one(BSONDocument(
-        "_id" -> "ggggg"
-      )))
+      await(repo.collection.insertOne(ReportStatus("ggggg", ZonedDateTime.now)).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , List())
 
       val dbResult = await(repo.addError("ggggg", reportStatusError))
 
       dbResult must be('right)
-
     }
 
     "update status" in {
-      await(repo.collection.insert(ordered = false).one(BSONDocument(
-        "_id" -> "222"
-      )))
+      await(repo.collection.insertOne(ReportStatus("222", ZonedDateTime.now)).toFutureOption())
 
       val dbResult = await(repo.updateStatus("222", Submitted))
 
       dbResult must be('right)
-
     }
 
-    "failed for nonExisting UUID" ignore {
-        val dbResul = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
+    "failed for nonExisting UUID" in {
+        val dbResult = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
 
-        dbResul mustBe('Left)
-
-        dbResul.left.value mustBe a [BarMongoError]
-
+        dbResult mustBe 'left
+        dbResult mustBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
     }
 
     "serialise and deserialize ReportStatus" in {
 
-      val dateTime = ZonedDateTime.now()
+      val dateTime = ZonedDateTime.now
 
       val guid = UUID.randomUUID().toString
 
       val reportStatus = ReportStatus(guid, dateTime, None, None, Option(Seq()), Seq.empty, Option("BA2220"), Some(Failed.value))
 
-      await(repo.insert(reportStatus))
+      await(repo.collection.insertOne(reportStatus).toFutureOption())
 
 
       val res = await(repo.getByReference(guid))
 
-      res mustBe ('right)
+      res mustBe 'right
 
       res.value mustBe reportStatus
-
-
     }
 
     "Change status to failed for submission after timeout" in {
 
-      val report = aReport().copy(created = ZonedDateTime.now().minusMinutes(121))
+      val report = aReport().copy(created = ZonedDateTime.now.minusMinutes(121))
 
       await(repo.saveOrUpdate(report, true))
 
@@ -125,8 +113,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       reportFromDb.value.status.value mustBe Failed.value
 
-      reportFromDb.value.errors.value mustBe Seq(Error(TIMEOUT_ERROR))
-
+      reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
     }
 
     "Not change status or anything else for final submission state" in {
@@ -138,9 +125,9 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       )
 
       forAll (finalStates) { case (finalState: String, errors: Option[Seq[Error]]) =>
-        val report = aReport().copy(created = ZonedDateTime.now().minusDays(21), status = Option(finalState), errors = errors)
+        val report = aReport().copy(created = ZonedDateTime.now.minusDays(21), status = Option(finalState), errors = errors)
 
-        await(repo.insert(report))
+        await(repo.collection.insertOne(report).toFutureOption())
 
         val reportFromDb = await(repo.getByReference(report.id))
 
@@ -166,14 +153,13 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       )
       await(repo.saveOrUpdate(submissionToStore,true))
       val submissionFromDb = await(repo.getByReference(submissionToStore.id)).value
-      submissionFromDb.baCode.value mustBe(submissionToStore.baCode.get)
-
+      submissionFromDb.baCode.value mustBe submissionToStore.baCode.get
     }
 
     "Not return submission older 90 days" in {
       import uk.gov.hmrc.voabar.util._
 
-      await(repo.collection.delete(false).one(Json.obj()))
+      await(repo.collection.deleteMany(Filters.ne(_id, "deleteAll")).toFutureOption())
 
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
@@ -185,28 +171,26 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
         Some(10),
       )
       await(repo.saveOrUpdate(submissionToStore,true))
-      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, created = ZonedDateTime.now().minusDays(91))
+      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, created = ZonedDateTime.now.minusDays(91))
         ,true))
 
-      val reports = await(repo.collection.count(None, None, 0, None, ReadConcern.Local))
+      val reports = await(repo.collection.countDocuments().toFutureOption())
 
       val submissionsFromDb = await(repo.getByUser("BA2020", None)).value
 
-      reports mustBe(2)
+      reports.value mustBe 2
 
-      submissionsFromDb must have size(1)
-      submissionsFromDb must contain only(submissionToStore)
-
+      submissionsFromDb must have size 1
+      submissionsFromDb must contain only submissionToStore
     }
   }
 
-  def aReport(): ReportStatus = {
-    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now(), None, None, None, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None
-    )
-  }
+  def aReport(): ReportStatus =
+    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now, None, None, None, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None)
 
   override protected def afterAll(): Unit = {
-    mongoComponent.mongoConnector.db().drop()
-    mongoComponent.mongoConnector.close()
+    await(mongoComponent.database.drop().toFutureOption())
+    mongoComponent.client.close()
   }
+
 }

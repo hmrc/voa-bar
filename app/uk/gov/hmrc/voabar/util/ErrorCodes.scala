@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.voabar.util
 
+import org.bson.BsonValue
+
 import scala.reflect.runtime.universe._
 import play.api.libs.json._
-import org.bson.types._
-import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 sealed trait ErrorCode { val errorCode: String }
 case object CHARACTER extends ErrorCode {val errorCode = "1000"}
@@ -62,12 +63,16 @@ object ErrorCode {
   implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
     override def reads(json: JsValue): JsResult[ErrorCode] = {
       val value = json.validate[String].get
-      JsSuccess(errorCodeClasses.get(value).get)
+      JsSuccess(errorCodeClasses.getOrElse(value, UNKNOWN_ERROR))
     }
   }
   implicit val writer: Writes[ErrorCode] = new Writes[ErrorCode] {
     override def writes(o: ErrorCode): JsValue = Json.toJson[String](o.errorCode)
   }
+
+  implicit val errorCodeReader: BsonValue => ErrorCode = Codecs.fromBson(_)
+
+  implicit val errorCodeWriter: ErrorCode => BsonValue = Codecs.toBson(_, legacyNumbers = false)
 
 //  implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
 //    override def read(bson: BSONString): ErrorCode = errorCodeClasses.get(bson.value).get

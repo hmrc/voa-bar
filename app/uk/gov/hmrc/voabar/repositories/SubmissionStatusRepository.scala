@@ -34,7 +34,7 @@ import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
 import org.mongodb.scala.model.{FindOneAndReplaceOptions, _}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.{_id, byId, handleMongoError, handleMongoWarn, indexOptionsWithTTL}
 
@@ -57,6 +57,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
       // VOA-3276 For Mongo 4.2 index name must be the original index name used on creating index
       IndexModel(Indexes.hashed("baCode"), IndexOptions().name("null_baCodeIdx")),
       IndexModel(Indexes.descending("created"), indexOptionsWithTTL("null_createdIdx", submissionsCollectionName, config))
+    ),
+    extraCodecs = Seq(
+      Codecs.playFormatCodec(Error.format)
     )
   ) with SubmissionStatusRepository with Logging {
 
