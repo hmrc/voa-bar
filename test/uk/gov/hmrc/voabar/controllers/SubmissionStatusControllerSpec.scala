@@ -78,7 +78,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
     "save a new report status user info successfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
-      when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String], any[Boolean])) thenReturn(Future.successful(Right(Unit)))
+      when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String])) thenReturn(Future.successful(Right(Unit)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
@@ -87,7 +87,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
     "return invalid status when saving user info fails" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
-      when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String], any[Boolean])) thenReturn(Future.successful(Left(error)))
+      when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String])) thenReturn(Future.successful(Left(error)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
