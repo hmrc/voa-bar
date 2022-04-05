@@ -17,83 +17,59 @@
 package uk.gov.hmrc.voabar.repositories
 
 import java.time.ZonedDateTime
-
 import com.google.inject.ImplementedBy
-import com.typesafe.config.ConfigException
+
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError}
-import play.api.libs.json.{Format, Json}
-import play.api.Configuration
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.ReadPreference
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.voabar.models
+import uk.gov.hmrc.voabar.models.BarError
+import play.api.libs.json.{Json, OFormat}
+import play.api.{Configuration, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
+import org.mongodb.scala.ReadPreference
+import org.mongodb.scala.model._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptionsWithTTL}
 
 final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpdated: ZonedDateTime = ZonedDateTime.now)
 
 object UserReportUpload {
-  implicit val format = Json.format[UserReportUpload]
+  implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
   final val name = classOf[UserReportUpload].getSimpleName.toLowerCase
 }
 
 @Singleton
 class DefaultUserReportUploadsRepository @Inject() (
-                                                   mongo: ReactiveMongoComponent,
+                                                   mongo: MongoComponent,
                                                    config: Configuration
                                  )(implicit ec: ExecutionContext)
-  extends ReactiveRepository[UserReportUpload, String](
+  extends PlayMongoRepository[UserReportUpload](
     collectionName = UserReportUpload.name,
-    mongo = mongo.mongoConnector.db,
+    mongoComponent = mongo,
     domainFormat = UserReportUpload.format,
-    idFormat = implicitly[Format[String]]
+    indexes = Seq(
+      IndexModel(Indexes.descending("lastUpdated"), indexOptionsWithTTL(UserReportUpload.name, UserReportUpload.name, config))
     )
-  with UserReportUploadsRepository
-{
-  private val indexName = UserReportUpload.name
-  private val expireAfterSeconds = "expireAfterSeconds"
-  private val ttlPath = s"${UserReportUpload.name}.timeToLiveInSeconds"
-  private val ttl = config.getOptional[Int](ttlPath)
-    .getOrElse(throw new ConfigException.Missing(ttlPath))
-  createIndex()
-  private def createIndex(): Unit = {
-    collection.indexesManager.ensure(Index(Seq(("lastUpdated", IndexType.Descending)), Some(indexName),
-      options = BSONDocument(expireAfterSeconds -> ttl))) map {
-      result => {
-        logger.debug(s"set [$indexName] with value $ttl -> result : $result")
-        result
-      }
-    } recover {
-      case e => logger.error("Failed to set TTL index", e)
-        false
-    }
-  }
+  ) with UserReportUploadsRepository with Logging {
+
   override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit.type]] = {
-    insert(userReportUpload)
+    collection.insertOne(userReportUpload).toFuture
       .map(_ => Right(Unit))
       .recover {
-        case e: Throwable => {
-          val errorMsg = s"Error saving user report upload entry"
-          logger.error(errorMsg)
-          Left(models.BarMongoError(errorMsg))
-        }
+        case ex: Throwable => handleMongoError("Error saving user report upload entry", ex, logger)
       }
   }
 
   override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] = {
-    findById(id, ReadPreference.primary)
+    //implicit val idf: Format[String] = implicitly[Format[String]]
+    collection.withReadPreference(ReadPreference.primary)
+      .find(byId(id)).headOption
       .map(Right(_))
       .recover {
-        case e: Throwable => {
-          val errorMsg = s"Error getting user report upload entry for $id"
-          logger.error(errorMsg)
-          Left(BarMongoError(errorMsg))
-        }
+        case ex: Throwable => handleMongoError(s"Error getting user report upload entry for $id", ex, logger)
       }
   }
+
 }
 
 @ImplementedBy(classOf[DefaultUserReportUploadsRepository])

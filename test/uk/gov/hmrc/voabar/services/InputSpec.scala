@@ -18,10 +18,9 @@ package uk.gov.hmrc.voabar.services
 
 import java.io.Reader
 
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
-class InputSpec extends PlaySpec with MockitoSugar {
+class InputSpec extends PlaySpec {
   val input = new Input
   val encoding = "some encoding"
   val stringData = "some data"

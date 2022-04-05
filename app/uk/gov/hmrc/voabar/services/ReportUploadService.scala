@@ -83,11 +83,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
       .map {
         case Right(v) => v
-        case Left(a) => {
-          audit.reportUploadFailed(login.username, a)
-          handleError(uploadReference, a, login)
+        case Left(barError) =>
+          audit.reportUploadFailed(login.username, barError)
+          handleError(uploadReference, barError, login)
           "failed"
-        }
       }
   }
 
@@ -154,7 +153,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
       reportStatus.created.toString,
-      reportStatus.errors.getOrElse(Seq()).map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
+      reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(Unit))
       .recover{
         case ex: Throwable => {
@@ -214,9 +213,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
             .map(_ => sendConfirmationEmail(submissionId, login))
         }
       }
-      case BarMongoError(error, updateWriteResult) => {
-        //Something really, really bad, bad bad, we don't have mongo :(
-        logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+      case BarMongoError(error) => {
+        logger.warn(s"Mongo exception, unable to update status of submission, submissionId: $submissionId. $error")
       }
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))).flatMap { _ =>
@@ -257,7 +255,5 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     resutl.value
   }
-
-
 
 }

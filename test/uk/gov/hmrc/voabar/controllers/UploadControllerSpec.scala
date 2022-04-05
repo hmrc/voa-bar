@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.test.FakeRequest
@@ -63,29 +63,6 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
     val result = controller.upload()(fakeRequestWithXML)
     status(result) mustBe 200
   }
-
-  //TODO - we don't need this validation, It's play responsibility.
-
-//  "Return 415 (Unsupported Media Type) when the Content-Type header value is not text/plain" in {
-//    val result = controller.upload()(FakeRequest("POST", "/upload")
-//      .withHeaders("Content-Type" -> "application/text"))
-//    //status(result) mustBe 415
-//    fail()
-//  }
-//
-//  "Return 400 (Bad Request) when given a content type that is text/plain but no text is given" in {
-//    val result = controller.upload()(FakeRequest("POST", "/upload")
-//      .withHeaders("Content-Type" -> "text/plain", "BA-Code" -> "1234", "password" -> encryptedPassword))
-//    //status(result) mustBe 400
-//    fail()
-//  }
-//
-//  "Return 415 (Unsupported Media Type) when a request contains no content type" in {
-//    val result = controller.upload()(FakeRequest("POST", "/upload")
-//      .withHeaders("BA-Code" -> "1234", "password" -> "pass1"))
-//    //status(result) mustBe 415
-//    fail()
-//  }
 
   "A request must contain a Billing Authority Code in the header" in {
     val result = controller.upload()(fakeRequestWithXMLButNoBACode)

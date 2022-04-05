@@ -20,17 +20,19 @@ import java.io.StringWriter
 import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
-
 import ebars.xml.BAreports
+
 import javax.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen.frequency
 import org.scalacheck.Gen
-import org.scalatest.{EitherValues, FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.EitherValues
+import org.scalatest.matchers.must
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.voabar.models.{AddProperty, Address, BandedTooSoon, CaravanRemoved, ContactDetails, Cr01Cr03Submission, Demolition, Disrepair, Duplicate, NoPlanningApplicationSubmitted, NotApplicablePlanningPermission, NotComplete, NotRequiredPlanningPermission, OtherReason, PermittedDevelopment, RemovalReasonType, RemoveProperty, Renovating, WithoutPlanningPermission}
+import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
 
-class Cr01Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with EitherValues with ScalaCheckPropertyChecks{
+class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks{
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
@@ -175,7 +177,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with
         Console.println(s"\n\n\n${validation.left}\n\n${xml}")
       }
 
-      validation.right.value mustBe true
+      validation.value mustBe true
 
   }
 

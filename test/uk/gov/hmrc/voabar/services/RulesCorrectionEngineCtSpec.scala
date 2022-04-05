@@ -18,7 +18,9 @@ package uk.gov.hmrc.voabar.services
 
 import ebars.xml.CtaxReasonForReportCodeContentType._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.{Matchers, OptionValues, WordSpecLike}
+import org.scalatest.OptionValues
+import org.scalatest.matchers.should
+import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.services.CtRules._
 
@@ -29,7 +31,7 @@ import scala.collection.JavaConverters._
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with OptionValues with TableDrivenPropertyChecks {
+class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks {
   val ebarsValidator = new EbarsValidator
 
   "RulesCorrectionEngine" should {

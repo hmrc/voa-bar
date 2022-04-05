@@ -19,28 +19,25 @@ package uk.gov.hmrc.voabar.controllers
 import java.net.URL
 import java.nio.file.Paths
 import java.time.ZonedDateTime
-
 import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.play.json.collection.JSONCollection
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
+import play.api.http.Status.OK
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
-import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, SubmissionStatusRepositoryImpl}
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,11 +47,8 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   val legacyConnector = mock[LegacyConnector]
 
-  when(legacyConnector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier])).thenAnswer(new Answer[Future[Int]] {
-    override def answer(invocation: InvocationOnMock): Future[Int] = {
-      Future.successful(200)
-    }
-  })
+  when(legacyConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
+    .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
 
   override def fakeApplication() = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
@@ -65,9 +59,8 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
     .build()
 
   lazy val controller = app.injector.instanceOf[UploadController]
-  lazy val mongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
-  lazy val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("submissions")
-  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepository]
+  lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
+  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
   lazy val configuration = app.injector.instanceOf[play.api.Configuration]
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
@@ -88,8 +81,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   "Upload controller " must {
 
     "properly handle correct XML " in {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      await(submissionRepository.asInstanceOf[SubmissionStatusRepositoryImpl].removeById("1234"))
+      await(submissionRepository.collection.deleteOne(byId("1234")).toFutureOption())
 
       val reportStatus = ReportStatus("1234", ZonedDateTime.now, baCode = Option("BA5090"))
 
@@ -105,14 +97,13 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       Console.println(report)
 
-      report.right.value.status.value mustBe "Done"
-
+      report.value.status.value mustBe "Done"
     }
 
   }
 
   override protected def afterAll(): Unit = {
-    mongoComponent.mongoConnector.close()
+    mongoComponent.client.close()
   }
 
 }
@@ -124,4 +115,3 @@ class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionCo
     Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
   }
 }
-

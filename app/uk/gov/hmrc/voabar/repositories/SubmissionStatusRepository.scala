@@ -18,280 +18,226 @@ package uk.gov.hmrc.voabar.repositories
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
 import com.google.inject.ImplementedBy
+
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Format, JsObject, JsString, JsValue, Json}
-import play.api.{Configuration, Logger}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{Cursor, ReadPreference}
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
+import play.api.libs.json.{JsValue, Json}
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import scala.concurrent.{ExecutionContext, Future}
+import org.mongodb.scala.ReadPreference
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters.{and, equal, gt}
+import org.mongodb.scala.model.Sorts.descending
+import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
+import org.mongodb.scala.model.{FindOneAndReplaceOptions, _}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.{_id, byId, handleMongoError, handleMongoWarn, indexOptionsWithTTL}
+
+
+object SubmissionStatusRepository {
+  val submissionsCollectionName = "submissions"
+}
 
 @Singleton
 class SubmissionStatusRepositoryImpl @Inject()(
-                                                mongo: ReactiveMongoComponent,
+                                                mongo: MongoComponent,
                                                 config: Configuration
                                               )
                                               (implicit executionContext: ExecutionContext)
-  extends ReactiveRepository[ReportStatus, String](
-    collectionName = "submissions",
-    mongo = mongo.mongoConnector.db,
+  extends PlayMongoRepository[ReportStatus](
+    collectionName = submissionsCollectionName,
+    mongoComponent = mongo,
     domainFormat = ReportStatus.format,
-    idFormat = implicitly[Format[String]]
-  ) with SubmissionStatusRepository with BSONBuilderHelpers {
+    indexes = Seq(
+      // VOA-3276 For Mongo 4.2 index name must be the original index name used on creating index
+      IndexModel(Indexes.hashed("baCode"), IndexOptions().name("null_baCodeIdx")),
+      IndexModel(Indexes.descending("created"), indexOptionsWithTTL("null_createdIdx", submissionsCollectionName, config))
+    ),
+    extraCodecs = Seq(
+      Codecs.playFormatCodec(Error.format)
+    )
+  ) with SubmissionStatusRepository with Logging {
 
   val timeoutMinutes = 120
 
-  private val ttlPath = s"$collectionName.timeToLiveInSeconds"
-  private val ttl = config.get[Int](ttlPath)
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] =
+    collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
+      .toFutureOption()
+      .map(_ => Right(Unit))
+      .recover {
+        case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
+      }
 
-  private val log = Logger(this.getClass)
-  override def indexes: Seq[Index] = Seq (
-    // VOA-3276 For Mongo 4.2 index name must be the original index name used on creating index
-    Index(Seq("baCode" -> IndexType.Hashed), name = Some("null_baCodeIdx")),
-    Index(Seq("created" -> IndexType.Descending), name = Some("null_createdIdx")
-      ,options = BSONDocument("expireAfterSeconds" -> ttl)) //TODO - This is broken, data are store as String(VOA-2189)
-  )
-
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
-    //TODO - Please refactor(probably whole repository) and use as much as possible ReactiveRepository functionality.
-    val finder = BSONDocument(_Id -> reportStatus.id)
-    val reportData = Json.toJson(reportStatus).as[JsObject].-("_id")
-    atomicSaveOrUpdate(reportStatus.id, upsert, finder, set(reportData.as[BSONDocument]))
-  }
-
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
-  : Future[Either[BarError, Unit.type]] = {
-    val finder = BSONDocument(_Id -> reference)
-    val modifierBson = set(BSONDocument(
-      "created" -> ZonedDateTime.now.toString,
-      "baCode" -> userId)
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]] = {
+    val modifierSeq = Seq(
+      set("baCode", userId),
+      set("created", ZonedDateTime.now.toString)
     )
 
-    atomicSaveOrUpdate(reference, upsert, finder, modifierBson)
+    atomicSaveOrUpdate(reference, modifierSeq, upsert = true)
   }
 
-  override def getByUser(baCode: String, filter: Option[String] = None)
-  : Future[Either[BarError, Seq[ReportStatus]]] = {
-
+  override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
     val isoDate = ZonedDateTime.now().minusDays(90)
-      .withHour(3) //Set 3AM to prevent submissions disapper during day.
+      .withHour(3) //Set 3AM to prevent submissions disappear during day.
       .withMinute(0)
       .format(DateTimeFormatter.ISO_DATE_TIME)
 
-    val q = Json.obj(
-      "baCode" -> baCode,
-      "created" -> Json.obj(
-        "$gt" -> isoDate
-      )
-    )
+    val filters = Seq(
+      equal("baCode", baCode),
+      gt("created", isoDate)
+    ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
-    val finder = filter.fold(q)(f => q.+("status" -> JsString(f)))
+    val finder = and(filters: _*)
 
-    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus]()
-      .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
+    collection.withReadPreference(ReadPreference.primary)
+      .find(finder).sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
       .recover {
-        case ex: Throwable => {
-          val errorMsg = s"Couldn't retrieve BA reports with '$baCode'"
-          logger.warn(s"$errorMsg\n${ex.getMessage}")
-          Left(BarMongoError(errorMsg))
-        }
+        case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports with '$baCode'", ex, logger)
       }
   }
 
-  override def getByReference(reference: String)
-  : Future[Either[BarError, ReportStatus]] = {
-    val finder = BSONDocument(_Id -> reference)
-    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
-      .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
+  override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
+    collection.withReadPreference(ReadPreference.primary)
+      .find(byId(reference)).sort(descending("created")).toFuture()
       .flatMap { res =>
         checkAndUpdateSubmissionStatus(res.head).map(Right(_))
       }
       .recover {
-        case ex: Throwable => {
-          val errorMsg = s"Couldn't retrieve BA reports for reference $reference"
-          logger.warn(s"$errorMsg\n${ex.getMessage}")
-          Left(BarMongoError(errorMsg))
-        }
+        case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports for reference $reference", ex, logger)
       }
   }
 
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
-    collection.find(Json.obj()).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
-      .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
+    collection.withReadPreference(ReadPreference.primary)
+      .find().sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
       .recover {
-        case ex: Throwable => {
-          val errorMsg = s"Couldn't retrieve all BA reports"
-          logger.warn(s"$errorMsg\n${ex.getMessage}")
-          Left(BarMongoError(errorMsg))
-        }
+        case ex: Throwable => handleMongoWarn("Couldn't retrieve all BA reports", ex, logger)
       }
   }
-
-  protected def atomicSaveOrUpdate(reference: String, upsert: Boolean, finder: BSONDocument, modifierBson: BSONDocument) = {
-    val updateDocument = if (upsert) {
-      modifierBson ++ setOnInsert(BSONDocument(_Id -> reference))
-    } else {
-      modifierBson
-    }
-    val modifier = collection.updateModifier(updateDocument, upsert = upsert)
-    collection.findAndModify(finder, modifier)
-      .map(response => Either.cond(
-        !response.lastError.isDefined || !response.lastError.get.err.isDefined,
-        Unit,
-        getError(response.lastError.get.err.get))
-      )
-      .recover {
-        case ex: Throwable => {
-          val errorMsg = "Error while saving submission"
-          logger.error(errorMsg, ex)
-          Left(BarMongoError(errorMsg))
-        }
-      }
-  }
-
-  private def getError(error: String): BarError = {
-    val errorMsg = "Error while saving report status"
-    logger.error(s"$errorMsg\n$error")
-    BarMongoError(errorMsg)
-  }
-
 
   def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
-    val modifier = Json.obj(
-      "$push" -> Json.obj(
-        "errors" -> Json.obj(
-          "$each" -> errors
-        )
-      )
-    )
+    val modifier = pushEach("errors", errors: _*)
 
-    collection.update(false).one(_id(submissionId), modifier, multi = true)
-
-    collection.update(false).one(_id(submissionId), modifier).map { updateResult =>
-      if (updateResult.ok && updateResult.n == 1) {
-        Right(true)
-      } else {
-        Left(BarMongoError("unable record error message in mongo", Option(updateResult)))
-      }
-    }
-
+    addErrorsByModifier(submissionId, modifier)
   }
 
   override def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]] = {
+    val modifier = push("errors", error)
 
-    val modifier = BSONDocument(
-      "$push" -> BSONDocument(
-        "errors" -> error
-      )
-    )
-
-    collection.update(ordered = false).one(_id(submissionId), modifier).map { updateResult =>
-      if (updateResult.ok && updateResult.n == 1) {
-        Right(true)
-      } else {
-        Left(BarMongoError("unable record error message in mongo", Option(updateResult)))
-      }
-    }
+    addErrorsByModifier(submissionId, modifier)
   }
-
 
   override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
-
-    val modifier = set(BSONDocument(
-        "status" -> status.value
-      )
+    val modifier = Updates.combine(
+      set("status", status.value)
     )
 
-    collection.update.one(_id(submissionId), modifier, upsert = true, multi = false).map { updateResult =>
-
-      if (updateResult.ok && updateResult.n == 1) {
-        Right(true)
-      } else {
-        Left(BarMongoError("unable to update status in mongo", Option(updateResult)))
-      }
-    }
+    updateStatusByModifier(submissionId, modifier)
   }
 
-
   override def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]] = {
-    val modifier = set(BSONDocument(
-        "status" -> status.value,
-        "totalReports" -> totalReports
-      )
+    val modifier = Updates.combine(
+      set("status", status.value),
+      set("totalReports", totalReports)
     )
 
-    collection.update.one(_id(submissionId), modifier, upsert = true, multi = false).map { updateResult =>
-      if (updateResult.ok && updateResult.n == 1) {
-        Right(true)
-      } else {
-        Left(BarMongoError("unable to update status in mongo", Option(updateResult)))
-      }
-    }
+    updateStatusByModifier(submissionId, modifier)
   }
 
   override def deleteByReference(reference: String, user: String): Future[Either[BarError, JsValue]] = {
-    val deleteSelector = Json.obj(_Id -> reference, "baCode" -> user)
-    log.warn(s"Performing deletion on ${collectionName} with selector: ${deleteSelector}")
-    collection.delete.one(deleteSelector).map { deleteResult =>
-      val response = Json.obj(
-        "code" -> deleteResult.code,
-        "n" -> deleteResult.n,
-        "writeErrors" -> deleteResult.writeErrors.mkString(","),
-        "writeConcernError" -> deleteResult.writeConcernError.map(_.toString)
-      )
-      log.warn(s"Deletion on ${collectionName} done, returning response : ${response}")
-      Right(response)
-    }
+    val deleteSelector = and(byId(reference), equal("baCode", user))
+    logger.warn(s"Performing deletion on $collectionName with id = $reference, baCode = $user")
+
+    collection.deleteOne(deleteSelector).toFutureOption()
+      .map { deleteResult =>
+        val deletedCount = deleteResult.map(_.getDeletedCount).getOrElse(0L)
+        val response = Json.obj("n" -> deletedCount)
+        logger.warn(s"Deletion on $collectionName done, returning response : $response")
+        Right(response)
+      }
+      .recover {
+        case ex: Throwable => handleMongoError(s"Deletion failed for $reference, BA: $user", ex, logger)
+      }
   }
 
-  def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
-    if(report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
+  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
+    if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
-    }else {
-      if(report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
+    } else {
+      if (report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
         markSubmissionFailed(report)
-      }else {
+      } else {
         Future.successful(report)
       }
     }
   }
 
-  def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
-
-    val q = Json.obj(
-      "_id" -> report.id
+  private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
+    val update = Updates.combine(
+      set("status", Failed.value),
+      push("errors", Error(TIMEOUT_ERROR))
     )
-    val u = Json.obj(
-      "$set" -> Json.obj(
-        "status" -> Failed.value,
-               "errors" -> Json.arr(Error(TIMEOUT_ERROR))
-    ))
 
-    val updatedReport: Future[ReportStatus] = collection
-      .findAndUpdate(q, u, fetchNewObject = true, upsert = false)
-      .flatMap{ updateResult =>
-        val item: JsObject = updateResult.value.get
-        ReportStatus.format.reads(item).fold(
-          _ => Future.failed(new RuntimeException("xx")),
-          Future.successful(_)
-        )
+    collection
+      .findOneAndUpdate(byId(report.id), update,
+        FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER))
+      .toFutureOption()
+      .flatMap {
+        case Some(reportStatus) => Future.successful(reportStatus)
+        case _ => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
+      }
+  }
+
+  private def updateStatusByModifier(submissionId: String, modifier: Bson): Future[Either[BarMongoError, Boolean]] =
+    collection.updateOne(byId(submissionId), modifier).toFutureOption()
+      .map {
+        case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
+        case _ =>
+          val errorMsg = s"Report status wasn't updated for $submissionId"
+          logger.error(errorMsg)
+          Left(BarMongoError(errorMsg))
+      }
+      .recover {
+        case ex: Throwable => handleMongoError(s"Unable to update report status for $submissionId", ex, logger)
       }
 
-    updatedReport
+  private def addErrorsByModifier(submissionId: String, modifier: Bson): Future[Either[BarMongoError, Boolean]] =
+    collection.updateOne(byId(submissionId), modifier).toFutureOption()
+      .map {
+        case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
+        case _ =>
+          val errorMsg = s"Error message wasn't recorded for $submissionId"
+          logger.error(errorMsg)
+          Left(BarMongoError(errorMsg))
+      }
+      .recover {
+        case ex: Throwable => handleMongoError(s"Unable to record error message for $submissionId", ex, logger)
+      }
+
+  private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit.type]] = {
+    val updateSeq = if (upsert) {
+      modifierSeq :+ setOnInsert(_id, id)
+    } else {
+      modifierSeq
+    }
+
+    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
+      .map(_ => Right(Unit))
+      .recover {
+        case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
+      }
   }
 
 }
@@ -315,8 +261,5 @@ trait SubmissionStatusRepository {
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]]
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]]
 }
-
-
-

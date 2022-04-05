@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.services
 
-import akka.actor.ActorSystem
 import com.google.inject.ImplementedBy
 import ebars.xml.BAreports
 
@@ -26,7 +25,6 @@ import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, Cr05Submission, CrSubmission, LoginDetails, ReportStatus}
-import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util.{BillingAuthorities, XmlSubmissionGenerator}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +35,7 @@ trait WebBarsService {
 }
 
 @Singleton
-class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionRepository: SubmissionStatusRepository, reportUploadService: ReportUploadService)(
+class DefaultWebBarsService @Inject() (reportUploadService: ReportUploadService)(
   implicit ec: ExecutionContext) extends WebBarsService {
 
   val log = Logger(this.getClass)
@@ -93,7 +91,7 @@ object DefaultWebBarsService {
   def readReport(reportStatus: ReportStatus): Option[CrSubmission] = {
     reportStatus.report
       .map(_.value)
-      .filter(x => x.get("type").isDefined && x.get("submission").isDefined)
+      .filter(x => x.contains("type") && x.contains("submission"))
       .flatMap { x =>
         x("type") match {
           case JsString("Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt

@@ -103,9 +103,9 @@ class SubmissionStatusController @Inject() (
     ))
   }
 
-  private def saveSubmissionUserInfo(userId: String, reference: String, upsert: Boolean)
+  private def saveSubmissionUserInfo(userId: String, reference: String)
     : Future[Either[Result, Unit.type]] = {
-    submissionStatusRepository.saveOrUpdate(userId, reference, upsert).map(_.fold(
+    submissionStatusRepository.saveOrUpdate(userId, reference).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(Unit)
     ))
@@ -121,7 +121,7 @@ class SubmissionStatusController @Inject() (
         encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
         password <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
         reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-        _ <- EitherT(saveSubmission(reportStatus, upsert))
+        _ <- EitherT(saveSubmission(reportStatus.copy(baCode = Some(baCode)), upsert))
         _ = webBarsService.newSubmission(reportStatus, baCode, password)
     } yield NoContent)
     .valueOr(ex => InternalServerError)
@@ -130,7 +130,7 @@ class SubmissionStatusController @Inject() (
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.id, true))
+      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.id))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.models
 
 import play.api.libs.json.{JsObject, Json, OWrites}
-import reactivemongo.api.commands.UpdateWriteResult
 
 sealed trait BarError
 
@@ -29,7 +28,7 @@ case class BarValidationError(errors: List[Error]) extends BarError
 
 case class BarSubmissionValidationError(errors: List[ReportError]) extends BarError
 
-case class BarMongoError(error: String, updateWriteResult: Option[UpdateWriteResult] = None) extends BarError
+case class BarMongoError(error: String) extends BarError
 
 case class BarEbarError(ebarError: String) extends BarError
 
@@ -51,5 +50,5 @@ object BarError {
   implicit val unknownErrorFormat = Json.writes[UnknownError]
 
 
-  implicit val format = Json.writes[BarError]
+  implicit val format: OWrites[BarError] = Json.writes[BarError]
 }
