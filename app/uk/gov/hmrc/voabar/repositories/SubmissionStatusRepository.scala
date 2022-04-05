@@ -73,18 +73,18 @@ class SubmissionStatusRepositoryImpl @Inject()(
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
       }
 
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]] = {
     val modifierSeq = Seq(
       set("baCode", userId),
       set("created", ZonedDateTime.now.toString)
     )
 
-    atomicSaveOrUpdate(reference, modifierSeq, upsert)
+    atomicSaveOrUpdate(reference, modifierSeq, upsert = true)
   }
 
   override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
     val isoDate = ZonedDateTime.now().minusDays(90)
-      .withHour(3) //Set 3AM to prevent submissions disapper during day.
+      .withHour(3) //Set 3AM to prevent submissions disappear during day.
       .withMinute(0)
       .format(DateTimeFormatter.ISO_DATE_TIME)
 
@@ -173,12 +173,12 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
-    if(report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
+    if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
-    }else {
-      if(report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
+    } else {
+      if (report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
         markSubmissionFailed(report)
-      }else {
+      } else {
         Future.successful(report)
       }
     }
@@ -261,5 +261,5 @@ trait SubmissionStatusRepository {
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]]
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]]
 }
