@@ -52,23 +52,20 @@ class DefaultUserReportUploadsRepository @Inject() (
     )
   ) with UserReportUploadsRepository with Logging {
 
-  override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit.type]] = {
+  override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit.type]] =
     collection.insertOne(userReportUpload).toFuture
       .map(_ => Right(Unit))
       .recover {
         case ex: Throwable => handleMongoError("Error saving user report upload entry", ex, logger)
       }
-  }
 
-  override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] = {
-    //implicit val idf: Format[String] = implicitly[Format[String]]
+  override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] =
     collection.withReadPreference(ReadPreference.primary)
       .find(byId(id)).headOption
       .map(Right(_))
       .recover {
         case ex: Throwable => handleMongoError(s"Error getting user report upload entry for $id", ex, logger)
       }
-  }
 
 }
 
