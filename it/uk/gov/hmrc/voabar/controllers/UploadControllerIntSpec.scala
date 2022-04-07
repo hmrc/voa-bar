@@ -93,7 +93,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       val report = await(submissionRepository.getByReference("1234"))
 
-      report must be('right)
+      report mustBe Symbol("right")
 
       Console.println(report)
 

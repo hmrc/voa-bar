@@ -23,7 +23,7 @@ import javax.xml.bind.JAXBElement
 import javax.xml.namespace.QName
 import models.Purpose
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * Created by rgallet on 12/02/16.
@@ -55,20 +55,14 @@ object EbarsXmlCutter {
           .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))
           .flatMap(e => Option(e.getCtaxReasonForReport))
           .map(e => e.getReasonForReportCode)
-          .map(e => e.getValue) match {
-          case None | Some(null) => None
-          case v@Some(_) => v
-        }
+          .map(e => e.getValue).filter(_ != null)
       case Purpose.NDR =>
         content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax")
           .map(e => e.getValue.asInstanceOf[TypeOfTax])
           .map(e => e.getNNDRreasonForReport)
           .map(e => e.getReasonForReportCode)
           .filter(_ != null)
-          .map(e => e.getValue) match {
-          case None | Some("") => None
-          case v@Some(_) => v
-        }
+          .map(e => e.getValue).filter(_ != "")
     }
   }
 
@@ -136,7 +130,7 @@ object EbarsXmlCutter {
     * @param bAreports the XML report
     * @return Seq of ebars.xml.OccupierContactStructure
     */
-  def OccupierContacts(bAreports: BAreports): Seq[OccupierContactStructure] = AssessmentProperties(bAreports) map (OccupierContacts(_)) flatten
+  def OccupierContacts(bAreports: BAreports): Seq[OccupierContactStructure] = AssessmentProperties(bAreports).map(OccupierContacts).flatten
 
   def OccupierContacts(assessmentProperties: AssessmentProperties): Option[OccupierContactStructure] = {
     assessmentProperties.getOccupierContact match {
@@ -194,7 +188,7 @@ object EbarsXmlCutter {
     * @return Seq of ebars.xml.TextAddressStructure
     */
   def TextAddressStructures(baPropertyIdentificationStructure: BApropertyIdentificationStructure): Seq[TextAddressStructure] =
-    baPropertyIdentificationStructure.getContent.asScala filter (_.getName.getLocalPart == "TextAddress") map (_.getValue.asInstanceOf[TextAddressStructure])
+    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "TextAddress").map(_.getValue.asInstanceOf[TextAddressStructure]).toSeq
 
   /**
     * Returns <BAreference> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -211,7 +205,7 @@ object EbarsXmlCutter {
     * @return Seq of Strings
     */
   def BAreferences(baPropertyIdentificationStructure: BApropertyIdentificationStructure): Seq[String] =
-    baPropertyIdentificationStructure.getContent.asScala filter (_.getName.getLocalPart == "BAreference") map (_.getValue.asInstanceOf[String])
+    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "BAreference").map(_.getValue.asInstanceOf[String]).toSeq
 
   /**
     * Returns <OccupierContact> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -261,8 +255,8 @@ object EbarsXmlCutter {
     * @param bAreports the XML report
     * @return
     */
-  private def findEntriesIdx(name: String)(bAreports: BAreports) =
-    content(bAreports).asScala.zipWithIndex.filter(e => e._1.getName.getLocalPart == name).map(e => e._2) toSeq
+  private def findEntriesIdx(name: String)(bAreports: BAreports): Seq[Int] =
+    content(bAreports).asScala.zipWithIndex.filter(e => e._1.getName.getLocalPart == name).map(e => e._2).toSeq
 
   def findTypeOfTaxIdx = findEntriesIdx("TypeOfTax") _
 
@@ -285,7 +279,7 @@ object EbarsXmlCutter {
     *
     * @param bAreports the XML report
     */
-  def removeProposedEntries(bAreports: BAreports) {
+  def removeProposedEntries(bAreports: BAreports): Unit = {
     val indices = findProposedEntriesIdx(bAreports)
 
     indices foreach content(bAreports).remove
@@ -296,7 +290,7 @@ object EbarsXmlCutter {
     *
     * @param bAreports the XML report
     */
-  def removeExistingEntries(bAreports: BAreports) {
+  def removeExistingEntries(bAreports: BAreports): Unit = {
     val indices = findExistingEntriesIdx(bAreports)
 
     indices foreach content(bAreports).remove

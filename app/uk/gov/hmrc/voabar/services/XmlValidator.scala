@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 
 class XmlErrorHandler extends ErrorHandler {
   val errors = mutable.Map[Int, Error]()
-  private def addError(exception: SAXParseException) {
+  private def addError(exception: SAXParseException): Unit = {
     val split = exception.getMessage.split(":", 2) map (_.trim)
     if(split.length == 1) {
       errors.put(-1, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(0)}")))
@@ -45,15 +45,15 @@ class XmlErrorHandler extends ErrorHandler {
     }
   }
 
-  override def warning(exception: SAXParseException) {
+  override def warning(exception: SAXParseException): Unit = {
     addError(exception)
   }
 
-  override def error(exception: SAXParseException) {
+  override def error(exception: SAXParseException): Unit = {
     addError(exception)
   }
 
-  override def fatalError(exception: SAXParseException) {
+  override def fatalError(exception: SAXParseException): Unit = {
     addError(exception)
   }
 }
@@ -95,7 +95,7 @@ class XmlValidator {
     val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
     jc.createMarshaller.marshal(baReports, doc)
 
-    validate(doc).right.map(_ => ())
+    validate(doc).map(_ => ())
 
   }
 

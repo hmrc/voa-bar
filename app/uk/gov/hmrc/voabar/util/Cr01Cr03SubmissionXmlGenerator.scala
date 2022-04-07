@@ -42,7 +42,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val report = new BAreports()
     report.setBAreportHeader(generateHeader())
     report.setBAreportTrailer(generateReportTrailer())
-    report.getBApropertyReport.add(generateBody)
+    report.getBApropertyReport.add(generateBody())
     report.setSchemaId("VbBAtoVOA")
     report.setSchemaVersion("4-0")
 
@@ -61,7 +61,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax,
-      proposedEntries,
+      proposedEntries(),
       OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
     )
 
@@ -92,8 +92,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
 
   def proposedEntries()= {
     val assessmentProperties = new AssessmentProperties()
-    assessmentProperties.setPropertyIdentity(propertyIdentification)
-    assessmentProperties.setOccupierContact(occupierContact)
+    assessmentProperties.setPropertyIdentity(propertyIdentification())
+    assessmentProperties.setOccupierContact(occupierContact())
 
 
     val proposed = new BApropertySplitMergeStructure()

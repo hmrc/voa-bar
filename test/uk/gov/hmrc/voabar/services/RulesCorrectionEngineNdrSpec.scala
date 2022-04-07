@@ -23,7 +23,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.services.NdrRules._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * Created by rgallet on 09/12/15.

@@ -17,9 +17,9 @@
 package uk.gov.hmrc.connectors
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import ebars.xml.BAreports
+
 import javax.xml.bind.JAXBContext
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
@@ -38,6 +38,7 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
+import scala.language.postfixOps
 
 class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 

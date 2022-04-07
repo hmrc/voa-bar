@@ -26,7 +26,7 @@ import uk.gov.hmrc.voabar.services.CtRules._
 
 import javax.xml.bind.JAXBElement
 import javax.xml.transform.stream.StreamSource
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * Created by rgallet on 09/12/15.

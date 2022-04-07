@@ -52,7 +52,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val dbResult = await(repo.addError(submissionId, reportStatusError))
 
-      dbResult must be('right)
+      dbResult mustBe Symbol("right")
 
       val submission = await(repo.getByReference(submissionId))
       println(submission)
@@ -65,7 +65,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val dbResult = await(repo.addError("ggggg", reportStatusError))
 
-      dbResult must be('right)
+      dbResult mustBe Symbol("right")
     }
 
     "update status" in {
@@ -73,13 +73,13 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val dbResult = await(repo.updateStatus("222", Submitted))
 
-      dbResult must be('right)
+      dbResult mustBe Symbol("right")
     }
 
     "failed for nonExisting UUID" in {
         val dbResult = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
 
-        dbResult mustBe 'left
+        dbResult mustBe Symbol("left")
         dbResult mustBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
     }
 
@@ -96,7 +96,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val res = await(repo.getByReference(guid))
 
-      res mustBe 'right
+      res mustBe Symbol("right")
 
       res.value mustBe reportStatus
     }

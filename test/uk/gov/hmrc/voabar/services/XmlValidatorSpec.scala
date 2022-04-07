@@ -32,11 +32,11 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   val reportBuilder = new MockBAReportBuilder
   val xmlParser = new XmlParser()
 
-  val valid1 = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
+  val valid1 = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
   def valid1AsStream = getClass.getResourceAsStream("/xml/CTValid1.xml")
-  val valid2 = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).right.get
-  val invalid1 = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).right.get
-  val invalid2 = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).right.get
+  val valid2 = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
+  val invalid1 = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
+  val invalid2 = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
   def withXXE = getClass.getResourceAsStream("/xml/WithXXE.xml")
   def wellFormatted = getClass.getResourceAsStream("/xml/WellFormatted.xml")
   def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
@@ -44,26 +44,26 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   "A valid ba batch submission xml file (valid1)" must {
     "validate successfully" in {
-      validator.validate(valid1) mustBe 'right
+      validator.validate(valid1) mustBe Symbol("right")
     }
   }
 
   "An invalid ba batch submission xml file (invalid1)" must {
     "not validate successfully" in {
-      validator.validate(invalid1) mustBe 'left
+      validator.validate(invalid1) mustBe Symbol("left")
       //errors.size mustBe 4
     }
   }
 
   "A valid ba batch submission xml file (valid2)" must {
     "validate successfully" in {
-      validator.validate(valid2) mustBe 'right
+      validator.validate(valid2) mustBe Symbol("right")
     }
   }
 
   "An invalid ba batch submission xml file (invalid2)" must {
     "not validate successfully and contain a CouncilTaxBand related error" in {
-      validator.validate(invalid2) mustBe 'left
+      validator.validate(invalid2) mustBe Symbol("left")
       //errors.size mustBe 18
       //assert(errors.toString.contains("CouncilTaxBand"))
     }
@@ -78,7 +78,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
       val result = validator.validate(doc)
 
-      result mustBe ('left)
+      result mustBe Symbol("left")
 
       result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'BAreports'."))))
 
@@ -93,7 +93,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
       val result = validator.validate(doc)
 
-      result mustBe ('left)
+      result mustBe Symbol("left")
 
       result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'bareports'."))))
 
@@ -108,21 +108,21 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
     "reject not well formatted XML" in {
       val result = validator.validateInputXmlForXEE(notWellFormatted)
       result.left.value mustBe a[BarXmlError]
-      result must be('left)
+      result mustBe Symbol("left")
     }
 
     "reject xml with XXE" in {
       val result = validator.validateInputXmlForXEE(withXXE)
-      result must be('left)
+      result mustBe Symbol("left")
       result.left.value mustBe BarXmlError("""XML read error, invalid XML document, DOCTYPE is disallowed when the feature "http://apache.org/xml/features/disallow-doctype-decl" set to true.""")
     }
 
     "validate well formatted xml" in {
-      validator.validateInputXmlForXEE(valid1AsStream) must be('right)
+      validator.validateInputXmlForXEE(valid1AsStream) mustBe Symbol("right")
     }
 
     "validate well formated xml even when it doesn't follow VOA-BAR xml schema" in {
-      validator.validateInputXmlForXEE(wellFormatted) must be('right)
+      validator.validateInputXmlForXEE(wellFormatted) mustBe Symbol("right")
     }
 
 
@@ -138,7 +138,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
       val validationResutl = validator.validate(XmlTestParser.parseXml(invalidBatch))
 
-      validationResutl must be('left)
+      validationResutl mustBe Symbol("left")
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
       validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (

@@ -92,7 +92,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     reportReason <- Gen.option(AddProperty)
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
     address <- genAddress(max = 100)
     contactAddress <- Gen.option(genAddress())
     contactDetails <- genContactDetails
@@ -113,7 +113,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       Gen.some(genRestrictedString(max = 32)) else Gen.const(Option.empty[String])
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
     address <- genAddress(max = 100)
     contactAddress <- Gen.some(genAddress())
     contactDetails <- genContactDetails
@@ -170,7 +170,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
   def validateXml(xml: String): Unit = {
       val file = Files.createTempFile("test-xml", ".xml")
       Files.write(file, xml.getBytes("UTF-8"))
-      val dom = parser.parse(file.toUri.toURL).right.get
+      val dom = parser.parse(file.toUri.toURL).toOption.get
       val validation = validator.validate(dom)
 
       if(validation.isLeft) {

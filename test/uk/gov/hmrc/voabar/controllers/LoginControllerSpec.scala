@@ -55,7 +55,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))
 
     result.isRight mustBe true
-    result.right.get mustBe LoginDetails("ba0121", "xxxdyyy")
+    result.toOption.get mustBe LoginDetails("ba0121", "xxxdyyy")
   }
 
   "return 200 for a POST carrying login details" in {
