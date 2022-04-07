@@ -98,7 +98,7 @@ val xml = XML.load(new CharArrayReader(charWriter.toCharArray))
         .newTransformer
         .transform(new DOMSource(document), new SAXResult(saxHandler))
 
-      saxHandler.scopeStack.pop
+      saxHandler.scopeStack.pop()
       saxHandler.rootElem
     } match {
       case Success(scalaNode) => Right(scalaNode)

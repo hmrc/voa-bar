@@ -31,7 +31,7 @@ import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 import javax.xml.bind.{JAXBContext, Marshaller}
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
 
@@ -198,7 +198,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   def validateXml(xml: String): Unit = {
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
-    val dom = parser.parse(file.toUri.toURL).right.get
+    val dom = parser.parse(file.toUri.toURL).toOption.get
     val validation = validator.validate(dom)
 
     if(validation.isLeft) {

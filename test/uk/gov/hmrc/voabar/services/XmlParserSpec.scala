@@ -32,22 +32,22 @@ class XmlParserSpec extends PlaySpec with EitherValues {
   val validWithXXE = getClass.getResource("/xml/CTValidWithXXE.xml")
   val invalidWithXXE2 = getClass.getResource("/xml/WithXXE.xml")
 
-  val batchSubmission: Node = xmlParser.domToScala(xmlParser.parse(xmlBatchSubmissionAsString).right.get).right.get
+  val batchSubmission: Node = xmlParser.domToScala(xmlParser.parse(xmlBatchSubmissionAsString).toOption.get).toOption.get
 
   "Xml parser " must {
     "successfuly parse xml to DOM" in {
       val document = xmlParser.parse(xmlBatchSubmissionAsString)
-      document mustBe('right)
+      document mustBe Symbol("right")
       document.value.getDocumentElement.getNodeName mustBe("BAreports")
     }
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
-      document mustBe('left)
+      document mustBe Symbol("left")
       document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
     "fail for xml with DTD embedded entity" in {
       val document = xmlParser.parse(validWithXXE)
-      document mustBe('left)
+      document mustBe Symbol("left")
       document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
 

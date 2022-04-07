@@ -18,17 +18,16 @@ package uk.gov.hmrc.voabar.util
 
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
-import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
-import uk.gov.hmrc.voabar.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, CrSubmission, OtherReason, RemoveProperty}
+import ebars.xml._
+import uk.gov.hmrc.voabar.models._
+import uk.gov.hmrc.voabar.util.DateConversion._
 
 import java.math.BigInteger
 import java.time.{Instant, LocalDate}
+import javax.xml.bind.JAXBElement
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.mutable.ListBuffer
-import uk.gov.hmrc.voabar.util.DateConversion._
-
-import javax.xml.bind.JAXBElement
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: String, submissionId: String)  {
 
@@ -40,7 +39,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     val report = new BAreports()
     report.setBAreportHeader(generateHeader())
     report.setBAreportTrailer(generateReportTrailer())
-    report.getBApropertyReport.add(generateBody)
+    report.getBApropertyReport.add(generateBody())
     report.setSchemaId("VbBAtoVOA")
     report.setSchemaVersion("4-0")
 
@@ -48,7 +47,6 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def generateBody(): BAreportBodyStructure = {
-    import collection.JavaConverters._
 
     val body = new BAreportBodyStructure()
 
@@ -191,7 +189,6 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def propertyIdentification(maybeUprn: Option[String], address: Address ): BApropertyIdentificationStructure = {
-    import collection.JavaConverters._
     val uprn = maybeUprn.map { uprn =>
       OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }

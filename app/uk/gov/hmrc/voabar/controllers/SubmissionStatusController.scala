@@ -95,19 +95,19 @@ class SubmissionStatusController @Inject() (
     }
   }
 
-  private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
+  private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit]] = {
     logger.debug(s"Save submission ${reportStatus.redacted} upsert $upsert")
     submissionStatusRepository.saveOrUpdate(reportStatus, upsert).map(_.fold(
       _ => Left(InternalServerError),
-      _ => Right(Unit)
+      _ => Right(())
     ))
   }
 
   private def saveSubmissionUserInfo(userId: String, reference: String)
-    : Future[Either[Result, Unit.type]] = {
+    : Future[Either[Result, Unit]] = {
     submissionStatusRepository.saveOrUpdate(userId, reference).map(_.fold(
       _ => Left(InternalServerError),
-      _ => Right(Unit)
+      _ => Right(())
     ))
   }
 

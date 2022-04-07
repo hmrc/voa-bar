@@ -65,15 +65,15 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   val timeoutMinutes = 120
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] =
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] =
     collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
       .toFutureOption()
-      .map(_ => Right(Unit))
+      .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
       }
 
-  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]] = {
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit]] = {
     val modifierSeq = Seq(
       set("baCode", userId),
       set("created", ZonedDateTime.now.toString)
@@ -95,7 +95,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
     val finder = and(filters: _*)
 
-    collection.withReadPreference(ReadPreference.primary)
+    collection.withReadPreference(ReadPreference.primary())
       .find(finder).sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
@@ -106,7 +106,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
-    collection.withReadPreference(ReadPreference.primary)
+    collection.withReadPreference(ReadPreference.primary())
       .find(byId(reference)).sort(descending("created")).toFuture()
       .flatMap { res =>
         checkAndUpdateSubmissionStatus(res.head).map(Right(_))
@@ -117,7 +117,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
-    collection.withReadPreference(ReadPreference.primary)
+    collection.withReadPreference(ReadPreference.primary())
       .find().sort(descending("created")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
@@ -226,7 +226,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
         case ex: Throwable => handleMongoError(s"Unable to record error message for $submissionId", ex, logger)
       }
 
-  private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit.type]] = {
+  private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit]] = {
     val updateSeq = if (upsert) {
       modifierSeq :+ setOnInsert(_id, id)
     } else {
@@ -234,7 +234,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     }
 
     collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
-      .map(_ => Right(Unit))
+      .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
       }
@@ -259,7 +259,7 @@ trait SubmissionStatusRepository {
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]]
 
-  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit.type]]
+  def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit]]
 }

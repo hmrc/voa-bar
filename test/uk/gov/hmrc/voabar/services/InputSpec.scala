@@ -27,7 +27,7 @@ class InputSpec extends PlaySpec {
 
   class FakeReader extends Reader{override def read(cbuf: Array[Char], off: Int, len: Int): Int = 1
 
-    override def close(): Unit = this.close()
+    override def close(): Unit = ()
   }
 
   val reader = new FakeReader

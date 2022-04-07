@@ -33,7 +33,7 @@ import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 import javax.xml.bind.{JAXBContext, Marshaller}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 
 class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
@@ -96,7 +96,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     //reportReason <- Gen.option(AddProperty)
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
     address <- genAddress(max = 100)
     contactAddress <- Gen.option(genAddress())
     contactDetails <- genContactDetails
@@ -117,7 +117,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       Gen.some(genRestrictedString(max = 32)) else Gen.const(Option.empty[String])
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
     address <- genAddress(max = 100)
     contactAddress <- Gen.some(genAddress())
     contactDetails <- genContactDetails
@@ -130,7 +130,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   )
 
   def genProperty = for {
-    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
     address <- genAddress()
     propertyContactDetails <- genContactDetails
     contactAddress <- Gen.option(genAddress())
@@ -282,7 +282,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   def validateXml(xml: String): Unit = {
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
-    val dom = parser.parse(file.toUri.toURL).right.get
+    val dom = parser.parse(file.toUri.toURL).toOption.get
     val validation = validator.validate(dom)
 
     if(validation.isLeft) {

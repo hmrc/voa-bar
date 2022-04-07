@@ -250,7 +250,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
   }
 
   def aJaxbInput(xml: URL) = {
-    val doc = aXmlParser().parse(xml).right.get
+    val doc = aXmlParser().parse(xml).toOption.get
     val jaxbContext = JAXBContext.newInstance("ebars.xml")
     val xmlUnmarshaller = jaxbContext.createUnmarshaller()
     xmlUnmarshaller.unmarshal(doc).asInstanceOf[BAreports]
@@ -259,8 +259,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
   def aValidationService(): ValidationService = {
     val xmlParser = new XmlParser()
 
-    val domDocument = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
-    xmlParser.domToScala(domDocument).right.get
+    val domDocument = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
+    xmlParser.domToScala(domDocument).toOption.get
 
     val validationService = mock[ValidationService]
     when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Right(()))
@@ -300,7 +300,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     val emailConnector = mock[EmailConnector]
 
     when(emailConnector.sendEmail(any[String], any[Purpose], any[String], any[String], any[String], any[String], any[String], any[String]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful({}))
+      .thenAnswer[InvocationOnMock](_ => Future.unit)
 
     emailConnector
   }

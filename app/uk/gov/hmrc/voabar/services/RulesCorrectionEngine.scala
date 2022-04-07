@@ -69,11 +69,12 @@ class RulesCorrectionEngine {
     baReports.purpose match {
       case Purpose.CT => ctRules foreach (_.apply(baReports))
       case Purpose.NDR => ndrRules foreach (_.apply(baReports))
+      case _ => ()
     }
 }
 
 sealed trait Rule {
-  def apply(baReports: BAreports)
+  def apply(baReports: BAreports): Unit
 }
 
 object CorrectionInputStream {
@@ -132,7 +133,7 @@ case object RemarksTrimmer extends Rule {
   val firstStageRegex = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r  //First replace all obscure space and newline with space
   val secondStageRegex = """\s{2,}""".r
 
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     assert(baReports.getBApropertyReport.size() == 1,
       s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)")
 
@@ -155,7 +156,7 @@ case object RemarksTrimmer extends Rule {
 }
 
 case object RemarksFillDefault extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "Remarks")
     val newRemarks = new JAXBElement(qName, classOf[String], classOf[BAreportBodyStructure], "NO REMARKS")
     val content = baReports.getBApropertyReport.get(0).getContent
@@ -179,25 +180,25 @@ case object RemarksFillDefault extends Rule {
 }
 
 case object RemoveBS7666Addresses extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     EbarsXmlCutter.removeBS7666Address(baReports)
   }
 }
 
 case object RemovePropertyGridCoords extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     EbarsXmlCutter.removePropertyGridCoords(baReports)
   }
 }
 
 case object RemovingInvalidTaxBand extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     EbarsXmlCutter.removeNullCurrentTax(baReports)
   }
 }
 
 case object PropertyDescriptionTextRemoval extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
     EbarsXmlCutter.AssessmentProperties(baReports)
       .filter(_.getPropertyDescription != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText != null)
@@ -213,7 +214,7 @@ case object NdrRules {
   case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry extends Rule {
     val codes = Seq("5", "6", "7", "8", "9", "11")
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
@@ -228,7 +229,7 @@ case object NdrRules {
   case object Rt01AndRt02AndRt03AndRt04MissingProposedEntry extends Rule {
     val codes = Seq("1", "2", "3", "4")
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -243,7 +244,7 @@ case object NdrRules {
   case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries extends Rule {
     val codes = Seq("5", "6", "7", "8", "9", "11")
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -258,7 +259,7 @@ case object NdrRules {
   case object Rt01AndRt02AndRt03AndRt04RemoveExistingEntries extends Rule {
     val codes = Seq("1", "2", "3", "4")
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -276,7 +277,7 @@ case object CtRules {
   case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry extends Rule {
     val codes = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
@@ -291,7 +292,7 @@ case object CtRules {
   case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries extends Rule {
     val codes = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -306,7 +307,7 @@ case object CtRules {
   case object Cr03AndCr04BothProposedAndExistingEntries extends Rule {
     val codes = Seq(CR_03, CR_04)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -321,7 +322,7 @@ case object CtRules {
   case object Cr03AndCr04MissingProposedEntry extends Rule {
     val codes = Seq(CR_03, CR_04)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
@@ -336,7 +337,7 @@ case object CtRules {
   case object Cr05AndCr12MissingAnyEntry extends Rule {
     val codes = Seq(CR_05, CR_12)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
@@ -366,7 +367,7 @@ case object CtRules {
   case object Cr05CopyProposedEntriesToExistingEntries extends Rule {
     val codes = Seq(CR_05)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
@@ -391,7 +392,7 @@ case object CtRules {
   case object Cr12CopyProposedEntriesToRemarks extends Rule {
     val codes = Seq(CR_12)
 
-    override def apply(baReports: BAreports) {
+    override def apply(baReports: BAreports): Unit = {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
@@ -404,7 +405,7 @@ case object CtRules {
 }
 
 case object PostcodesToUppercase extends Rule {
-  override def apply(baReports: BAreports) {
+  override def apply(baReports: BAreports): Unit = {
 
     def sanitising(postcode: String) = {
       Try {

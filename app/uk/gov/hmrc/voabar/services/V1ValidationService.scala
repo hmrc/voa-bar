@@ -25,7 +25,7 @@ import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.LoginDetails
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 @Singleton

@@ -49,11 +49,11 @@ class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll wi
 
       val result = await(repo.save(userReportUpload))
 
-      result mustBe 'right
+      result mustBe Symbol("right")
 
       val resultFromDatabase = await(repo.getById(id))
 
-      resultFromDatabase mustBe 'right
+      resultFromDatabase mustBe Symbol("right")
 
       val optionResultFromDatabase = resultFromDatabase.value
 

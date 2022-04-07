@@ -47,7 +47,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
 
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
-    override def read(method: String, url: String, response: HttpResponse): Unit = Unit
+    override def read(method: String, url: String, response: HttpResponse): Unit = ()
   }
 
   def sendEmail(
@@ -77,7 +77,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
       http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json)
     }
     else {
-      Future.successful(Unit)
+      Future.unit
     }
   }
 }

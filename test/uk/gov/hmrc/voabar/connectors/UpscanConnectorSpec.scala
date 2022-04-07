@@ -37,7 +37,7 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
         val connector = new DefaultUpscanConnector(client)
         implicit val hc = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
         val response = await(connector.downloadReport(url))
-        response mustBe('right)
+        response mustBe Symbol("right")
         wireMockServer.verify(
           getRequestedFor(urlEqualTo("/upscan/submission.xml"))
             .withHeader(uk.gov.hmrc.http.HeaderNames.xRequestId, equalTo("this-is-request-id"))

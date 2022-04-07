@@ -25,7 +25,7 @@ import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}
 import uk.gov.hmrc.voabar.util._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 @Singleton

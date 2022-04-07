@@ -6,11 +6,11 @@ object Dependencies {
 
   private val bootstrapVersion = "5.21.0"
   private val hmrcMongoVersion = "0.62.0"
-  private val autobarsXsdVersion = "9.1.0"
+  private val autobarsXsdVersion = "9.2.0"
   private val httpCachingClientVersion = "9.6.0-play-28"
   private val guiceUtilsVersion = "5.0.2"
   private val catsEffectVersion = "3.3.8"
-  private val saxonHeVersion = "11.2"
+  private val saxonHeVersion = "11.3"
   private val xercesVersion = "2.12.2"
   private val persistenceMoxyVersion = "2.6.9"
   private val inbotUtilsVersion = "1.28"

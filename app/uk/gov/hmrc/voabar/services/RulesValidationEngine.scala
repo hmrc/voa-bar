@@ -23,6 +23,7 @@ import models.Purpose
 import uk.gov.hmrc.voabar.models.{EmptyReportValidation, ReportErrorDetail, ReportValidation}
 import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
 
+import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 /**
@@ -62,7 +63,7 @@ class RulesValidationEngine {
    * @return
    */
   def purpose(baReports: BAreports) = {
-    import collection.JavaConverters._
+
     baReports.getBApropertyReport.asScala.headOption
       .flatMap { report =>
         report.getContent.asScala
@@ -116,14 +117,14 @@ case object NdrValidationRules {
   }
 
   case object NdrCodeValidation extends ValidationRule {
-    val validCodes = (1 to 19).map(x => x.formatted("%02d")).toSet
+    val validCodes = (1 to 19).map(x => "%02d".format(x)).toSet
     override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       EbarsXmlCutter.CR(baReports) match {
         case Some(v: String) if validCodes.contains(v) =>
           None
         case Some(v: String) => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v)))
         case Some(v: CtaxReasonForReportCodeContentType) => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v.value())))
-        case None => Some(ReportErrorDetail(ErrorCode.NoNDRCode))
+        case _ => Some(ReportErrorDetail(ErrorCode.NoNDRCode))
       }
     }
   }

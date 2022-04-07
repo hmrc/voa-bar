@@ -37,9 +37,9 @@ class UploadController @Inject()(reportUploadService: ReportUploadService, confi
     val uploadDetails = request.body
 
     val response = for {
-      baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")).right
-      encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing")).right
-      password <- decryptPassword(encryptedPassword).right
+      baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing"))//.right
+      encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing"))//.right
+      password <- decryptPassword(encryptedPassword)//.right
     }yield {
       reportUploadService.upload(LoginDetails(baCode, password), uploadDetails.xmlUrl, uploadDetails.reference)
       Ok("")

@@ -35,6 +35,7 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
@@ -92,7 +93,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
 
   def downloadAndFixXml(url: String)(implicit hc:HeaderCarrier): EitherT[Future, BarError, BAreports] = {
-    import scala.collection.JavaConverters._
+
     val correctionEngine = new RulesCorrectionEngine
 
     def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] = {
@@ -144,7 +145,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   private def sendConfirmationEmail(
                                    reportStatus: ReportStatus,
                                    login: LoginDetails
-                                   ): Future[Either[BarEmailError, Unit.type]] = {
+                                   ): Future[Either[BarEmailError, Unit]] = {
     emailConnector.sendEmail(
       reportStatus.baCode.getOrElse("Unknown BA"),
       Purpose.CT, // Note: This will need to be dynamic when NDR processing is added to the service
@@ -154,7 +155,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       reportStatus.filename.getOrElse("filename unavailable"),
       reportStatus.created.toString,
       reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
-      .map(_ => Right(Unit))
+      .map(_ => Right(()))
       .recover{
         case ex: Throwable => {
           val errorMsg = "Error while sending confirmation message"
@@ -165,12 +166,12 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
   private def sendConfirmationEmail(
                                      baRef: String,
-                                     login: LoginDetails): Future[Either[BarError, Unit.type]] = {
+                                     login: LoginDetails): Future[Either[BarError, Unit]] = {
     statusRepository.getByReference(baRef).flatMap(_.fold(
         e => {
           val errorMsg = "Error while retrieving report to be send via email"
           logger.error(errorMsg)
-          Future.successful(Right(Unit))
+          Future.successful(Right(()))
         },
         reportStatus => sendConfirmationEmail(reportStatus, login)
       ))

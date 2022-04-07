@@ -46,7 +46,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
   "UserReportUploadsController" should {
     "save a user report upload successfully" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
-      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Right(Unit))
+      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Right(()))
       val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.save()(fakeRequest)

@@ -53,7 +53,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
   private def saveUserReportUpload(userReportUpload: UserReportUpload): Future[Either[Result, Unit]] = {
     userReportUploadsRepository.save(userReportUpload).map(_.fold(
       _ => Left(InternalServerError),
-      _ => Right(Unit)
+      _ => Right(())
     ))
   }
 
