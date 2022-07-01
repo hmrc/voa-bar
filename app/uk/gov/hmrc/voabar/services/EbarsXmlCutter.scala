@@ -188,7 +188,8 @@ object EbarsXmlCutter {
     * @return Seq of ebars.xml.TextAddressStructure
     */
   def TextAddressStructures(baPropertyIdentificationStructure: BApropertyIdentificationStructure): Seq[TextAddressStructure] =
-    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "TextAddress").map(_.getValue.asInstanceOf[TextAddressStructure]).toSeq
+    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "TextAddress")
+      .map(_.getValue.asInstanceOf[TextAddressStructure]).toSeq
 
   /**
     * Returns <BAreference> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>

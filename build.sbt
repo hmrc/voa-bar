@@ -30,6 +30,7 @@ lazy val microservice = Project(appName, file("."))
     retrieveManaged := true,
     PlayKeys.playDefaultPort := 8447,
     scalaVersion := "2.13.8",
+    DefaultBuildSettings.targetJvm := "jvm-11",
     Test / fork := true
   )
   .configs(IntegrationTest)

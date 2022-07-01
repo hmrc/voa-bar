@@ -98,7 +98,8 @@ case object FixHeader extends Rule {
     }
     if (header.getProcessDate == null) {
       val now = ZonedDateTime.now(zoneId)
-      val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
+      val xmlNow = DatatypeFactory.newInstance()
+        .newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
       header.setProcessDate(xmlNow)
     }
   }
@@ -360,8 +361,8 @@ case object CtRules {
     * both <ProposedEntries>/<AssessmentProperties>/<TextAddress> end up in <ExistingEntries>/<AssessmentProperties>+ with a prefix value of [PROPOSED]
     * for <ProposedEntries>/<AssessmentProperties>/<TextAddress>/<AddressLine>
     *
-    * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether. This avoids duplication of
-    * <OccupierContact> elements in CDB.
+    * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
+    * This avoids duplication of <OccupierContact> elements in CDB.
     *
     */
   case object Cr05CopyProposedEntriesToExistingEntries extends Rule {

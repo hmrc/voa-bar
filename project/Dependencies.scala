@@ -4,12 +4,12 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "5.24.0"
-  private val hmrcMongoVersion = "0.63.0"
-  private val autobarsXsdVersion = "9.2.0"
+  private val bootstrapVersion = "5.25.0"
+  private val hmrcMongoVersion = "0.66.0"
+  private val autoBarsXsdVersion = "9.5.0"
   private val httpCachingClientVersion = "9.6.0-play-28"
-  private val guiceUtilsVersion = "5.0.2"
-  private val catsEffectVersion = "3.3.8"
+  private val guiceUtilsVersion = "5.1.0"
+  private val catsEffectVersion = "3.3.12"
   private val saxonHeVersion = "11.3"
   private val xercesVersion = "2.12.2"
   private val persistenceMoxyVersion = "2.6.9"
@@ -17,12 +17,12 @@ object Dependencies {
 
   // Test dependencies
   private val scalaTestPlusPlayVersion = "5.1.0"
-  private val scalaTestVersion = "3.2.10"
+  private val scalaTestVersion = "3.2.10" // v3.2.10 provides scala-xml_2.13:1.3.0
   private val testPlusScalaCheckVersion = "3.2.10.0"
-  private val mockitoScalatestVersion = "1.17.5"
+  private val mockitoScalatestVersion = "1.17.7"
   private val wiremockVersion = "2.27.2"
   private val xmlunitVersion = "2.9.0"
-  private val flexmarkVersion = "0.62.2"
+  private val flexmarkVersion = "0.64.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -30,7 +30,7 @@ object Dependencies {
     ws,
     "uk.gov.hmrc" %% "bootstrap-backend-play-28"    % bootstrapVersion,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"     % hmrcMongoVersion,
-    "uk.gov.hmrc" %% "autobars-xsd"                 % autobarsXsdVersion,
+    "uk.gov.hmrc" %% "autobars-xsd"                 % autoBarsXsdVersion,
     "uk.gov.hmrc" %% "http-caching-client"          % httpCachingClientVersion,
     "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
     "org.typelevel" %% "cats-effect"                % catsEffectVersion,
