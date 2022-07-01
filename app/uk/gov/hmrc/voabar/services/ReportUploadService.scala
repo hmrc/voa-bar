@@ -240,7 +240,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case Success(jsonString) => Right(jsonString)
       case Failure(exception) => Left(BarEbarError(exception.getMessage))
     }
-    
+
 
     def internall_upload(jsonString: String):Future[Either[BarError, Boolean]] = {
       val req = BAReportRequest(submissionId, jsonString, login.username, login.password)
