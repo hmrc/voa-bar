@@ -4,8 +4,8 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "6.2.0"
-  private val hmrcMongoVersion = "0.66.0"
+  private val bootstrapVersion = "6.3.0"
+  private val hmrcMongoVersion = "0.67.0"
   private val autoBarsXsdVersion = "9.5.0"
   private val httpCachingClientVersion = "9.6.0-play-28"
   private val guiceUtilsVersion = "5.1.0"
@@ -22,7 +22,7 @@ object Dependencies {
   private val mockitoScalatestVersion = "1.17.7"
   private val wiremockVersion = "2.27.2"
   private val xmlunitVersion = "2.9.0"
-  private val flexmarkVersion = "0.64.0"
+  private val flexMarkVersion = "0.64.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -48,7 +48,7 @@ object Dependencies {
     "org.mockito" %% "mockito-scala-scalatest" % mockitoScalatestVersion % scope,
     "com.github.tomakehurst" % "wiremock-jre8" % wiremockVersion % scope,
     "org.xmlunit" % "xmlunit-core" % xmlunitVersion % scope,
-    "com.vladsch.flexmark" % "flexmark-all" % flexmarkVersion % scope // for scalatest 3.1+
+    "com.vladsch.flexmark" % "flexmark-all" % flexMarkVersion % scope // for scalatest 3.2.x
   )
 
 }
