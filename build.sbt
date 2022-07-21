@@ -10,8 +10,6 @@ import uk.gov.hmrc.versioning.SbtGitVersioning
 
 val appName = "voa-bar"
 
-val appDependencies : Seq[ModuleID] = Dependencies.appDependencies
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
@@ -26,7 +24,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(publishingSettings: _*)
   .settings(defaultSettings(): _*)
   .settings(
-    libraryDependencies ++= appDependencies,
+    libraryDependencies ++= Dependencies.appDependencies,
     retrieveManaged := true,
     PlayKeys.playDefaultPort := 8447,
     scalaVersion := "2.13.8",

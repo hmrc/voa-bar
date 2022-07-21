@@ -206,11 +206,11 @@ case object TextAddressPostcodeValidation extends ValidationRule {
 
   override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
 
-    val f = EbarsXmlCutter.TextAddressStructures(baReports) map (_.getPostcode) map {
+    val f = EbarsXmlCutter.TextAddressStructures(baReports) map (_.getPostcode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(zip) => None
       case v => Some(ReportErrorDetail(ErrorCode.TextAddressPostcodeValidation, Seq(v)))
-    } flatten
+    }
 
     f headOption
   }
@@ -221,24 +221,28 @@ case object OccupierContactAddressesPostcodeValidation extends ValidationRule {
 
   override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
 
-    val f = EbarsXmlCutter.OccupierContactAddresses(baReports) map (_.getPostCode) map {
+    val f = EbarsXmlCutter.OccupierContactAddresses(baReports) map (_.getPostCode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(zip) => None
       case v => Some(ReportErrorDetail(ErrorCode.OccupierContactAddressesPostcodeValidation, Seq(v)))
-    } flatten
+    }
 
     f headOption
   }
 }
 
 case object RemarksValidation extends ValidationRule {
-  override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
+
+  val maxChars = 240
+
+  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
     EbarsXmlCutter.Remarks(baReports) flatMap {
       case v if v.length <= 1 => Some(ReportErrorDetail(ErrorCode.RemarksValidationNotEmpty))
-      case v if v.length > 240 => Some(ReportErrorDetail(ErrorCode.RemarksValidationTooLong, Seq(v)))
+      case v if v.length > maxChars => Some(ReportErrorDetail(ErrorCode.RemarksValidationTooLong, Seq(s"The remarks cannot exceed $maxChars characters.")))
       case _ => None
-    } headOption
+    }
   }
+
 }
 
 case object PropertyPlanReferenceNumberValidation extends ValidationRule {
