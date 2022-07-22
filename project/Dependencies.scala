@@ -4,8 +4,8 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "6.3.0"
-  private val hmrcMongoVersion = "0.67.0"
+  private val bootstrapVersion = "6.4.0"
+  private val hmrcMongoVersion = "0.68.0"
   private val autoBarsXsdVersion = "9.5.0"
   private val httpCachingClientVersion = "9.6.0-play-28"
   private val guiceUtilsVersion = "5.1.0"
