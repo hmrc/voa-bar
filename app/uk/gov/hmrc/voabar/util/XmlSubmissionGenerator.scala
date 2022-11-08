@@ -24,7 +24,7 @@ import uk.gov.hmrc.voabar.util.DateConversion._
 
 import java.math.BigInteger
 import java.time.{Instant, LocalDate}
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._

@@ -1,33 +1,30 @@
 import sbt._
-import play.sbt.PlayImport._
 import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "6.4.0"
-  private val hmrcMongoVersion = "0.68.0"
-  private val autoBarsXsdVersion = "9.5.0"
-  private val httpCachingClientVersion = "9.6.0-play-28"
+  private val bootstrapVersion = "7.11.0"
+  private val hmrcMongoVersion = "0.73.0"
+  private val autoBarsXsdVersion = "9.6.0"
+  private val httpCachingClientVersion = "10.0.0-play-28"
   private val guiceUtilsVersion = "5.1.0"
-  private val catsEffectVersion = "3.3.12"
-  private val saxonHeVersion = "11.3"
+  private val catsEffectVersion = "3.3.14"
+  private val saxonHeVersion = "11.4"
   private val xercesVersion = "2.12.2"
-  private val persistenceMoxyVersion = "2.6.9"
   private val inbotUtilsVersion = "1.28"
 
   // Test dependencies
   private val scalaTestPlusPlayVersion = "5.1.0"
   private val scalaTestVersion = "3.2.10" // v3.2.10 provides scala-xml_2.13:1.3.0
   private val testPlusScalaCheckVersion = "3.2.10.0"
-  private val mockitoScalatestVersion = "1.17.7"
+  private val mockitoScalatestVersion = "1.17.12"
   private val wiremockVersion = "2.27.2"
   private val xmlunitVersion = "2.9.0"
   private val flexMarkVersion = "0.64.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
-  val compile = Seq(
-    ws,
+  private val compile = Seq(
     "uk.gov.hmrc" %% "bootstrap-backend-play-28"    % bootstrapVersion,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"     % hmrcMongoVersion,
     "uk.gov.hmrc" %% "autobars-xsd"                 % autoBarsXsdVersion,
@@ -36,11 +33,10 @@ object Dependencies {
     "org.typelevel" %% "cats-effect"                % catsEffectVersion,
     "net.sf.saxon" % "Saxon-HE"                     % saxonHeVersion,
     "xerces" % "xercesImpl"                         % xercesVersion,
-    "org.eclipse.persistence" % "org.eclipse.persistence.moxy" % persistenceMoxyVersion,
     "io.inbot" % "inbot-utils" % inbotUtilsVersion
   )
 
-  def test(scope: String = "test,it") = Seq(
+  private def test(scope: String = "test,it") = Seq(
     "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusPlayVersion % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatest" %% "scalatest" % scalaTestVersion % scope,

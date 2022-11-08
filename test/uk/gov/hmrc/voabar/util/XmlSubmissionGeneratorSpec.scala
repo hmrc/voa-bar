@@ -30,7 +30,7 @@ import java.io.StringWriter
 import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
-import javax.xml.bind.{JAXBContext, Marshaller}
+import jakarta.xml.bind.{JAXBContext, Marshaller}
 import scala.jdk.CollectionConverters._
 
 class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {

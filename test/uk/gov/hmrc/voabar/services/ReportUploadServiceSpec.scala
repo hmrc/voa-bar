@@ -22,7 +22,7 @@ import java.time.ZonedDateTime
 import ebars.xml.BAreports
 import models.Purpose.Purpose
 
-import javax.xml.bind.JAXBContext
+import jakarta.xml.bind.JAXBContext
 import org.apache.commons.io.IOUtils
 import org.scalatest.OptionValues
 import org.mockito.scalatest.MockitoSugar

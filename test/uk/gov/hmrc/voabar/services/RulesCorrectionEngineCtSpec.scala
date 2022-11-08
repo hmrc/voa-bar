@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.services.CtRules._
 
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters._
 

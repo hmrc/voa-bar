@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports}
 
 import javax.inject.Singleton
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}

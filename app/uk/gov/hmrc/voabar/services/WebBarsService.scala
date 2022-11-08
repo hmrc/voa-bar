@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy
 import ebars.xml.BAreports
 
 import javax.inject.{Inject, Singleton}
-import javax.xml.bind.{JAXBContext, JAXBException}
+import jakarta.xml.bind.{JAXBContext, JAXBException}
 import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
@@ -65,7 +65,7 @@ class DefaultWebBarsService @Inject() (reportUploadService: ReportUploadService)
     }
   }
 
-  import javax.xml.bind.Marshaller
+  import jakarta.xml.bind.Marshaller
   import java.io.StringWriter
 
   // Temporary methods to help validate the ticket generation

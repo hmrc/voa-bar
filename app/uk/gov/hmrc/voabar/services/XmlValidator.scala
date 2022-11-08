@@ -29,7 +29,7 @@ import play.api.Logger
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
 
-import javax.xml.bind.JAXBContext
+import jakarta.xml.bind.JAXBContext
 import javax.xml.parsers.DocumentBuilderFactory
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}

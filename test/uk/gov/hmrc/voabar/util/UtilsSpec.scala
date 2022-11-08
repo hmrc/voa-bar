@@ -19,9 +19,8 @@ package uk.gov.hmrc.voabar.util
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted, PlainText}
+import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText}
 import uk.gov.hmrc.voabar.models.LoginDetails
-
 import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -33,7 +32,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
   "Utils" must {
     "have decryptPassword method that" must {
       "Decrypt the  encrypted password and return it in plain text" in {
-        val cryptoMock = mock[CompositeSymmetricCrypto]
+        val cryptoMock = mock[Encrypter with Decrypter]
         when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
         val utils = new Utils(cryptoMock)
         val decryptedPassword = utils.decryptPassword(password)
@@ -43,7 +42,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
     "have generateHeaderCarrier method " must {
 
       "include some basic authorization in the header" in {
-        val cryptoMock = mock[CompositeSymmetricCrypto]
+        val cryptoMock = mock[Encrypter with Decrypter]
         val utils = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
@@ -58,7 +57,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
       }
 
       "include some basic authorization in the header for existing header carrier" in {
-        val cryptoMock = mock[CompositeSymmetricCrypto]
+        val cryptoMock = mock[Encrypter with Decrypter]
         val utils = new Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 
