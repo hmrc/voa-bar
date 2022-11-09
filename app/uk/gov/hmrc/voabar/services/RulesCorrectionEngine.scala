@@ -24,7 +24,7 @@ import java.util.GregorianCalendar
 import ebars.xml.CtaxReasonForReportCodeContentType._
 import ebars.xml.{BAreportBodyStructure, BAreports}
 import io.inbot.utils.ReplacingInputStream
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import javax.xml.namespace.QName
 import models.EbarsBAreports._

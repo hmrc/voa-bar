@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeContentType}
 import ebars.xml.CtaxReasonForReportCodeContentType._
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import models.Purpose
 import uk.gov.hmrc.voabar.models.{EmptyReportValidation, ReportErrorDetail, ReportValidation}
 import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}

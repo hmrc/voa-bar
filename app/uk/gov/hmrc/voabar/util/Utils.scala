@@ -17,15 +17,16 @@
 package uk.gov.hmrc.voabar.util
 
 import org.apache.commons.codec.binary.Base64
-import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted}
+import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.voabar.models.LoginDetails
+
 import javax.inject.{Inject, Singleton}
 
 
 @Singleton
-class Utils @Inject() (crypto: CompositeSymmetricCrypto) {
+class Utils @Inject() (crypto: Encrypter with Decrypter) {
   def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
 
   def generateHeader(loginDetails: LoginDetails): HeaderCarrier = {

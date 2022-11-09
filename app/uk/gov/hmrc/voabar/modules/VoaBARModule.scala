@@ -20,7 +20,7 @@ import com.google.inject.Provides
 import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
 import services.EbarsValidator
-import uk.gov.hmrc.crypto.{ApplicationCrypto, CompositeSymmetricCrypto}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
 
 class VoaBARModule  extends ScalaModule {
 
@@ -30,7 +30,8 @@ class VoaBARModule  extends ScalaModule {
   }
 
   @Provides
-  def jsonCryptoProvider(config: Configuration): CompositeSymmetricCrypto = {
+  def jsonCryptoProvider(config: Configuration): Encrypter with Decrypter = {
     new ApplicationCrypto(config.underlying).JsonCrypto
   }
+
 }

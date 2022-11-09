@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax
 import ebars.xml._
-import javax.xml.bind.JAXBElement
+import jakarta.xml.bind.JAXBElement
 import javax.xml.namespace.QName
 import models.Purpose
 

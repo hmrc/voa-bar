@@ -22,7 +22,7 @@ import java.time.LocalDate
 import java.util.UUID
 import ebars.xml.BAreports
 
-import javax.xml.bind.{JAXBContext, Marshaller}
+import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen.frequency
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec

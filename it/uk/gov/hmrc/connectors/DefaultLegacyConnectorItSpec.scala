@@ -20,7 +20,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import ebars.xml.BAreports
 
-import javax.xml.bind.JAXBContext
+import jakarta.xml.bind.JAXBContext
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
