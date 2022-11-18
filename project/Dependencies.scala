@@ -16,8 +16,8 @@ object Dependencies {
 
   // Test dependencies
   private val scalaTestPlusPlayVersion = "5.1.0"
-  private val scalaTestVersion = "3.2.10" // v3.2.10 provides scala-xml_2.13:1.3.0
-  private val testPlusScalaCheckVersion = "3.2.10.0"
+  private val scalaTestVersion = "3.2.14"
+  private val testPlusScalaCheckVersion = "3.2.14.0"
   private val mockitoScalatestVersion = "1.17.12"
   private val wiremockVersion = "2.35.0"
   private val xmlunitVersion = "2.9.0"
@@ -42,7 +42,7 @@ object Dependencies {
     "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusPlayVersion % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-    "org.scalatestplus" %% "scalacheck-1-15" % testPlusScalaCheckVersion % scope,
+    "org.scalatestplus" %% "scalacheck-1-17" % testPlusScalaCheckVersion % scope,
     "org.mockito" %% "mockito-scala-scalatest" % mockitoScalatestVersion % scope,
     "com.github.tomakehurst" % "wiremock-jre8" % wiremockVersion % scope,
     "org.xmlunit" % "xmlunit-core" % xmlunitVersion % scope,
