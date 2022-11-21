@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import java.time.Instant
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
@@ -29,14 +28,17 @@ import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 import scala.concurrent.{ExecutionContext, Future}
 import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.{and, equal, gt}
+import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
 import org.mongodb.scala.model.{FindOneAndReplaceOptions, _}
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.{_id, byId, handleMongoError, handleMongoWarn, indexOptionsWithTTL}
+
+import java.time.temporal.ChronoUnit
 
 
 object SubmissionStatusRepository {
@@ -56,10 +58,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
     indexes = Seq(
       // VOA-3276 For Mongo 4.2 index name must be the original index name used on creating index
       IndexModel(Indexes.hashed("baCode"), IndexOptions().name("null_baCodeIdx")),
-      IndexModel(Indexes.descending("created"), indexOptionsWithTTL("null_createdIdx", submissionsCollectionName, config))
+      IndexModel(Indexes.descending("createdAt"), indexOptionsWithTTL("submissionsTTL", submissionsCollectionName, config))
     ),
     extraCodecs = Seq(
-      Codecs.playFormatCodec(Error.format)
+      Codecs.playFormatCodec(Error.format),
+      Codecs.playFormatCodec(MongoJavatimeFormats.instantFormat)
     )
   ) with SubmissionStatusRepository with Logging {
 
@@ -76,27 +79,21 @@ class SubmissionStatusRepositoryImpl @Inject()(
   def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit]] = {
     val modifierSeq = Seq(
       set("baCode", userId),
-      set("created", ZonedDateTime.now.toString)
+      set("createdAt", Instant.now)
     )
 
     atomicSaveOrUpdate(reference, modifierSeq, upsert = true)
   }
 
   override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
-    val isoDate = ZonedDateTime.now().minusDays(90)
-      .withHour(3) //Set 3AM to prevent submissions disappear during day.
-      .withMinute(0)
-      .format(DateTimeFormatter.ISO_DATE_TIME)
-
     val filters = Seq(
-      equal("baCode", baCode),
-      gt("created", isoDate)
+      equal("baCode", baCode)
     ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
     val finder = and(filters: _*)
 
     collection.withReadPreference(ReadPreference.primary())
-      .find(finder).sort(descending("created")).toFuture()
+      .find(finder).sort(descending("createdAt")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
@@ -107,7 +104,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
     collection.withReadPreference(ReadPreference.primary())
-      .find(byId(reference)).sort(descending("created")).toFuture()
+      .find(byId(reference)).sort(descending("createdAt")).toFuture()
       .flatMap { res =>
         checkAndUpdateSubmissionStatus(res.head).map(Right(_))
       }
@@ -118,7 +115,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
     collection.withReadPreference(ReadPreference.primary())
-      .find().sort(descending("created")).toFuture()
+      .find().sort(descending("createdAt")).toFuture()
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
       }
@@ -176,7 +173,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
     if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
     } else {
-      if (report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
+      // TODO: After 1 January 2023 define createdAt: Instant, not Option[Instant]
+      if (report.createdAt.nonEmpty && report.createdAt.get.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0) {
         markSubmissionFailed(report)
       } else {
         Future.successful(report)

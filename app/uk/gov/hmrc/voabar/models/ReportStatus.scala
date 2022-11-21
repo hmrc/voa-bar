@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZonedDateTime}
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats.mongoEntity
 
@@ -39,7 +39,8 @@ case object Done extends ReportStatusType
 
 final case class ReportStatus(
                                id: String,
-                               created: ZonedDateTime,
+                               // TODO: After 1 April 2023 remove property 'created' as only 'createdAt' is used
+                               created: Option[ZonedDateTime] = None,
                                url: Option[String] = None,
                                checksum: Option[String] = None,          //TODO -  Do we nee this?
                                errors: Seq[Error] = Seq(),
@@ -48,7 +49,9 @@ final case class ReportStatus(
                                status: Option[String] = Some(Pending.value), //TODO - Make this mandatory and for all new put default values in deserialisation
                                filename: Option[String] = None,
                                totalReports: Option[Int] = None,
-                               report: Option[JsObject] = None
+                               report: Option[JsObject] = None,
+                               // TODO: After 1 January 2023 define createdAt: Instant as all records in mongo must have this property
+                               createdAt: Option[Instant] = Some(Instant.now)
                              ) {
 
   def redacted: ReportStatus = {
@@ -58,6 +61,8 @@ final case class ReportStatus(
 }
 
 object ReportStatus {
+
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
   implicit val format: Format[ReportStatus] = mongoEntity {
     Json.using[Json.WithDefaultValues].format[ReportStatus]

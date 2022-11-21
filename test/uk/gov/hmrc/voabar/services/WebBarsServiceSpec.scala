@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.LocalDate
 import java.util.UUID
 
 import org.scalatest.EitherValues
@@ -42,7 +42,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val legacyCr03ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
-    ZonedDateTime.now(),
+    None,
     None,
     None,
     Seq.empty,
@@ -70,7 +70,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val newCr03ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
-    ZonedDateTime.now(),
+    None,
     None,
     None,
     Seq.empty,
@@ -98,7 +98,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val cr01ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
-    ZonedDateTime.now(),
+    None,
     None,
     None,
     Seq.empty,

@@ -136,7 +136,7 @@ class ValidationService {
               z.getAddressLine.asScala.map(_.trim).filter(_ != "").mkString("", ", ", " ") + Option(z.getPostcode).getOrElse("")
             })
             .filterNot(x => entries == "ExistingEntries" && x.contains("[PROPOSED]")) //TODO - FIX bug in ebars.
-                                                                                      // uk.gov.hmrc.voabar.services.CtRules.Cr05CopyProposedEntriesToExistingEntries
+                                                                                // uk.gov.hmrc.voabar.services.CtRules.Cr05CopyProposedEntriesToExistingEntries
           address
         }
     }.fold(e => {

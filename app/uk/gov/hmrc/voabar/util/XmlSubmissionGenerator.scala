@@ -47,73 +47,57 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def generateBody(): BAreportBodyStructure = {
-
-    val body = new BAreportBodyStructure()
-
     val bodyElements: ListBuffer[JAXBElement[_]] = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
-      OF.createBAreportBodyStructureTransactionIdentityBA(
-        submissionId.replaceAll("-", "").substring(0,25)), //TODO submissionID
+      OF.createBAreportBodyStructureTransactionIdentityBA(submissionId.replaceAll("-", "").substring(0,25)), //TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax
     )
 
     submission match {
-      case submission: Cr01Cr03Submission => {
+      case submission: Cr01Cr03Submission =>
         bodyElements += cr01Cr03PropertyEntries()
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
-        if(submission.planningRef.isDefined) {
+        if (submission.planningRef.isDefined) {
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
         }
 
-        if(submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined) {
-          val reasonForRemoval = submission.removalReason.map{
-            case OtherReason => submission.otherReason.getOrElse("Unknown reason") // TODO some validation
-            case rr => rr.xmlValue
-          }
-
+        if (submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined) {
           bodyElements += OF.createBAreportBodyStructureRemarks(
-            List(
-              reasonForRemoval,
+            List(reasonForRemoval(submission),
               submission.noPlanningReference.map(_.xmlValue),
-              submission.comments
-            ).flatten.mkString(" ")
-
+              submission.comments).flatten.mkString(" ")
           )
         }
-      }
-      case submission: Cr05Submission => {
-        val existingProperties = OF.createBAreportBodyStructureExistingEntries(createProperties(submission.existingPropertis))
-        bodyElements += existingProperties
-
-        val proposedProperties = OF.createBAreportBodyStructureProposedEntries(createProperties(submission.proposedProperties))
-        bodyElements += proposedProperties
-
+      case submission: Cr05Submission =>
+        bodyElements += OF.createBAreportBodyStructureExistingEntries(createProperties(submission.existingPropertis))
+        bodyElements += OF.createBAreportBodyStructureProposedEntries(createProperties(submission.proposedProperties))
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
-        if(submission.planningRef.isDefined) {
+        if (submission.planningRef.isDefined) {
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
         }
 
-        if(submission.comments.isDefined || submission.noPlanningReference.isDefined) {
-
+        if (submission.comments.isDefined || submission.noPlanningReference.isDefined) {
           bodyElements += OF.createBAreportBodyStructureRemarks(
-            List(
-              submission.noPlanningReference.map(_.xmlValue),
-              submission.comments
-            ).flatten.mkString(" ")
-
+            List(submission.noPlanningReference.map(_.xmlValue),
+              submission.comments).flatten.mkString(" ")
           )
         }
-      }
     }
 
+    val body = new BAreportBodyStructure()
     body.getContent.addAll(bodyElements.asJavaCollection)
     body
   }
 
+  private def reasonForRemoval(submission: Cr01Cr03Submission) =
+    submission.removalReason.map {
+      case OtherReason => submission.otherReason.getOrElse("Unknown reason") // TODO some validation
+      case rr => rr.xmlValue
+    }
 
   def createProperties(properties: Seq[Cr05AddProperty]) = {
 
