@@ -94,7 +94,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, None, None, None, Seq(), Seq.empty, Option("BA2220"), Some(Failed.value), createdAt = Some(Instant.now.normalize))
+      val reportStatus = ReportStatus(guid, baCode = Option("BA2220"), status = Some(Failed.value), createdAt = Some(Instant.now.normalize))
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
 
@@ -148,16 +148,16 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     "Save baCode when saving or updating submission" in {
       import uk.gov.hmrc.voabar.util._
 
-      val submissionToStore = ReportStatus(UUID.randomUUID().toString, None,
-        Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
-        Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
-        Seq.empty,
-        Option("BA2020"),
-        Option(Submitted.value),
-        Option("filename.xml"),
-        Some(10),
+      val submissionToStore = ReportStatus(UUID.randomUUID().toString,
+        url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
+        checksum = Option("RandomCheckSum"),
+        errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
+        baCode = Option("BA2020"),
+        status = Option(Submitted.value),
+        filename = Option("filename.xml"),
+        totalReports = Some(10)
       )
-      await(repo.saveOrUpdate(submissionToStore,true))
+      await(repo.saveOrUpdate(submissionToStore, upsert = true))
       val submissionFromDb = await(repo.getByReference(submissionToStore.id)).value
       submissionFromDb.baCode.value mustBe submissionToStore.baCode.get
     }
@@ -169,14 +169,14 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val daysToSubtract = 91
 
-      val submissionToStore = ReportStatus(UUID.randomUUID().toString, None,
-        Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
-        Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
-        Seq.empty,
-        Option("BA2020"),
-        Option(Submitted.value),
-        Option("filename.xml"),
-        Some(10),
+      val submissionToStore = ReportStatus(UUID.randomUUID().toString,
+        url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
+        checksum = Option("RandomCheckSum"),
+        errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
+        baCode = Option("BA2020"),
+        status = Option(Submitted.value),
+        filename = Option("filename.xml"),
+        totalReports = Some(10),
         createdAt = Some(Instant.now.normalize)
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
@@ -196,7 +196,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   }
 
   def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID().toString, None, None, None, Seq.empty, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None)
+    ReportStatus(UUID.randomUUID().toString, baCode = Option("BA1010"), status = Some(Pending.value))
 
   override protected def afterAll(): Unit = {
     await(mongoComponent.database.drop().toFutureOption())

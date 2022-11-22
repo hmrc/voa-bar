@@ -33,6 +33,8 @@ import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -150,7 +152,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       login.username,
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
-      reportStatus.created.toString,
+      reportStatus.createdAt.fold("")(_.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)),
       reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(()))
       .recover{

@@ -174,7 +174,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       Future.successful(report)
     } else {
       // TODO: After 1 January 2023 define createdAt: Instant, not Option[Instant]
-      if (report.createdAt.nonEmpty && report.createdAt.get.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0) {
+      if (report.createdAt.exists(_.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0)) {
         markSubmissionFailed(report)
       } else {
         Future.successful(report)
