@@ -39,6 +39,8 @@ case object Done extends ReportStatusType
 
 final case class ReportStatus(
                                id: String,
+                               // TODO: After 1 January 2023 define createdAt: Instant as all records in mongo must have this property
+                               createdAt: Option[Instant] = None,
                                // TODO: After 1 April 2023 remove property 'created' as only 'createdAt' is used
                                created: Option[ZonedDateTime] = None,
                                url: Option[String] = None,
@@ -49,9 +51,7 @@ final case class ReportStatus(
                                status: Option[String] = Some(Pending.value), //TODO - Make this mandatory and for all new put default values in deserialisation
                                filename: Option[String] = None,
                                totalReports: Option[Int] = None,
-                               report: Option[JsObject] = None,
-                               // TODO: After 1 January 2023 define createdAt: Instant as all records in mongo must have this property
-                               createdAt: Option[Instant] = Some(Instant.now)
+                               report: Option[JsObject] = None
                              ) {
 
   def redacted: ReportStatus = {
