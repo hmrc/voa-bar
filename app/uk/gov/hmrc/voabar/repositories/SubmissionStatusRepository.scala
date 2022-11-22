@@ -68,13 +68,18 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   val timeoutMinutes = 120
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] =
+  def saveOrUpdate(reportStatusTmp: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] = {
+
+    // TODO: Remove after 1 January 2023
+    val reportStatus = reportStatusTmp.copy(createdAt = Some(reportStatusTmp.createdAt.getOrElse(Instant.now)))
+
     collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
       .toFutureOption()
       .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
       }
+  }
 
   def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit]] = {
     val modifierSeq = Seq(
