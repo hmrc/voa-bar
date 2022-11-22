@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.controllers
 
 import java.net.URL
 import java.nio.file.Paths
-import java.time.ZonedDateTime
 import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
 import org.mockito.scalatest.MockitoSugar
@@ -83,7 +82,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
     "properly handle correct XML " in {
       await(submissionRepository.collection.deleteOne(byId("1234")).toFutureOption())
 
-      val reportStatus = ReportStatus("1234", ZonedDateTime.now, baCode = Option("BA5090"))
+      val reportStatus = ReportStatus("1234", baCode = Option("BA5090"))
 
       await(submissionRepository.saveOrUpdate(reportStatus, true))
 

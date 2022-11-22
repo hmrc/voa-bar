@@ -92,13 +92,11 @@ val xml = XML.load(new CharArrayReader(charWriter.toCharArray))
   def domToScala(document: Document): Either[BarError, Node] = {
     Try {
       val saxHandler = new NoBindingFactoryAdapter()
-      saxHandler.scopeStack.push(TopScope)
       TransformerFactory
         .newInstance("net.sf.saxon.TransformerFactoryImpl", null)
         .newTransformer
         .transform(new DOMSource(document), new SAXResult(saxHandler))
 
-      saxHandler.scopeStack.pop()
       saxHandler.rootElem
     } match {
       case Success(scalaNode) => Right(scalaNode)

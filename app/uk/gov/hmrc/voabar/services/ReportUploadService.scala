@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 import java.io.ByteArrayInputStream
-import java.time.ZonedDateTime
 import cats.data.EitherT
 import cats.implicits._
 import ebars.xml.BAreports
@@ -25,7 +24,7 @@ import ebars.xml.BAreports
 import javax.inject.Inject
 import javax.xml.transform.stream.StreamSource
 import models.Purpose
-import play.api.Logger
+import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector, VoaBarAuditConnector}
@@ -34,6 +33,8 @@ import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -43,12 +44,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                           legacyConnector: LegacyConnector,
                           emailConnector: EmailConnector,
                           upscanConnector: UpscanConnector,
-                          audit: VoaBarAuditConnector)(implicit executionContext: ExecutionContext) {
+                          audit: VoaBarAuditConnector)(implicit executionContext: ExecutionContext) extends Logging {
 
-  val ebarsValidator = new EbarsValidator()
-  val voaBarValidator = new XmlValidator()
-
-  val logger = Logger(this.getClass)
+  val ebarsValidator = new EbarsValidator
+  val voaBarValidator = new XmlValidator
 
   def upload(baLogin: LoginDetails, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
 
@@ -57,7 +56,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT.fromEither[Future](validationService.validate(submissions, baLogin)) //Business validation
       _ <- EitherT.fromEither[Future](voaBarValidator.validateAsDomAgainstSchema(submissions)) //XML Schema validation
       status <- EitherT.right[BarError](upload(baLogin, submissions, uploadReference))
-    } yield (status)
+    } yield status
 
     handleUploadResult(processingResult.value, baLogin, uploadReference)
 
@@ -69,12 +68,13 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _  = audit.successfulReportUploaded(baLogin.username, baReports.getBApropertyReport.size())
       _ <- EitherT(statusRepository.update(uploadReference, Done, baReports.getBApropertyReport.size()))
       _ <- EitherT(sendConfirmationEmail(uploadReference, baLogin))
-    } yield ("ok")
+    } yield "ok"
 
     handleUploadResult(processingResult.value, baLogin, uploadReference)
   }
 
-  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
+  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String)
+                        (implicit headerCarrier: HeaderCarrier):Future[String] = {
     result
       .recover {
         case exception: Exception => {
@@ -93,14 +93,13 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
 
   def downloadAndFixXml(url: String)(implicit hc:HeaderCarrier): EitherT[Future, BarError, BAreports] = {
-
     val correctionEngine = new RulesCorrectionEngine
 
     def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] = {
       for {
         _ <- voaBarValidator.validateInputXmlForXEE(CorrectionInputStream(new ByteArrayInputStream(rawXml)))
         baReports <- unmarshal(rawXml)
-      }yield (baReports)
+      } yield baReports
 
     }
 
@@ -138,7 +137,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       rawXml <- EitherT(upscanConnector.downloadReport(url))
       submission <- EitherT.fromEither[Future](parseXml(rawXml))
       xml <- EitherT.fromEither[Future](fixXml(submission))
-    } yield (xml)
+    } yield xml
 
   }
 
@@ -153,15 +152,14 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       login.username,
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
-      reportStatus.created.toString,
+      reportStatus.createdAt.fold("")(_.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)),
       reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(()))
       .recover{
-        case ex: Throwable => {
+        case ex: Throwable =>
           val errorMsg = "Error while sending confirmation message"
           logger.error(errorMsg, ex)
           Left(BarEmailError(ex.getMessage))
-        }
       }
   }
   private def sendConfirmationEmail(
@@ -178,61 +176,59 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
   private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Unit = {
-    logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
+    logger.warn(s"handling error, submissionID: $submissionId, Error: $barError")
+
+    def handleValidationErrors(errors: List[Error]) =
+      Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))).flatMap { _ =>
+        statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, login))
+      }
 
     barError match {
-      case BarXmlError(message) => {
+      case BarXmlError(message) =>
         statusRepository.addError(submissionId, Error(INVALID_XML, Seq(message))).flatMap { r =>
-          logger.warn(s"Mongo write result : ${r}")
+          logger.warn(s"Mongo write result : $r")
           statusRepository.updateStatus(submissionId, Failed)
             .map(_ => sendConfirmationEmail(submissionId, login))
         }
-      }
 
-      case BarXmlValidationError(errors) => {
-        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))).flatMap { _ =>
-          statusRepository.updateStatus(submissionId, Failed)
-            .map(_ => sendConfirmationEmail(submissionId, login))
-        }
-      }
+      case BarXmlValidationError(errors) => handleValidationErrors(errors)
 
-      case BarValidationError(errors) => {
-        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))).flatMap { _ =>
-          statusRepository.updateStatus(submissionId, Failed)
-            .map(_ => sendConfirmationEmail(submissionId, login))
-        }
-      }
+      case BarValidationError(errors) => handleValidationErrors(errors)
 
-      case BarSubmissionValidationError(errors) => {
-        statusRepository.saveOrUpdate(ReportStatus(id = submissionId, baCode = Option(login.username), created = ZonedDateTime.now(),
-          reportErrors = errors, status = Option(Failed.value)), true)
-      }
+      case BarSubmissionValidationError(errors) =>
+        statusRepository.saveOrUpdate(
+          ReportStatus(
+            id = submissionId, baCode = Option(login.username),
+            reportErrors = errors, status = Some(Failed.value)
+          ), upsert = true
+        )
 
-      case BarEbarError(ebarError) => {
+      case BarEbarError(ebarError) =>
         statusRepository.addError(submissionId, Error(EBARS_UNAVAILABLE, Seq(ebarError))).flatMap { _ =>
           statusRepository.updateStatus(submissionId, Failed)
             .map(_ => sendConfirmationEmail(submissionId, login))
         }
-      }
-      case BarMongoError(error) => {
+
+      case BarMongoError(error) =>
         logger.warn(s"Mongo exception, unable to update status of submission, submissionId: $submissionId. $error")
-      }
-      case BarEmailError(emailError) => {
+
+      case BarEmailError(emailError) =>
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))).flatMap { _ =>
           statusRepository.updateStatus(submissionId, Done)
         }
-      }
-      case UnknownError(detail) => {
+
+      case UnknownError(detail) =>
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(detail))).flatMap { _ =>
           statusRepository.updateStatus(submissionId, Failed)
             .map(_ => sendConfirmationEmail(submissionId, login))
         }
-      }
     }
   }
 
 
-  private def ebarsUpload(baReports: BAreports, login: LoginDetails, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
+  private def ebarsUpload(baReports: BAreports, login: LoginDetails, submissionId: String)
+                         (implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
 
     val riskyConversion: Either[BarError, String] = Try {
       ebarsValidator.toJson(baReports)
@@ -242,19 +238,19 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     }
 
 
-    def internall_upload(jsonString: String):Future[Either[BarError, Boolean]] = {
+    def internalUpload(jsonString: String):Future[Either[BarError, Boolean]] = {
       val req = BAReportRequest(submissionId, jsonString, login.username, login.password)
       legacyConnector.sendBAReport(req).map(_ => Right(true)).recover {
         case ex: Exception => Left(BarEbarError(ex.getMessage))
       }
     }
 
-    val resutl = for {
+    val result = for {
       jsonString <- EitherT.fromEither[Future](riskyConversion)
-      result <- EitherT(internall_upload(jsonString))
-    } yield(result)
+      res <- EitherT(internalUpload(jsonString))
+    } yield res
 
-    resutl.value
+    result.value
   }
 
 }

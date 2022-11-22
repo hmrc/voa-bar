@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.time.ZonedDateTime
+import java.time.Instant
 import java.util.UUID
 import akka.stream.Materializer
 import akka.stream.testkit.NoMaterializer
@@ -40,11 +40,11 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
   implicit val materializer: Materializer = NoMaterializer
 
   val id = "id"
-  val date = ZonedDateTime.now
+  val date = Some(Instant.now)
   val userId = "userId"
   val reportStatus = ReportStatus(
     id = id,
-    created = date,
+    createdAt = date,
     url = Some("url.com"),
     baCode = Some(userId)
   )

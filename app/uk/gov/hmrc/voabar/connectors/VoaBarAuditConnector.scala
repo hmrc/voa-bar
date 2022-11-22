@@ -40,9 +40,9 @@ class VoaBarAuditConnector @Inject() (audit: AuditConnector) {
   def reportUploadFailed[T](username: String, error:T)(implicit ec: ExecutionContext, hc: HeaderCarrier, w: OWrites[T]) = {
     val oErrors = w.writes(error)
 
-    audit.sendExplicitAudit("report-upload", oErrors
-      .+("username" -> JsString(username))
-      .+("baName" -> JsString(BillingAuthorities.find(username).getOrElse("NONE")))
+    audit.sendExplicitAudit("report-upload", oErrors +
+      ("username" -> JsString(username)) +
+      ("baName" -> JsString(BillingAuthorities.find(username).getOrElse("NONE")))
     )
   }
 

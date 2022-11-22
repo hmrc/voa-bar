@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.services
 
 import java.net.URL
 import java.nio.file.Paths
-import java.time.ZonedDateTime
 import ebars.xml.BAreports
 import models.Purpose.Purpose
 
@@ -232,7 +231,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
-    val reportStatus = ReportStatus("submissionId", ZonedDateTime.now, filename = Some("filename.xml"), status = Some(Pending.value))
+    val reportStatus = ReportStatus("submissionId", filename = Some("filename.xml"), status = Some(Pending.value))
 
     when(repository.updateStatus(any[String], any[ReportStatusType]))
       .thenAnswer[InvocationOnMock](_ => Future.successful(Right(true)))
