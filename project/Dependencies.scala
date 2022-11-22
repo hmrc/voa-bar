@@ -9,7 +9,7 @@ object Dependencies {
   private val httpCachingClientVersion = "10.0.0-play-28"
   private val jacksonModuleScalaVersion = "2.14.0"
   private val guiceUtilsVersion = "5.1.0"
-  private val catsEffectVersion = "3.4.0"
+  private val catsEffectVersion = "3.4.1"
   private val saxonHeVersion = "11.4"
   private val xercesVersion = "2.12.2"
   private val inbotUtilsVersion = "1.28"
