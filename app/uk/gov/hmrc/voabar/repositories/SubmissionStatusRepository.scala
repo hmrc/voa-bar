@@ -71,11 +71,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   // TODO: Remove after 1 January 2023
   private def normalize(reportStatus: ReportStatus) =
-    if (reportStatus.created.nonEmpty) {
-      reportStatus.copy(createdAt = Some(reportStatus.created.fold(Instant.now)(_.toInstant)))
-    } else {
-      reportStatus
-    }
+    reportStatus.created
+      .fold(reportStatus)(created => reportStatus.copy(createdAt = Some(created.toInstant)))
 
   def saveOrUpdate(reportStatusTmp: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] = {
 
