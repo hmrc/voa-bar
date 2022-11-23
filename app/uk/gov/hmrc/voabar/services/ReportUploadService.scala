@@ -179,7 +179,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     logger.warn(s"handling error, submissionID: $submissionId, Error: $barError")
 
     def handleValidationErrors(errors: List[Error]) =
-      Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))).flatMap { _ =>
+      statusRepository.addErrors(submissionId, errors).flatMap { _ =>
         statusRepository.updateStatus(submissionId, Failed)
           .map(_ => sendConfirmationEmail(submissionId, login))
       }
