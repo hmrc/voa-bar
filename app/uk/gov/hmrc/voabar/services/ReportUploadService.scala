@@ -33,7 +33,7 @@ import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
-import java.time.ZoneOffset
+import java.time.{Instant, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
@@ -199,7 +199,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarSubmissionValidationError(errors) =>
         statusRepository.saveOrUpdate(
           ReportStatus(
-            id = submissionId, baCode = Option(login.username),
+            id = submissionId, createdAt = Some(Instant.now), baCode = Option(login.username),
             reportErrors = errors, status = Some(Failed.value)
           ), upsert = true
         )

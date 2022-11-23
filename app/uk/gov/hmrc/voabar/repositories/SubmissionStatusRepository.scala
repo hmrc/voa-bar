@@ -71,7 +71,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   // TODO: Remove after 1 January 2023
   private def normalize(reportStatus: ReportStatus) =
-    if (reportStatus.created.nonEmpty && reportStatus.createdAt.isEmpty) {
+    if (reportStatus.created.nonEmpty) {
       reportStatus.copy(createdAt = Some(reportStatus.created.fold(Instant.now)(_.toInstant)))
     } else {
       reportStatus
