@@ -35,6 +35,7 @@ import uk.gov.hmrc.voabar.util._
 
 import java.time.{Instant, ZoneOffset}
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -83,6 +84,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
       .map { res =>
         logger.debug(s"Upload result: $res")
+        SECONDS.sleep(1)
         res
       }
       .flatMap {
