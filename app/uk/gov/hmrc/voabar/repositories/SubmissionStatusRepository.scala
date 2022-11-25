@@ -268,6 +268,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
 
+  def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]]
+
   def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]

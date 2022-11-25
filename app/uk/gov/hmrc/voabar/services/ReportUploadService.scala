@@ -35,6 +35,7 @@ import uk.gov.hmrc.voabar.util._
 
 import java.time.{Instant, ZoneOffset}
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -77,17 +78,21 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                         (implicit headerCarrier: HeaderCarrier):Future[String] = {
     result
       .recover {
-        case exception: Exception => {
+        case exception: Exception =>
           logger.warn("Unexpected error when processing file, trying to recover", exception)
           Left(UnknownError(exception.getMessage))
-        }
       }
-      .map {
-        case Right(v) => v
+      .map { res =>
+        logger.debug(s"Upload result: $res")
+        SECONDS.sleep(1)
+        res
+      }
+      .flatMap {
+        case Right(v) => Future.successful(v)
         case Left(barError) =>
           audit.reportUploadFailed(login.username, barError)
           handleError(uploadReference, barError, login)
-          "failed"
+            .map(_ => "failed")
       }
   }
 
@@ -175,11 +180,11 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       ))
   }
 
-  private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Unit = {
+  private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Future[_] = {
     logger.warn(s"handling error, submissionID: $submissionId, Error: $barError")
 
     def handleValidationErrors(errors: List[Error]) =
-      Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))).flatMap { _ =>
+      statusRepository.addErrors(submissionId, errors).flatMap { _ =>
         statusRepository.updateStatus(submissionId, Failed)
           .map(_ => sendConfirmationEmail(submissionId, login))
       }
@@ -212,6 +217,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
       case BarMongoError(error) =>
         logger.warn(s"Mongo exception, unable to update status of submission, submissionId: $submissionId. $error")
+        Future.unit
 
       case BarEmailError(emailError) =>
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))).flatMap { _ =>
