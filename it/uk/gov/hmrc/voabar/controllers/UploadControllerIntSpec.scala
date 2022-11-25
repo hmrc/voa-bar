@@ -88,6 +88,8 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       controller.upload()(fakeRequestWithXML)
 
+      Thread.sleep(1500)
+
       val report = await(submissionRepository.getByReference("1234"))
 
       report mustBe Symbol("right")
