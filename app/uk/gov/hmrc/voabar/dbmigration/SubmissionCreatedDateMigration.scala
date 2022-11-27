@@ -22,6 +22,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import org.mongodb.scala.Document
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{exists, not}
+import org.mongodb.scala.model.Projections.{fields, include}
 import org.mongodb.scala.model.Updates
 import org.mongodb.scala.model.Updates.set
 import play.api.Logging
@@ -67,7 +68,11 @@ class SubmissionCreatedDateMigration @Inject()(
 
   private def migrate(): Future[Long] = {
     val source: Source[ReportStatus, NotUsed] =
-      Source.fromPublisher(collection.find(not(exists("createdAt"))))
+      Source.fromPublisher(
+        collection
+          .find(not(exists("createdAt")))
+          .projection(fields(include("created")))
+      )
 
     source
       .mapAsync(2)(saveCreatedAtData)
