@@ -55,7 +55,7 @@ class SubmissionCreatedDateMigration @Inject()(
   private val daysToRemove = 92
   private val dateToRemove = ZonedDateTime.now.minusDays(daysToRemove)
 
-  actorSystem.scheduler.scheduleOnce(3 seconds) {
+  actorSystem.scheduler.scheduleOnce(30 seconds) {
     run()
   }
 
@@ -74,49 +74,45 @@ class SubmissionCreatedDateMigration @Inject()(
       .runWith(Sink.fold(0L)(_ + _))
   }
 
-  private def saveCreatedAtData(reportStatus: ReportStatus): Future[Long] =
-    if (reportStatus.createdAt.isEmpty) {
-      val created = reportStatus.created.getOrElse(dateToRemove)
+  private def saveCreatedAtData(reportStatus: ReportStatus): Future[Long] = {
+    val created = reportStatus.created.getOrElse(dateToRemove)
 
-      val modifier = Updates.combine(
-        set("createdAt", created.toInstant)
-      )
-      collection.updateOne(byId(reportStatus.id), modifier).toFutureOption()
-        .map {
-          case Some(updateResult) if updateResult.getModifiedCount == 1 => 1L
-          case _ => 0L
-        }
-        .recover {
-          case ex: Throwable =>
-            logger.error(s"Unable to update 'createdAt' for ${reportStatus.id}", ex)
-            0L
-        }
-    } else {
-      Future.successful(0L)
-    }
+    val modifier = Updates.combine(
+      set("createdAt", created.toInstant)
+    )
+    collection.updateOne(byId(reportStatus.id), modifier).toFutureOption()
+      .map {
+        case Some(updateResult) => updateResult.getModifiedCount
+        case _ => 0L
+      }
+      .recover {
+        case ex: Throwable =>
+          logger.error(s"Unable to update 'createdAt' for ${reportStatus.id}", ex)
+          0L
+      }
+  }
 
   private def count(label: String, filter: Bson): Unit = {
     val total = Await.result(collection.countDocuments(filter).toFuture(), 9 seconds)
     logger.warn(s"$label: $total")
   }
 
-  def run(): Future[Unit] = {
+  def run(): Future[Long] = {
     logger.warn(s"Convert submissions `created` to `createdAt` started at ${ZonedDateTime.now}")
 
     printCounts()
 
     migrate()
-      .map {
-        updatedCount => logger.info(s"Completed converting `submissions.created` for $updatedCount records")
-      }
       .recoverWith {
         case e: Exception =>
           logger.error(s"Error on migration: ${e.getMessage}", e)
           Future.failed(e)
       }
-      .map(_ =>
+      .map(updatedCount => {
+        logger.info(s"Completed converting `submissions.created` for $updatedCount records")
         logger.warn(s"Convert submissions `created` to `createdAt` completed at ${ZonedDateTime.now}")
-      )
+        updatedCount
+      })
   }
 
 }

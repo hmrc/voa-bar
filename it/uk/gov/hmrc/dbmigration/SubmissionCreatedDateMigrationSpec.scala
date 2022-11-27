@@ -17,7 +17,12 @@
 package uk.gov.hmrc.dbmigration
 
 import akka.actor.ActorSystem
+import org.mongodb.scala.Document
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters.exists
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.SpanSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
@@ -25,8 +30,10 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
+import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 
+import java.time.{Instant, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
@@ -34,7 +41,7 @@ import scala.concurrent.ExecutionContext
  * @author Yuriy Tumakha
  */
 class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
-  with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite {
+  with DefaultAwaitTimeout with FutureAwaits with Eventually with SpanSugar with GuiceOneAppPerSuite {
 
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
@@ -42,13 +49,38 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
 
   implicit val ac: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
-  val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
-  val submissionsRepo: SubmissionStatusRepositoryImpl = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val mongoComponent = app.injector.instanceOf[MongoComponent]
+  private val submissionsRepo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+
+  private def count(filter: Bson): Long =
+    await(submissionsRepo.collection.countDocuments(filter).toFuture())
+
+  private def save(reportStatus: ReportStatus) =
+    await(submissionsRepo.collection.insertOne(reportStatus).toFuture())
 
   "SubmissionCreatedDateMigration" should {
-    "be completed successfully" in {
+    "add `createdAt` date to 3 submissions and remove 1 broken submission without `created` or `createdAt` property" in {
+      save(ReportStatus("submission1", created = Some(ZonedDateTime.now), createdAt = None))
+      save(ReportStatus("submission2", created = Some(ZonedDateTime.now), createdAt = None))
+      save(ReportStatus("submission3", created = Some(ZonedDateTime.now), createdAt = None))
+      save(ReportStatus("submission4", created = None, createdAt = Some(Instant.now)))
+      save(ReportStatus("submission5", created = None, createdAt = Some(Instant.now)))
+      save(ReportStatus("submission6", created = None, createdAt = None)) // simulating broken submission
+
+      count(Document()) mustBe 6
+      count(exists("created")) mustBe 3
+      count(exists("createdAt")) mustBe 2
+
       val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo)
-      await(migrationTask.run())
+      val updatedCount = await(migrationTask.run())
+      updatedCount mustBe 4
+
+      println("Wait for removing expired submission by Mongo background process")
+      eventually(timeout(60 seconds), interval(2 seconds)) {
+        count(Document()) mustBe 5
+      }
+      count(exists("created")) mustBe 3
+      count(exists("createdAt")) mustBe 5
     }
   }
 
