@@ -59,7 +59,7 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
     await(submissionsRepo.collection.insertOne(reportStatus).toFuture())
 
   "SubmissionCreatedDateMigration" should {
-    "add `createdAt` date to 3 submissions and remove 1 broken submission without `created` or `createdAt` property" in {
+    "add `createdAt` date to 4 submissions and remove 1 broken submission without `created` or `createdAt` property" in {
       save(ReportStatus("submission1", created = Some(ZonedDateTime.now), createdAt = None))
       save(ReportStatus("submission2", created = Some(ZonedDateTime.now), createdAt = None))
       save(ReportStatus("submission3", created = Some(ZonedDateTime.now), createdAt = None))
