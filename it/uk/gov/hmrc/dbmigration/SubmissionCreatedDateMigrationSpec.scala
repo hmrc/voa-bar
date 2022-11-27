@@ -81,6 +81,11 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
       }
       count(exists("created")) mustBe 3
       count(exists("createdAt")) mustBe 5
+
+      val submissions = await(submissionsRepo.collection.find(exists("created")).toFuture())
+      for (submission <- submissions) {
+        submission.createdAt.map(_.toEpochMilli) mustBe submission.created.map(_.toInstant.toEpochMilli)
+      }
     }
   }
 
