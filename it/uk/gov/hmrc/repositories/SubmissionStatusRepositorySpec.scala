@@ -20,6 +20,8 @@ import java.time.Instant
 import java.util.UUID
 import org.mockito.scalatest.MockitoSugar
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.SpanSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -31,9 +33,8 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR}
 
 import java.time.temporal.ChronoUnit
-import scala.concurrent.duration.SECONDS
 
-class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
+class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll with Eventually with SpanSugar
   with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar {
 
   implicit class NormalizedInstant(instant: Instant) {
@@ -186,8 +187,10 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       val reports = await(repo.collection.countDocuments().toFutureOption())
       reports.value mustBe 2
 
-      val seconds60 = 60
-      SECONDS.sleep(seconds60) // Wait until Mongo background task removes expired documents. The task runs every 60 seconds.
+      println("Wait for removing expired submission by Mongo background process")
+      eventually(timeout(60 seconds), interval(2 seconds)) {
+        await(repo.getByUser("BA2020", None)).value must have size 1
+      }
 
       val submissionsFromDb = await(repo.getByUser("BA2020", None)).value
       submissionsFromDb must have size 1

@@ -25,6 +25,7 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
+import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -46,12 +47,14 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val mockAudit = mock[VoaBarAuditConnector]
+  val migrationTask = mock[SubmissionCreatedDateMigration]
 
   val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
+  private def controller = new LoginController(mockLegacyConnector, mockAudit, migrationTask, stubControllerComponents())
+
   "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
-    val controller = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents())
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))
 
     result.isRight mustBe true
@@ -59,32 +62,29 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
   }
 
   "return 200 for a POST carrying login details" in {
-    val result = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents()).login()(fakeRequestWithJson(goodJson))
+    val result = controller.login()(fakeRequestWithJson(goodJson))
     status(result) mustBe OK
   }
 
   "return 400 (badrequest) when given no json" in {
     val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json")
-    val result = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents()).login()(fakeRequest)
+    val result = controller.login()(fakeRequest)
     status(result) mustBe BAD_REQUEST
   }
 
   "return 400 (badrequest) when given garbled json" in {
     val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withTextBody("{")
-    val result = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents()).login()(fakeRequest)
+    val result = controller.login()(fakeRequest)
     status(result) mustBe BAD_REQUEST
   }
 
   "Given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
-    val controller = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents())
     val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
 
     result.isLeft mustBe true
   }
 
   "return a Failure when the backend service call fails" in {
-    val controller = new LoginController(mockLegacyConnectorFailed, mockAudit, stubControllerComponents())
-
     intercept[Exception] {
       val result = controller.login()(fakeRequestWithJson(goodJson))
       status(result) mustBe INTERNAL_SERVER_ERROR
