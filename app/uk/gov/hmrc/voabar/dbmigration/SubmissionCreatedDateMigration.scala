@@ -26,6 +26,7 @@ import org.mongodb.scala.model.Projections.{fields, include}
 import org.mongodb.scala.model.Updates
 import org.mongodb.scala.model.Updates.set
 import play.api.Logging
+import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
@@ -37,7 +38,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
- * Copy `submissions.created` as string and save to property `submissions.createdAt` as ISO Date format.
+ * Copy `submissions.created` as string and save to property `submissions.createdAt` in ISO Date format.
  *
  * <pre>
  * Example:
@@ -49,15 +50,17 @@ import scala.language.postfixOps
  */
 @Singleton
 class SubmissionCreatedDateMigration @Inject()(
-                                                submissionStatusRepository: SubmissionStatusRepositoryImpl
+                                                submissionStatusRepository: SubmissionStatusRepositoryImpl,
+                                                mongoLockRepository: MongoLockRepository
                                               )(implicit ec: ExecutionContext, actorSystem: ActorSystem) extends Logging {
 
   private val collection = submissionStatusRepository.collection
   private val daysToRemove = 92
   private val dateToRemove = ZonedDateTime.now.minusDays(daysToRemove)
+  private val lockService = LockService(mongoLockRepository, lockId = "CreatedDateMigrationLock", ttl = 12 hours)
 
   actorSystem.scheduler.scheduleOnce(30 seconds) {
-    run()
+    runWithLock()
   }
 
   private def printCounts(): Unit = {
@@ -100,6 +103,19 @@ class SubmissionCreatedDateMigration @Inject()(
   private def count(label: String, filter: Bson): Unit = {
     val total = Await.result(collection.countDocuments(filter).toFuture(), 9 seconds)
     logger.warn(s"$label: $total")
+  }
+
+  def runWithLock(): Future[Long] = {
+    lockService.withLock {
+      run()
+    }.map {
+      case Some(res) =>
+        logger.warn(s"CreatedDateMigration task completed. $res")
+        res
+      case None =>
+        logger.warn("CreatedDateMigration task already started on another instance")
+        0L
+    }
   }
 
   def run(): Future[Long] = {

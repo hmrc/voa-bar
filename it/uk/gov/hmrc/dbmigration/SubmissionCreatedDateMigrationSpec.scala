@@ -29,6 +29,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
@@ -51,6 +52,7 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
   implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
   private val mongoComponent = app.injector.instanceOf[MongoComponent]
   private val submissionsRepo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val mongoLockRepository = app.injector.instanceOf[MongoLockRepository]
 
   private def count(filter: Bson): Long =
     await(submissionsRepo.collection.countDocuments(filter).toFuture())
@@ -71,8 +73,8 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
       count(exists("created")) mustBe 3
       count(exists("createdAt")) mustBe 2
 
-      val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo)
-      val updatedCount = await(migrationTask.run())
+      val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo, mongoLockRepository)
+      val updatedCount = await(migrationTask.runWithLock())
       updatedCount mustBe 4
 
       println("Wait for removing expired submission by Mongo background process")
