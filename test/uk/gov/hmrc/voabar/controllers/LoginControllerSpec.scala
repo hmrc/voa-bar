@@ -27,9 +27,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext
 
 class LoginControllerSpec extends PlaySpec with MockitoSugar {
   val fakeRequest = FakeRequest("GET", "/")

@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 import play.api.test.Helpers.{status, _}
-import uk.gov.hmrc.voabar.models.BarMongoError
+import uk.gov.hmrc.voabar.models.{BarMongoError, UserReportUploadRest}
 import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,13 +36,19 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
 
   val error = BarMongoError("error")
   val id = "id"
+  val userReportUploadRest = UserReportUploadRest(
+    id = id,
+    userId = "userId",
+    userPassword = "pass"
+  )
   val userReportUpload = UserReportUpload(
     _id = id,
     userId = "userId",
     userPassword = "pass"
   )
-  val json = Json.toJson(userReportUpload)
+  val json = Json.toJson(userReportUploadRest)
   val fakeRequest = FakeRequest("", "").withBody(json)
+
   "UserReportUploadsController" should {
     "save a user report upload successfully" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]

@@ -21,20 +21,20 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
 import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class LoginController @Inject()(val legacyConnector: LegacyConnector,
                                 audit: VoaBarAuditConnector,
                                 submissionCreatedDateMigration: SubmissionCreatedDateMigration, // TODO: Remove after 1 April 2023
                                 controllerComponents: ControllerComponents)
+                               (implicit ec: ExecutionContext)
   extends BackendController(controllerComponents) with Logging {
   def verifyLogin(json: Option[JsValue]): Either[String, LoginDetails] = {
     json match {

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.repositories
 
-import java.time.ZonedDateTime
 import java.util.UUID
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
@@ -26,6 +25,8 @@ import org.mockito.scalatest.MockitoSugar
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
+
+import java.time.Instant
 
 
 class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll with OptionValues
@@ -44,8 +45,9 @@ class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll wi
     "save to mongo" in {
 
       val id = UUID.randomUUID().toString
+      val now = Instant ofEpochMilli Instant.now.toEpochMilli
 
-      val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", ZonedDateTime.now())
+      val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
 
       val result = await(repo.save(userReportUpload))
 
