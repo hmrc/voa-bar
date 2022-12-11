@@ -24,6 +24,7 @@ import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.voabar.models.UserReportUploadRest
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,26 +37,23 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
   def getById(id: String) = Action.async {
     userReportUploadsRepository.getById(id).map(_.fold(
       _ => InternalServerError,
-      userReportUpload => Ok(Json.toJson(userReportUpload))
+      _.map(userReportUpload => Ok(Json.toJson(UserReportUploadRest(userReportUpload)))).getOrElse(NotFound)
     ))
   }
 
-  private def parseUserReportUpload(request: Request[JsValue]) = {
-    request.body.validate[UserReportUpload] match {
-      case userReportUpload: JsSuccess[UserReportUpload] => Right(userReportUpload.get)
-      case _ => {
-        logger.error(s"Couln't parse:\n${request.body.toString}")
+  private def parseUserReportUpload(request: Request[JsValue]): Either[Status, UserReportUpload] =
+    request.body.validate[UserReportUploadRest] match {
+      case userReportUpload: JsSuccess[UserReportUploadRest] => Right(userReportUpload.value.toMongoEntity)
+      case _ =>
+        logger.error(s"Couldn't parse:\n${request.body.toString}")
         Left(BadRequest)
-      }
     }
-  }
 
-  private def saveUserReportUpload(userReportUpload: UserReportUpload): Future[Either[Result, Unit]] = {
+  private def saveUserReportUpload(userReportUpload: UserReportUpload): Future[Either[Result, Unit]] =
     userReportUploadsRepository.save(userReportUpload).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(())
     ))
-  }
 
   def save() = Action.async(parse.tolerantJson) { implicit request =>
     (for {
@@ -64,4 +62,5 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }
+
 }

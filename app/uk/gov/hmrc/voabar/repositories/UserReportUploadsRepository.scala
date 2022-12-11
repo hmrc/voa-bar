@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZonedDateTime}
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
@@ -31,11 +31,19 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptionsWithTTL}
 
-final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpdated: ZonedDateTime = ZonedDateTime.now)
+final case class UserReportUpload(_id: String,
+                                  userId: String,
+                                  userPassword: String,
+                                  createdAt: Instant = Instant.now,
+                                  // TODO: After 1 April 2023 remove property 'lastUpdated' as only 'createdAt' is used
+                                  lastUpdated: Option[ZonedDateTime] = None)
 
 object UserReportUpload {
+
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+
   implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
-  final val name = classOf[UserReportUpload].getSimpleName.toLowerCase
+  final val collectionName = classOf[UserReportUpload].getSimpleName.toLowerCase
 }
 
 @Singleton
@@ -44,11 +52,12 @@ class DefaultUserReportUploadsRepository @Inject() (
                                                    config: Configuration
                                  )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[UserReportUpload](
-    collectionName = UserReportUpload.name,
+    collectionName = UserReportUpload.collectionName,
     mongoComponent = mongo,
     domainFormat = UserReportUpload.format,
+    replaceIndexes = true, // TODO: Remove after deployment to production
     indexes = Seq(
-      IndexModel(Indexes.descending("lastUpdated"), indexOptionsWithTTL(UserReportUpload.name, UserReportUpload.name, config))
+      IndexModel(Indexes.descending("createdAt"), indexOptionsWithTTL(UserReportUpload.collectionName + "TTL", UserReportUpload.collectionName, config))
     )
   ) with UserReportUploadsRepository with Logging {
 
