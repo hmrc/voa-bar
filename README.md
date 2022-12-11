@@ -1,7 +1,7 @@
 # voa-bar
 
-This is a placeholder README.md for a new repository
+Automatic Billing Authority Report System (AutoBARS)
 
-### License
+### Running AutoBARS on your local machine
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
+https://confluence.tools.tax.service.gov.uk/display/VOAO/Running+AutoBARS+on+your+local+machine

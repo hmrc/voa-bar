@@ -38,8 +38,6 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / fork  := true
   )
   .settings(resolvers ++= Seq(
-    Resolver.bintrayRepo("hmrc", "releases"),
     Resolver.jcenterRepo,
-    "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/"
   ))
   .disablePlugins(JUnitXmlReportPlugin)

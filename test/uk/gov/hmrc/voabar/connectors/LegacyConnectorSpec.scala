@@ -40,14 +40,14 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
   private def servicesConfig = app.injector.instanceOf[ServicesConfig]
   private def crypto = app.injector.instanceOf[ApplicationCrypto]
-  private val utils = new Utils(crypto.JsonCrypto)
+  private def utils = new Utils(crypto.JsonCrypto)
   private implicit val hc = HeaderCarrier()
 
   private val username = "ba0121"
   private val password = "wibble"
-  private val encryptedPassword = crypto.JsonCrypto.encrypt(PlainText(password)).value
+  private def encryptedPassword = crypto.JsonCrypto.encrypt(PlainText(password)).value
 
-  private val goodLogin = LoginDetails(username, encryptedPassword)
+  private def goodLogin = LoginDetails(username, encryptedPassword)
   private lazy val validXmlContent = Source.fromInputStream(getClass.getResourceAsStream("/xml/CTValid1.xml")).getLines().mkString
   private val uuid = "7f824470-9a90-42e9-927d-17b4176ed086"
   private lazy val baReportsRequest = BAReportRequest(uuid, validXmlContent, username, password)
