@@ -43,7 +43,7 @@ import scala.language.postfixOps
  * <pre>
  * Example:
  * "created" : "2022-11-26T20:55:13.080+01:00[Europe/London]"
- * "createdAt" : {"$date" : {"$numberLong" : "1669496113080"}}
+ * "createdAt" : {"&#36;date" : {"&#36;numberLong" : "1669496113080"}}
  * </pre>
  *
  * @author Yuriy Tumakha

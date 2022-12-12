@@ -49,7 +49,7 @@ object EbarsXmlCutter {
   def CR(bAreports: BAreports) = {
     import models.EbarsBAreports._
 
-    bAreports.purpose match {
+    (bAreports.purpose: @unchecked) match {
       case Purpose.CT =>
         content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax" && !e.isNil)
           .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))

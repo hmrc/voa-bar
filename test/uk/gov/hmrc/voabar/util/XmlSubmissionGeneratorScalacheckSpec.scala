@@ -33,6 +33,8 @@ import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 import jakarta.xml.bind.{JAXBContext, Marshaller}
+
+import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
 
@@ -212,7 +214,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml()
+      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
@@ -237,7 +239,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml()
+      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 

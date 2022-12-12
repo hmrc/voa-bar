@@ -21,7 +21,6 @@ import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 import ebars.xml.BAreports
-
 import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen.frequency
 import org.scalacheck.Gen
@@ -31,6 +30,8 @@ import org.scalatest.matchers.must
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
+
+import scala.annotation.nowarn
 
 class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks{
 
@@ -129,7 +130,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     val jaxbStructure =
       new Cr01Cr03SubmissionXmlGenerator(
         aCR03Submission(), 1010, "Brighton and Hove",
-        UUID.randomUUID().toString).generateXml()
+        UUID.randomUUID().toString).generateXml(): @nowarn
     val xml = printXml(jaxbStructure)
 
     validateXml(xml)
@@ -143,7 +144,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       val jaxbStructure =
         new Cr01Cr03SubmissionXmlGenerator(
           submission, 1010,
-          "Brighton and Hove", id).generateXml()
+          "Brighton and Hove", id).generateXml(): @nowarn
       val xml = printXml(jaxbStructure)
 
       validateXml(xml)
@@ -158,7 +159,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       val jaxbStructure =
         new Cr01Cr03SubmissionXmlGenerator(
           submission, 1010,
-          "Brighton and Hove", id).generateXml()
+          "Brighton and Hove", id).generateXml(): @nowarn
       val xml = printXml(jaxbStructure)
 
       validateXml(xml)
