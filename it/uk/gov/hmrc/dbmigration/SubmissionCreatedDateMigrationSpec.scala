@@ -32,8 +32,9 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 import uk.gov.hmrc.voabar.models.ReportStatus
-import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
+import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
 
+import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -52,6 +53,7 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
   implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
   private val mongoComponent = app.injector.instanceOf[MongoComponent]
   private val submissionsRepo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val userReportUploadsRepo = app.injector.instanceOf[DefaultUserReportUploadsRepository]
   private val mongoLockRepository = app.injector.instanceOf[MongoLockRepository]
 
   private def count(filter: Bson): Long =
@@ -59,6 +61,12 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
 
   private def save(reportStatus: ReportStatus) =
     await(submissionsRepo.collection.insertOne(reportStatus).toFuture())
+
+  private def countReportUpload(filter: Bson): Long =
+    await(userReportUploadsRepo.collection.countDocuments(filter).toFuture())
+
+  private def saveReportUpload(userReportUpload: UserReportUpload) =
+    await(userReportUploadsRepo.collection.insertOne(userReportUpload).toFuture())
 
   "SubmissionCreatedDateMigration" should {
     "add `createdAt` date to 4 submissions and remove 1 broken submission without `created` or `createdAt` property" in {
@@ -73,8 +81,8 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
       count(exists("created")) mustBe 3
       count(exists("createdAt")) mustBe 2
 
-      val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo, mongoLockRepository)
-      val updatedCount = await(migrationTask.runWithLock())
+      val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo, userReportUploadsRepo, mongoLockRepository)
+      val updatedCount = await(migrationTask.runWithLockSubmissions())
       updatedCount mustBe 4
 
       println("Wait for removing expired submission by Mongo background process")
@@ -88,6 +96,32 @@ class SubmissionCreatedDateMigrationSpec extends PlaySpec with BeforeAndAfterAll
       for (submission <- submissions) {
         submission.createdAt.map(_.toEpochMilli) mustBe submission.created.map(_.toInstant.toEpochMilli)
       }
+    }
+  }
+
+  "SetCreatedAtReportUploadQuery" should {
+    "setCreatedAtIfEmpty" in {
+      val now = Instant ofEpochMilli Instant.now.toEpochMilli
+      val removeNow = now.minus(2, ChronoUnit.HOURS) // already scheduled for removing
+
+      saveReportUpload(UserReportUpload("1", "user1", "pass", lastUpdated = Some(ZonedDateTime.now)))
+      saveReportUpload(UserReportUpload("2", "user2", "pass", lastUpdated = None, createdAt = removeNow))
+      saveReportUpload(UserReportUpload("3", "user3", "pass", lastUpdated = None))
+
+      countReportUpload(Document()) mustBe 3
+      countReportUpload(exists("lastUpdated")) mustBe 1
+      countReportUpload(exists("createdAt")) mustBe 3
+
+      val migrationTask = new SubmissionCreatedDateMigration(submissionsRepo, userReportUploadsRepo, mongoLockRepository)
+      val updatedCount = await(migrationTask.runWithLockReportUpload())
+      updatedCount mustBe 0
+
+      println("Wait for removing expired ReportUpload by Mongo background process")
+      eventually(timeout(60 seconds), interval(2 seconds)) {
+        countReportUpload(Document()) mustBe 2
+      }
+      countReportUpload(exists("lastUpdated")) mustBe 1
+      countReportUpload(exists("createdAt")) mustBe 2
     }
   }
 

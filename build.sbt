@@ -14,6 +14,7 @@ ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" 
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*models.*;.*handlers.*;.*components.*;.*repositories.*;.*RepoTestController.*;" +
       ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*GuiceInjector;.*WebBarsService;.*BillingAuthorities;",
@@ -40,7 +41,3 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     IntegrationTest / fork  := true
   )
-  .settings(resolvers ++= Seq(
-    Resolver.jcenterRepo,
-  ))
-  .disablePlugins(JUnitXmlReportPlugin)

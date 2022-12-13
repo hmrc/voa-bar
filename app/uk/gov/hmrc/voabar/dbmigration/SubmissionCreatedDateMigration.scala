@@ -28,10 +28,11 @@ import org.mongodb.scala.model.Updates.set
 import play.api.Logging
 import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 import uk.gov.hmrc.voabar.models.ReportStatus
-import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
+import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl}
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 
-import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -51,28 +52,32 @@ import scala.language.postfixOps
 @Singleton
 class SubmissionCreatedDateMigration @Inject()(
                                                 submissionStatusRepository: SubmissionStatusRepositoryImpl,
+                                                userReportUploadsRepository: DefaultUserReportUploadsRepository,
                                                 mongoLockRepository: MongoLockRepository
                                               )(implicit ec: ExecutionContext, actorSystem: ActorSystem) extends Logging {
 
-  private val collection = submissionStatusRepository.collection
+  private val submissions = submissionStatusRepository.collection
+  private val userReportUpload = userReportUploadsRepository.collection
   private val daysToRemove = 92
   private val dateToRemove = ZonedDateTime.now.minusDays(daysToRemove)
-  private val lockService = LockService(mongoLockRepository, lockId = "CreatedDateMigrationLock", ttl = 12 hours)
+  private val submissionsLockService = LockService(mongoLockRepository, lockId = "CreatedDateMigrationSubmissionsLock", ttl = 12 hours)
+  private val reportUploadLockService = LockService(mongoLockRepository, lockId = "SetCreatedAtReportUploadLock", ttl = 2 hours)
 
   actorSystem.scheduler.scheduleOnce(30 seconds) {
-    runWithLock()
+    runWithLockSubmissions()
+    runWithLockReportUpload()
   }
 
-  private def printCounts(): Unit = {
-    count("submissions", Document())
-    count("submissions.created", exists("created"))
-    count("submissions.createdAt", exists("createdAt"))
+  private def printSubmissionsCounts(): Unit = {
+    countSubmissions("submissions", Document())
+    countSubmissions("submissions.created", exists("created"))
+    countSubmissions("submissions.createdAt", exists("createdAt"))
   }
 
-  private def migrate(): Future[Long] = {
+  private def migrateSubmissionsCreatedDate(): Future[Long] = {
     val source: Source[ReportStatus, NotUsed] =
       Source.fromPublisher(
-        collection
+        submissions
           .find(not(exists("createdAt")))
           .projection(fields(include("created")))
       )
@@ -88,7 +93,7 @@ class SubmissionCreatedDateMigration @Inject()(
     val modifier = Updates.combine(
       set("createdAt", created.toInstant)
     )
-    collection.updateOne(byId(reportStatus.id), modifier).toFutureOption()
+    submissions.updateOne(byId(reportStatus.id), modifier).toFutureOption()
       .map {
         case Some(updateResult) => updateResult.getModifiedCount
         case _ => 0L
@@ -100,13 +105,13 @@ class SubmissionCreatedDateMigration @Inject()(
       }
   }
 
-  private def count(label: String, filter: Bson): Unit = {
-    val total = Await.result(collection.countDocuments(filter).toFuture(), 9 seconds)
+  private def countSubmissions(label: String, filter: Bson): Unit = {
+    val total = Await.result(submissions.countDocuments(filter).toFuture(), 9 seconds)
     logger.warn(s"$label: $total")
   }
 
-  def runWithLock(): Future[Long] = {
-    lockService.withLock {
+  def runWithLockSubmissions(): Future[Long] = {
+    submissionsLockService.withLock {
       run()
     }.map {
       case Some(res) =>
@@ -121,9 +126,9 @@ class SubmissionCreatedDateMigration @Inject()(
   def run(): Future[Long] = {
     logger.warn(s"Convert submissions `created` to `createdAt` started at ${ZonedDateTime.now}")
 
-    printCounts()
+    printSubmissionsCounts()
 
-    migrate()
+    migrateSubmissionsCreatedDate()
       .recoverWith {
         case e: Exception =>
           logger.error(s"Error on migration: ${e.getMessage}", e)
@@ -134,6 +139,43 @@ class SubmissionCreatedDateMigration @Inject()(
         logger.warn(s"Convert submissions `created` to `createdAt` completed at ${ZonedDateTime.now}")
         updatedCount
       })
+  }
+
+  def runWithLockReportUpload(): Future[Long] = {
+    reportUploadLockService.withLock {
+      setCreatedAtIfEmpty()
+    }.map {
+      case Some(res) =>
+        logger.warn(s"SetCreatedAtReportUpload query completed. $res")
+        res
+      case None =>
+        logger.warn("SetCreatedAtReportUpload query already started by another instance")
+        0L
+    }
+  }
+
+  private def countReportUpload(label: String, filter: Bson): Unit = {
+    val total = Await.result(userReportUpload.countDocuments(filter).toFuture(), 8 seconds)
+    logger.warn(s"$label: $total")
+  }
+
+  def setCreatedAtIfEmpty(): Future[Long] = {
+    logger.warn(s"Run Mongo Query 'setCreatedAtIfEmpty' at ${ZonedDateTime.now}")
+
+    countReportUpload("userreportupload", Document())
+    countReportUpload("userreportupload.lastUpdated", exists("lastUpdated"))
+    countReportUpload("userreportupload.createdAt", exists("createdAt"))
+
+    val now = Instant ofEpochMilli Instant.now.toEpochMilli
+    val removeAt = now.plus(3, ChronoUnit.HOURS)
+
+    userReportUpload
+      .updateMany(
+        not(exists("createdAt")),
+        set("createdAt", removeAt)
+      )
+      .toFuture()
+      .map(_.getModifiedCount)
   }
 
 }

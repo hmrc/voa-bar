@@ -36,6 +36,7 @@ import scala.jdk.CollectionConverters._
 class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
 
   val OF = new ebars.xml.ObjectFactory()
+  val transactionIdentityLength = 25
 
   implicit val dataFactory = DatatypeFactory.newInstance()
 
@@ -56,7 +57,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val bodyElements = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
       OF.createBAreportBodyStructureTransactionIdentityBA(
-        submissionId.toString.replaceAll("-", "").substring(0,25)), //TODO submissionID
+        submissionId.toString.replaceAll("-", "").substring(0, transactionIdentityLength)), //TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax,
