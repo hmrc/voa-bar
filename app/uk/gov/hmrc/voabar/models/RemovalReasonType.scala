@@ -65,36 +65,35 @@ case object OtherReason extends RemovalReasonType {
 
 
 object RemovalReasonType {
-  implicit val format: Format[RemovalReasonType] = new Format[RemovalReasonType] {
-    override def reads(json: JsValue): JsResult[RemovalReasonType] = {
-      json match  {
-        case JsString("Demolition") => JsSuccess(Demolition)
-        case JsString("Disrepair") => JsSuccess(Disrepair)
-        case JsString("Derelict") => JsSuccess(Derelict)
-        case JsString("Renovating") => JsSuccess(Renovating)
-        case JsString("NotComplete") => JsSuccess(NotComplete)
-        case JsString("BandedTooSoon") => JsSuccess(BandedTooSoon)
-        case JsString("BandedTooSoonOrNotComplete") => JsSuccess(BandedTooSoonOrNotComplete)
-        case JsString("CaravanRemoved") => JsSuccess(CaravanRemoved)
-        case JsString("Duplicate") => JsSuccess(Duplicate)
-        case JsString("OtherReason") => JsSuccess(OtherReason)
-        case x => JsError(s"Unable to deserialize RemovalReasonType ${x}")
-      }
-    }
 
-    override def writes(rrt: RemovalReasonType): JsValue = {
-      rrt match  {
-        case Demolition     => JsString("Demolition")
-        case Disrepair      => JsString("Disrepair")
-        case Derelict       => JsString("Derelict")
-        case Renovating     => JsString("Renovating")
-        case NotComplete    => JsString("NotComplete")
-        case BandedTooSoon  => JsString("BandedTooSoon")
-        case BandedTooSoonOrNotComplete  => JsString("BandedTooSoonOrNotComplete")
-        case CaravanRemoved => JsString("CaravanRemoved")
-        case Duplicate      => JsString("Duplicate")
-        case OtherReason    => JsString("OtherReason")
+  val removalReasonMap: Map[String, RemovalReasonType] = Map(
+    "Demolition" -> Demolition,
+    "Disrepair" -> Disrepair,
+    "Derelict" -> Derelict,
+    "Renovating" -> Renovating,
+    "NotComplete" -> NotComplete,
+    "BandedTooSoon" -> BandedTooSoon,
+    "BandedTooSoonOrNotComplete" -> BandedTooSoonOrNotComplete,
+    "CaravanRemoved" -> CaravanRemoved,
+    "Duplicate" -> Duplicate,
+    "OtherReason" -> OtherReason
+  )
+
+  val removalReasonMapByType: Map[RemovalReasonType, String] = removalReasonMap.map(_.swap)
+
+  implicit val format: Format[RemovalReasonType] = new Format[RemovalReasonType] {
+
+    override def reads(json: JsValue): JsResult[RemovalReasonType] =
+      json match  {
+        case JsString(removalReason) =>
+          removalReasonMap.get(removalReason)
+            .fold[JsResult[RemovalReasonType]](JsError(s"Unknown Reason: $removalReason"))(JsSuccess(_))
+        case error => JsError(s"Unable to deserialize RemovalReasonType $error")
       }
-    }
+
+    override def writes(rrt: RemovalReasonType): JsValue =
+      JsString(removalReasonMapByType.getOrElse(rrt, throw new RuntimeException(s"RemovalReason: $rrt not found in map")))
+
   }
+
 }

@@ -200,7 +200,7 @@ case object RemovingInvalidTaxBand extends Rule {
 
 case object PropertyDescriptionTextRemoval extends Rule {
   override def apply(baReports: BAreports): Unit = {
-    EbarsXmlCutter.AssessmentProperties(baReports)
+    EbarsXmlCutter.getAssessmentProperties(baReports)
       .filter(_.getPropertyDescription != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText.length <= 1) foreach {
@@ -220,7 +220,7 @@ case object NdrRules {
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
         case _ => //nothing to do
       }
@@ -235,7 +235,7 @@ case object NdrRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
         case _ => //nothing to do
       }
@@ -250,7 +250,7 @@ case object NdrRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
         case _ => //nothing to do
       }
@@ -265,7 +265,7 @@ case object NdrRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
         case _ => //nothing to do
       }
@@ -283,7 +283,7 @@ case object CtRules {
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
         case _ => //nothing to do
       }
@@ -298,7 +298,7 @@ case object CtRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
         case _ => //nothing to do
       }
@@ -313,7 +313,7 @@ case object CtRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
         case _ => //nothing to do
       }
@@ -328,7 +328,7 @@ case object CtRules {
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
         case _ => //nothing to do
       }
@@ -343,7 +343,7 @@ case object CtRules {
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.copyExistingEntriesToProposed(baReports)
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.copyProposedEntriesToExisting(baReports)
         case _ => //nothing to do
@@ -373,7 +373,7 @@ case object CtRules {
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.nonEmpty && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToExisting(baReports)
         case _ => //nothing to do
       }
@@ -397,7 +397,7 @@ case object CtRules {
 
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
-      EbarsXmlCutter.CR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToRemarks(baReports)
         case _ => //nothing to do
       }
@@ -418,14 +418,14 @@ case object PostcodesToUppercase extends Rule {
       }
     }
 
-    EbarsXmlCutter.TextAddressStructures(baReports) foreach { textAddressStructure =>
+    EbarsXmlCutter.getTextAddressStructures(baReports) foreach { textAddressStructure =>
       textAddressStructure.getPostcode match {
         case null => //nothing
         case v => textAddressStructure.setPostcode(sanitising(v.toUpperCase))
       }
     }
 
-    EbarsXmlCutter.OccupierContactAddresses(baReports) foreach { occupierContactAddress =>
+    EbarsXmlCutter.getOccupierContactAddresses(baReports) foreach { occupierContactAddress =>
       occupierContactAddress.getPostCode match {
         case null => //nothing
         case v => occupierContactAddress.setPostCode(sanitising(v.toUpperCase))
