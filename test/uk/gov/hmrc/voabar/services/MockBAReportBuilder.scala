@@ -60,7 +60,7 @@ class MockBAReportBuilder {
 
     val root = <BApropertyReport></BApropertyReport>
 
-     def addNode(root:Node,children:NodeSeq) = root match {
+     def addNode(root:Node,children:NodeSeq) = (root: @unchecked) match {
       case Elem(prefix,label,attributes,scope,child@_*) =>
         Elem(prefix,label,attributes,scope,false,child ++ children: _*)
     }

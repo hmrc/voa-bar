@@ -355,11 +355,11 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       PostcodesToUppercase.apply(reports)
 
-      EbarsXmlCutter.OccupierContactAddresses(reports) foreach { occupierContactAddress =>
+      EbarsXmlCutter.getOccupierContactAddresses(reports) foreach { occupierContactAddress =>
         occupierContactAddress.getPostCode should be("CF24 0EF")
       }
 
-      EbarsXmlCutter.TextAddressStructures(reports) foreach { textAddressStructure =>
+      EbarsXmlCutter.getTextAddressStructures(reports) foreach { textAddressStructure =>
         textAddressStructure.getPostcode should be("CF24 0EF")
       }
     }
@@ -478,22 +478,22 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
 
       RemovingInvalidTaxBand.apply(reports)
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
     }
 
     "remove if invalid" in {
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (1)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (1)
 
       RemovingInvalidTaxBand.apply(reports)
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
     }
   }
 
@@ -502,24 +502,24 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
-      EbarsXmlCutter.PropertyDescriptions(reports) should have size (1)
-      EbarsXmlCutter.PropertyDescriptions(reports)(0).getPropertyDescriptionText should be("valid length")
+      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (1)
+      EbarsXmlCutter.getPropertyDescriptions(reports)(0).getPropertyDescriptionText should be("valid length")
 
       PropertyDescriptionTextRemoval.apply(reports)
 
-      EbarsXmlCutter.PropertyDescriptions(reports)(0).getPropertyDescriptionText should be("valid length")
+      EbarsXmlCutter.getPropertyDescriptions(reports)(0).getPropertyDescriptionText should be("valid length")
     }
 
     "invalid property description - too short" in {
 
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
 
-      EbarsXmlCutter.PropertyDescriptions(reports) should have size (1)
-      EbarsXmlCutter.PropertyDescriptions(reports)(0).getPropertyDescriptionText should be("B")
+      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (1)
+      EbarsXmlCutter.getPropertyDescriptions(reports)(0).getPropertyDescriptionText should be("B")
 
       PropertyDescriptionTextRemoval.apply(reports)
 
-      EbarsXmlCutter.PropertyDescriptions(reports) should have size (0)
+      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (0)
     }
   }
 
@@ -532,12 +532,12 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR05_BOTH_PROPERTIES.xml")))
 
-      val textAddressStructures = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructures should have size (2)
 
       Cr05CopyProposedEntriesToExistingEntries.apply(reports)
 
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (3)
 
       textAddressStructuresAfter(1).getAddressLine.get(0) should be("[PROPOSED] ROMAIN - GROUND FLOOR FLAT")
@@ -557,15 +557,15 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR12_BOTH_PROPERTIES.xml")))
 
-      val textAddressStructures = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructures should have size (2)
 
       Cr12CopyProposedEntriesToRemarks.apply(reports)
 
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (2)
 
-      EbarsXmlCutter.Remarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
+      EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
     }
   }
 
@@ -573,11 +573,11 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     "remove BS7666Address" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
 
       RemoveBS7666Addresses.apply(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
     }
   }
 
@@ -585,11 +585,11 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     "remove PropertyGridCoords" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
 
       RemovePropertyGridCoords.apply(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
 }

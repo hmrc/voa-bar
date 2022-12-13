@@ -33,17 +33,17 @@ class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with Option
     "return 11" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.CR(reports) should contain("11")
+      EbarsXmlCutter.extractCR(reports) should contain("11")
     }
 
     "return None if missing" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_MISSING_CR_CODE.xml")))
-      EbarsXmlCutter.CR(reports) should be(None)
+      EbarsXmlCutter.extractCR(reports) should be(None)
     }
 
     "return None if invalid" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_INVALID_CR_CODE.xml")))
-      EbarsXmlCutter.CR(reports) should be(None)
+      EbarsXmlCutter.extractCR(reports) should be(None)
     }
   }
 

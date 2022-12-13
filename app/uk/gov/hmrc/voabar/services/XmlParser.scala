@@ -67,7 +67,7 @@ class XmlParser {
   }
 
 
-  private def addChild(node:Node,newNode:NodeSeq): Node = node match {
+  private def addChild(node:Node,newNode:NodeSeq): Node = (node: @unchecked) match {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
   }
 

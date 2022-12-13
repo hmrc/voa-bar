@@ -35,13 +35,13 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "return CR03" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_BothEntries.json")))
 
-      EbarsXmlCutter.CR(reports) should contain(CtaxReasonForReportCodeContentType.CR_03)
+      EbarsXmlCutter.extractCR(reports) should contain(CtaxReasonForReportCodeContentType.CR_03)
     }
 
     "return None if invalid" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_MissingCRinFrontOfCrCode.json")))
 
-      EbarsXmlCutter.CR(reports) should be(None)
+      EbarsXmlCutter.extractCR(reports) should be(None)
     }
   }
 
@@ -112,7 +112,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
       EbarsXmlCutter.findProposedEntriesIdx(reports) should contain(6)
 
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (2)
 
       textAddressStructuresAfter(0).getAddressLine.get(0) should be("4 NICKLEBY COURT")
@@ -120,7 +120,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       textAddressStructuresAfter(0).getAddressLine.get(2) should be("CORNWALL")
       textAddressStructuresAfter(0).getPostcode should be("PL14 3FP")
 
-      val baReferencesAfter = EbarsXmlCutter.BAreferences(reports)
+      val baReferencesAfter = EbarsXmlCutter.getBAreferences(reports)
       baReferencesAfter should have size (2)
       baReferencesAfter(0) should be("11010635004000")
       baReferencesAfter(1) should be("11010635004000")
@@ -195,7 +195,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
       EbarsXmlCutter.findProposedEntriesIdx(reports) should contain(6)
 
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (2)
 
       textAddressStructuresAfter(0).getAddressLine.get(0) should be("MANAGERS ACCOM. THE BARBICAN INN")
@@ -204,7 +204,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       textAddressStructuresAfter(0).getAddressLine.get(3) should be("CORNWALL")
       textAddressStructuresAfter(0).getPostcode should be("PL13 1EY")
 
-      val baReferencesAfter = EbarsXmlCutter.BAreferences(reports)
+      val baReferencesAfter = EbarsXmlCutter.getBAreferences(reports)
       baReferencesAfter should have size (2)
       baReferencesAfter(0) should be("11031818521880")
       baReferencesAfter(1) should be("11031818521880")
@@ -229,23 +229,23 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "return values from all OccupierContact" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
 
-      EbarsXmlCutter.OccupierContacts(reports) should have size (1)
-      EbarsXmlCutter.OccupierContacts(reports)(0).getOccupierName.getPersonFamilyName should be("FINNIMORE")
-      EbarsXmlCutter.OccupierContacts(reports)(0).getOccupierName.getPersonRequestedName should be("MR M FINNIMORE")
-      EbarsXmlCutter.OccupierContacts(reports)(0).getOccupierName.getPersonGivenName().get(0) should be("M")
-      EbarsXmlCutter.OccupierContacts(reports)(0).getOccupierName.getPersonNameTitle().get(0) should be("MR")
-      EbarsXmlCutter.OccupierContacts(reports)(0).getOccupierName.getPersonNameSuffix().get(0) should be("P")
+      EbarsXmlCutter.getOccupierContacts(reports) should have size (1)
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonFamilyName should be("FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonRequestedName should be("MR M FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonGivenName().get(0) should be("M")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameTitle().get(0) should be("MR")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameSuffix().get(0) should be("P")
     }
 
     "return values from 1 AssessmentProperties" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
-      val assessmentProperties = EbarsXmlCutter.AssessmentProperties(reports)(0)
+      val assessmentProperties = EbarsXmlCutter.getAssessmentProperties(reports)(0)
 
-      EbarsXmlCutter.OccupierContacts(assessmentProperties).get.getOccupierName.getPersonFamilyName should be("FINNIMORE")
-      EbarsXmlCutter.OccupierContacts(assessmentProperties).get.getOccupierName.getPersonRequestedName should be("MR M FINNIMORE")
-      EbarsXmlCutter.OccupierContacts(assessmentProperties).get.getOccupierName.getPersonGivenName().get(0) should be("M")
-      EbarsXmlCutter.OccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameTitle().get(0) should be("MR")
-      EbarsXmlCutter.OccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameSuffix().get(0) should be("P")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonFamilyName should be("FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonRequestedName should be("MR M FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonGivenName().get(0) should be("M")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameTitle().get(0) should be("MR")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameSuffix().get(0) should be("P")
     }
   }
 
@@ -253,35 +253,35 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "return values from TextAddress" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
 
-      EbarsXmlCutter.TextAddressStructures(reports) should have size (1)
-      EbarsXmlCutter.TextAddressStructures(reports)(0).getPostcode should be("PL13 1EY")
+      EbarsXmlCutter.getTextAddressStructures(reports) should have size (1)
+      EbarsXmlCutter.getTextAddressStructures(reports)(0).getPostcode should be("PL13 1EY")
     }
 
     "return values from TextAddress - no postcode" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_OccupierContact_NoPostcode.json")))
 
-      EbarsXmlCutter.TextAddressStructures(reports) should have size (1)
-      EbarsXmlCutter.TextAddressStructures(reports)(0).getPostcode should be(null)
+      EbarsXmlCutter.getTextAddressStructures(reports) should have size (1)
+      EbarsXmlCutter.getTextAddressStructures(reports)(0).getPostcode should be(null)
     }
 
     "return values from OccupierContact" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
 
-      EbarsXmlCutter.OccupierContactAddresses(reports) should have size (1)
-      EbarsXmlCutter.OccupierContactAddresses(reports)(0).getPostCode should be("PL13 1EY")
+      EbarsXmlCutter.getOccupierContactAddresses(reports) should have size (1)
+      EbarsXmlCutter.getOccupierContactAddresses(reports)(0).getPostCode should be("PL13 1EY")
     }
 
     "return values from OccupierContact - no postcode" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_OccupierContact_NoPostcode.json")))
 
-      EbarsXmlCutter.OccupierContactAddresses(reports) should have size (1)
-      EbarsXmlCutter.OccupierContactAddresses(reports)(0).getPostCode should be(null)
+      EbarsXmlCutter.getOccupierContactAddresses(reports) should have size (1)
+      EbarsXmlCutter.getOccupierContactAddresses(reports)(0).getPostCode should be(null)
     }
 
     "return values from OccupierContact - no OccupierContact" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_OccupierContact_NoOccupierDetails.json")))
 
-      EbarsXmlCutter.OccupierContactAddresses(reports) should have size (0)
+      EbarsXmlCutter.getOccupierContactAddresses(reports) should have size (0)
     }
   }
 
@@ -291,7 +291,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
 
       EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
       EbarsXmlCutter.findRemarksIdx(reports) should contain(7)
-      EbarsXmlCutter.Remarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
+      EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
     }
   }
 
@@ -299,50 +299,50 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "return C" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (3)
-      EbarsXmlCutter.CurrentTax(reports)(0).getCouncilTaxBand should be(BandType.A)
-      EbarsXmlCutter.CurrentTax(reports)(1).getCouncilTaxBand should be(BandType.B)
-      EbarsXmlCutter.CurrentTax(reports)(2).getCouncilTaxBand should be(BandType.C)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports)(0).getCouncilTaxBand should be(BandType.A)
+      EbarsXmlCutter.getCurrentTaxes(reports)(1).getCouncilTaxBand should be(BandType.B)
+      EbarsXmlCutter.getCurrentTaxes(reports)(2).getCouncilTaxBand should be(BandType.C)
     }
 
     "return null if invalid" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (1)
-      EbarsXmlCutter.CurrentTax(reports)(0).getCouncilTaxBand should be(null)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (1)
+      EbarsXmlCutter.getCurrentTaxes(reports)(0).getCouncilTaxBand should be(null)
     }
 
     "return null if missing" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_NO_TAX_BAND.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
     }
 
     "do nothing if already missing" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_NO_TAX_BAND.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
       EbarsXmlCutter.removeNullCurrentTax(reports)
-      EbarsXmlCutter.CurrentTax(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
     }
 
     "remove if invalid" in {
       val ebarsValidator = new EbarsValidator
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (1)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (1)
 
       EbarsXmlCutter.removeNullCurrentTax(reports)
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
     }
 
     "do nothing if valid" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED.xml")))
 
-      EbarsXmlCutter.CurrentTax(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
       EbarsXmlCutter.removeNullCurrentTax(reports)
-      EbarsXmlCutter.CurrentTax(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
     }
   }
 
@@ -350,7 +350,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "find both descriptions" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      val propertyDescriptions = EbarsXmlCutter.PropertyDescriptions(reports)
+      val propertyDescriptions = EbarsXmlCutter.getPropertyDescriptions(reports)
 
       propertyDescriptions(0).getPropertyDescriptionText should be("Not Known")
       propertyDescriptions(1).getPropertyDescriptionText should be("Not Known")
@@ -361,7 +361,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "find Remarks" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.Remarks(reports).head should be("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
+      EbarsXmlCutter.getRemarks(reports).head should be("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
     }
   }
 
@@ -369,7 +369,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "find PropertyPlanReferenceNumber" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyPlanReferenceNumber(reports).head should be("43242432432")
+      EbarsXmlCutter.getPropertyPlanReferenceNumber(reports).head should be("43242432432")
     }
   }
 
@@ -377,7 +377,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "append proposed to existing" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      val textAddressStructures = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructures should have size (2)
 
       textAddressStructures(0).getAddressLine.get(0) should be("GROUND FLOOR FLAT")
@@ -393,7 +393,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       textAddressStructures(1).getPostcode should be("CF24 1LP")
 
       EbarsXmlCutter.appendProposedEntriesToExisting(reports)
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (3)
 
       textAddressStructuresAfter(0).getAddressLine.get(0) should be("GROUND FLOOR FLAT")
@@ -414,7 +414,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       textAddressStructuresAfter(2).getAddressLine.get(3) should be("ROMAIN - CARDIFF")
       textAddressStructuresAfter(2).getPostcode should be("CF24 1LP")
 
-      val occupierContactsAfter = EbarsXmlCutter.OccupierContacts(reports)
+      val occupierContactsAfter = EbarsXmlCutter.getOccupierContacts(reports)
       occupierContactsAfter should have size (2)
 
       occupierContactsAfter(0).getOccupierName.getPersonFamilyName should be("MALIK")
@@ -431,7 +431,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "append proposed to remarks" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      val textAddressStructures = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructures should have size (2)
 
       textAddressStructures(0).getAddressLine.get(0) should be("GROUND FLOOR FLAT")
@@ -448,10 +448,10 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
 
       EbarsXmlCutter.appendProposedEntriesToRemarks(reports)
 
-      val textAddressStructuresAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size (2)
 
-      EbarsXmlCutter.Remarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
+      EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
     }
   }
 
@@ -459,11 +459,11 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "remove BS7666Address" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
 
       EbarsXmlCutter.removeBS7666Address(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
     }
   }
 
@@ -471,11 +471,11 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "remove PropertyGridCoords" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
 
       EbarsXmlCutter.removePropertyGridCoords(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
 }

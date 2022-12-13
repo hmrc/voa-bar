@@ -35,11 +35,11 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     "remove BS7666Address" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
 
       RemoveBS7666Addresses.apply(reports)
 
-      EbarsXmlCutter.PropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
     }
   }
 
@@ -47,8 +47,8 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     "uppercase Postcodes" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
-      val addresses = EbarsXmlCutter.TextAddressStructures(reports)
-      val contactDetails = EbarsXmlCutter.OccupierContactAddresses(reports)
+      val addresses = EbarsXmlCutter.getTextAddressStructures(reports)
+      val contactDetails = EbarsXmlCutter.getOccupierContactAddresses(reports)
 
       addresses should have size(2)
       addresses(0).getPostcode should be("hu13 0pg")
@@ -59,12 +59,12 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
 
       PostcodesToUppercase.apply(reports)
 
-      val addressesAfter = EbarsXmlCutter.TextAddressStructures(reports)
+      val addressesAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       addressesAfter should have size(2)
       addressesAfter(0).getPostcode should be("HU13 0PG")
       addressesAfter(1).getPostcode should be("YO15 3QN")
 
-      val contactDetailsAfter = EbarsXmlCutter.OccupierContactAddresses(reports)
+      val contactDetailsAfter = EbarsXmlCutter.getOccupierContactAddresses(reports)
       contactDetailsAfter should have size(1)
       contactDetailsAfter(0).getPostCode should be("DE45 1DL")
     }

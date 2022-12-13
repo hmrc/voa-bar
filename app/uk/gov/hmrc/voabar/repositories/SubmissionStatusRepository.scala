@@ -98,7 +98,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
     // TODO: Remove isoDate after 1 January 2023 as all records in mongo must have the property 'createdAt'
-    val isoDate = ZonedDateTime.now().minusDays(90)
+    val saveFor90Days = 90
+    val isoDate = ZonedDateTime.now().minusDays(saveFor90Days)
       .withHour(3) //Set 3AM to prevent submissions disappear during day.
       .withMinute(0)
       .format(DateTimeFormatter.ISO_DATE_TIME)

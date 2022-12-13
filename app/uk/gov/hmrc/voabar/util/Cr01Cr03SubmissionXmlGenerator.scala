@@ -30,11 +30,13 @@ import uk.gov.hmrc.voabar.models.{AddProperty, Cr01Cr03Submission, OtherReason}
 import uk.gov.hmrc.voabar.util.DateConversion._
 
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 @deprecated("Have bug for CR01, replaced by XmlSubmissionGenerator", "April 2021")
 class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
 
   val OF = new ebars.xml.ObjectFactory()
+  val transactionIdentityLength = 25
 
   implicit val dataFactory = DatatypeFactory.newInstance()
 
@@ -50,14 +52,12 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def generateBody(): BAreportBodyStructure = {
-    import collection.JavaConverters._
-
     val body = new BAreportBodyStructure()
 
     val bodyElements = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
       OF.createBAreportBodyStructureTransactionIdentityBA(
-        submissionId.toString.replaceAll("-", "").substring(0,25)), //TODO submissionID
+        submissionId.toString.replaceAll("-", "").substring(0, transactionIdentityLength)), //TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax,
@@ -143,7 +143,6 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def propertyIdentification(): BApropertyIdentificationStructure = {
-    import collection.JavaConverters._
     val uprn = submission.uprn.map { uprn =>
         OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }

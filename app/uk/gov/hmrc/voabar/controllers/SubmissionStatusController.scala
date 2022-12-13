@@ -144,7 +144,7 @@ class SubmissionStatusController @Inject() (
     }
   }
 
-  private def _deleteByReference(reference: String, user: String): Future[Either[Result, JsValue]] = {
+  private def deleteByReferenceQuery(reference: String, user: String): Future[Either[Result, JsValue]] = {
     submissionStatusRepository.deleteByReference(reference, user).map { deleteResult =>
       deleteResult.left.map { error =>
         InternalServerError
@@ -155,7 +155,7 @@ class SubmissionStatusController @Inject() (
   def deleteByReference(reference: String) = Action.async { implicit request =>
     (for {
       baCode <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
-      reportStatuses <- EitherT(_deleteByReference(reference, baCode))
+      reportStatuses <- EitherT(deleteByReferenceQuery(reference, baCode))
     } yield (Ok(Json.toJson(reportStatuses))))
       .valueOr(x => x)
   }
