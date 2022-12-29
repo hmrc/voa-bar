@@ -5,7 +5,7 @@ object Dependencies {
 
   private val bootstrapVersion = "7.12.0"
   private val hmrcMongoVersion = "0.74.0"
-  private val autoBarsXsdVersion = "9.6.0"
+  private val autoBarsXsdVersion = "9.7.0"
   private val httpCachingClientVersion = "10.0.0-play-28"
   private val jacksonModuleScalaVersion = "2.14.1"
   private val guiceUtilsVersion = "5.1.0"
