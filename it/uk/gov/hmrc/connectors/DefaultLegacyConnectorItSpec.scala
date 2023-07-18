@@ -51,7 +51,7 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with Gui
     new DefaultLegacyConnector(inject[HttpClient], servicesConfig, inject[Utils], inject[ApplicationCrypto])
 
   }
-  implicit def ec = app.injector.instanceOf[ExecutionContext]
+  implicit def ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   val ebarsValidator = new EbarsValidator()
 
