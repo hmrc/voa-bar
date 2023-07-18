@@ -1,6 +1,5 @@
 import sbt.Keys._
 import sbt._
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import scoverage.ScoverageKeys
 import uk.gov.hmrc._
 import DefaultBuildSettings.{defaultSettings, integrationTestSettings, scalaSettings}
@@ -24,13 +23,12 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(majorVersion := 1 )
   .settings(scalaSettings: _*)
-  .settings(publishingSettings: _*)
   .settings(defaultSettings(): _*)
   .settings(
     libraryDependencies ++= Dependencies.appDependencies,
     retrieveManaged := true,
     PlayKeys.playDefaultPort := 8447,
-    scalaVersion := "2.13.10",
+    scalaVersion := "2.13.11",
     DefaultBuildSettings.targetJvm := "jvm-11",
     scalacOptions += "-Wconf:src=routes/.*:s",
     Test / fork := true
