@@ -48,7 +48,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
   val aXmlUrl = getClass.getResource("/xml/CTValid1.xml").toString
 
-  implicit val headerCarrier = HeaderCarrier()
+  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
   val loginDetails = LoginDetails("BA5090", "BA5090")
 

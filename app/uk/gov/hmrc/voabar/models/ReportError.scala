@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.voabar.util.JavaEnumUtils
 
 case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[String] = Seq.empty[String])
 
 object ReportErrorDetail {
-  implicit val errorCodeFormat = JavaEnumUtils.format[ReportErrorDetailCode]
-  implicit val format = Json.format[ReportErrorDetail]
+  implicit val errorCodeFormat: Format[ReportErrorDetailCode] = JavaEnumUtils.format[ReportErrorDetailCode]
+  implicit val format: OFormat[ReportErrorDetail] = Json.format[ReportErrorDetail]
 
 }
 
@@ -36,5 +36,5 @@ case class ReportError(reportNumber: Option[String],
                       )
 
 object ReportError {
-  implicit val format = Json.format[ReportError]
+  implicit val format: OFormat[ReportError] = Json.format[ReportError]
 }

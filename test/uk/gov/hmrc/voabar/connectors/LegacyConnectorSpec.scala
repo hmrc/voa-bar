@@ -41,7 +41,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   private def servicesConfig = app.injector.instanceOf[ServicesConfig]
   private def crypto = app.injector.instanceOf[ApplicationCrypto]
   private def utils = new Utils(crypto.JsonCrypto)
-  private implicit val hc = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val username = "ba0121"
   private val password = "wibble"

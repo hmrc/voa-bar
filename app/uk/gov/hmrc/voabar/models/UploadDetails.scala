@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class UploadDetails(reference: String, xmlUrl: String)
 
 object UploadDetails {
-  implicit val format = Json.format[UploadDetails]
+  implicit val format: OFormat[UploadDetails] = Json.format[UploadDetails]
 }

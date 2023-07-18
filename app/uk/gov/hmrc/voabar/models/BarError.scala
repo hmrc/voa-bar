@@ -38,16 +38,16 @@ case class UnknownError(detail: String) extends BarError
 
 object BarError {
 
-  implicit val barXmlErrorFormat = Json.writes[BarXmlError]
-  implicit val barXmlValidationErrorFormat = Json.writes[BarXmlValidationError]
-  implicit val barValidationErrorFormat = Json.writes[BarValidationError]
-  implicit val barSubmissionValidationErrorFormat = Json.writes[BarSubmissionValidationError]
-  implicit val barMongoErrorFormat = new OWrites[BarMongoError] {
+  implicit val barXmlErrorFormat: OWrites[BarXmlError] = Json.writes[BarXmlError]
+  implicit val barXmlValidationErrorFormat: OWrites[BarXmlValidationError] = Json.writes[BarXmlValidationError]
+  implicit val barValidationErrorFormat: OWrites[BarValidationError] = Json.writes[BarValidationError]
+  implicit val barSubmissionValidationErrorFormat: OWrites[BarSubmissionValidationError] = Json.writes[BarSubmissionValidationError]
+  implicit val barMongoErrorFormat: OWrites[BarMongoError] = new OWrites[BarMongoError] {
     override def writes(o: BarMongoError): JsObject = Json.obj("mongoError" -> o.error)
   }
-  implicit val barEbarErrorFormat = Json.writes[BarEbarError]
-  implicit val barEmailErrorFormat = Json.writes[BarEmailError]
-  implicit val unknownErrorFormat = Json.writes[UnknownError]
+  implicit val barEbarErrorFormat: OWrites[BarEbarError] = Json.writes[BarEbarError]
+  implicit val barEmailErrorFormat: OWrites[BarEmailError] = Json.writes[BarEmailError]
+  implicit val unknownErrorFormat: OWrites[UnknownError] = Json.writes[UnknownError]
 
 
   implicit val format: OWrites[BarError] = Json.writes[BarError]

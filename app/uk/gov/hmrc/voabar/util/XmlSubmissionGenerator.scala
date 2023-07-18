@@ -34,7 +34,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   val OF = new ebars.xml.ObjectFactory()
   val transactionIdentityLength = 25
 
-  implicit val dataFactory = DatatypeFactory.newInstance()
+  implicit val dataFactory: DatatypeFactory = DatatypeFactory.newInstance()
 
   def generateXml(): BAreports = {
     val report = new BAreports()
