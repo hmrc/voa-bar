@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.voabar.models
 
 import java.time.LocalDate
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, Json, OFormat}
 
 sealed trait CrSubmission {
   def baReport: String
@@ -26,11 +26,11 @@ sealed trait CrSubmission {
 }
 
 
-object Address { implicit val format = Json.format[Address] }
+object Address { implicit val format: OFormat[Address] = Json.format[Address] }
 case class Address(line1: String, line2: String, line3: Option[String], line4: Option[String], postcode: String)
-object ContactDetails {implicit val format = Json.format[ContactDetails] }
+object ContactDetails {implicit val format: OFormat[ContactDetails] = Json.format[ContactDetails] }
 case class ContactDetails(firstName: String, lastName: String, email: Option[String], phoneNumber: Option[String])
-object Cr01Cr03Submission { val format = Json.format[Cr01Cr03Submission] }
+object Cr01Cr03Submission { val format: OFormat[Cr01Cr03Submission] = Json.format[Cr01Cr03Submission] }
 case class Cr01Cr03Submission(reasonReport: Option[ReasonReportType], removalReason: Option[RemovalReasonType], otherReason: Option[String],
                               baReport: String, baRef: String, uprn: Option[String], address: Address,
                               propertyContactDetails: ContactDetails,
@@ -43,7 +43,7 @@ case class Cr05AddProperty(uprn: Option[String], address: Address,
                            propertyContactDetails: ContactDetails,
                            sameContactAddress: Boolean, contactAddress: Option[Address])
 
-object Cr05AddProperty { implicit val format = Json.format[Cr05AddProperty] }
+object Cr05AddProperty { implicit val format: OFormat[Cr05AddProperty] = Json.format[Cr05AddProperty] }
 
 case class Cr05Submission( baReport: String, baRef: String, effectiveDate: LocalDate,
                            proposedProperties: Seq[Cr05AddProperty],

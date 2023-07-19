@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class LoginDetails(username:String, password:String) {
   def baCode = {
@@ -25,5 +25,5 @@ case class LoginDetails(username:String, password:String) {
 }
 
 object LoginDetails {
-  implicit val format = Json.format[LoginDetails]
+  implicit val format: OFormat[LoginDetails] = Json.format[LoginDetails]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   private def servicesConfig = app.injector.instanceOf[ServicesConfig]
   private def crypto = app.injector.instanceOf[ApplicationCrypto]
   private def utils = new Utils(crypto.JsonCrypto)
-  private implicit val hc = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val username = "ba0121"
   private val password = "wibble"

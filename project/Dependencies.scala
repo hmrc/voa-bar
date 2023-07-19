@@ -3,25 +3,25 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "7.12.0"
-  private val hmrcMongoVersion = "0.74.0"
+  private val bootstrapVersion = "7.19.0"
+  private val hmrcMongoVersion = "1.3.0"
   private val autoBarsXsdVersion = "9.7.0"
   private val httpCachingClientVersion = "10.0.0-play-28"
-  private val jacksonModuleScalaVersion = "2.14.1"
-  private val guiceUtilsVersion = "5.1.0"
-  private val catsEffectVersion = "3.4.1"
-  private val saxonHeVersion = "11.4"
+  private val jacksonModuleScalaVersion = "2.14.2"
+  private val guiceUtilsVersion = "5.1.1"
+  private val catsEffectVersion = "3.4.8"
+  private val saxonHeVersion = "11.5"
   private val xercesVersion = "2.12.2"
   private val inbotUtilsVersion = "1.28"
 
   // Test dependencies
   private val scalaTestPlusPlayVersion = "5.1.0"
-  private val scalaTestVersion = "3.2.14"
-  private val testPlusScalaCheckVersion = "3.2.14.0"
+  private val scalaTestVersion = "3.2.16"
+  private val testPlusScalaCheckVersion = "3.2.16.0"
   private val mockitoScalatestVersion = "1.17.12"
   private val wiremockVersion = "2.35.0"
   private val xmlunitVersion = "2.9.0"
-  private val flexMarkVersion = "0.64.0"
+  private val flexMarkVersion = "0.64.8"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 

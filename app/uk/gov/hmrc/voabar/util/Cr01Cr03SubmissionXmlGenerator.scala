@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   val OF = new ebars.xml.ObjectFactory()
   val transactionIdentityLength = 25
 
-  implicit val dataFactory = DatatypeFactory.newInstance()
+  implicit val dataFactory: DatatypeFactory = DatatypeFactory.newInstance()
 
   def generateXml(): BAreports = {
     val report = new BAreports()
