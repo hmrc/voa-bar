@@ -24,7 +24,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.exception.VoaBarException
 import uk.gov.hmrc.voabar.models.UpScanRequests._
-import uk.gov.hmrc.voabar.models.{Error, Failed, LoginDetails, ReportStatus, ReportStatusType, Submitted, Verified}
+import uk.gov.hmrc.voabar.models.{Error, Failed, LoginDetails, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, UserReportUploadsRepository}
 import uk.gov.hmrc.voabar.services.{ReportUploadService, WebBarsService}
 import uk.gov.hmrc.voabar.util.UPSCAN_ERROR
@@ -53,7 +53,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
         onFailedConfirmation(e)
       case _ =>
         logger.warn(s"Couldn't parse upload confirmation: \n${request.body}")
-        Future.successful(InternalServerError("Unable to parse request"))
+        Future.successful(BadRequest("Unable to parse request"))
     }
   }
 
@@ -75,7 +75,13 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
                            xmlUrl: String,
                            uploadConfirmation: UploadConfirmation
                          )(implicit hc: HeaderCarrier): F[String] =
-    fromFuture(reportUploadService.upload(login, xmlUrl, uploadConfirmation.reference))
+    fromFuture(
+      reportUploadService.upload(login, xmlUrl, uploadConfirmation.reference)
+        .map(uploadResult => {
+          logger.info(s"uploadResult: $uploadResult reference: ${uploadConfirmation.reference}")
+          uploadResult
+        })
+    )
 
   private def saveSubmission(login: LoginDetails, reportStatus: ReportStatus): F[Unit] =
     for {
@@ -118,9 +124,8 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     run {
       (for {
         login <- getLoginDetails(uploadConfirmation.reference)
-        _ <- saveReportStatus(login, uploadConfirmation, status = Verified)
-        _ <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
         _ <- saveReportStatus(login, uploadConfirmation, status = Submitted)
+        _ <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
       } yield NoContent)
         .recoverWith {
           case voaBarException: VoaBarException =>

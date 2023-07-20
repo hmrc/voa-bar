@@ -19,7 +19,6 @@ package uk.gov.hmrc.voabar.controllers
 import cats.MonadThrow
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
-import cats.implicits._
 import play.api.Logging
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
