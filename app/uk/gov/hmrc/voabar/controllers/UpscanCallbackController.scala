@@ -44,17 +44,13 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  def onConfirmation: Action[JsValue] = Action(parse.tolerantJson).async { implicit request: Request[JsValue] =>
-    parseUploadConfirmation(request) orElse parseUploadConfirmationError(request) match {
-      case Some(u: UploadConfirmation) =>
-        onSuccessfulConfirmation(u)
-      case Some(e: UploadConfirmationError) =>
-        logger.warn(s"Upload Failed with: $e")
-        onFailedConfirmation(e)
-      case _ =>
+  def onConfirmation: Action[JsValue] = Action(parse.tolerantJson) { implicit request: Request[JsValue] =>
+    (parseUploadConfirmation(request).map(onSuccessfulConfirmation) orElse
+      parseUploadConfirmationError(request).map(onFailedConfirmation))
+      .fold {
         logger.warn(s"Couldn't parse upload confirmation: \n${request.body}")
-        Future.successful(BadRequest("Unable to parse request"))
-    }
+        BadRequest("Unable to parse request")
+      }(_ => Accepted)
   }
 
   private def parseUploadConfirmation(request: Request[JsValue]): Option[UploadConfirmation] =
@@ -134,7 +130,8 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
         }
     }
 
-  private def onFailedConfirmation(uploadConfirmationError: UploadConfirmationError): Future[Result] =
+  private def onFailedConfirmation(uploadConfirmationError: UploadConfirmationError): Future[Result] = {
+    logger.warn(s"Upload failed on upscan with: $uploadConfirmationError")
     run {
       for {
         login <- getLoginDetails(uploadConfirmationError.reference)
@@ -144,6 +141,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
           status = Failed)
       } yield NoContent
     }
+  }
 
   private def handleConfirmationError(uploadConfirmation: UploadConfirmation, error: Error): F[Result] = {
     val errorMsg = s"Error: code: ${error.code} detail messages: ${error.values.mkString(", ")}"

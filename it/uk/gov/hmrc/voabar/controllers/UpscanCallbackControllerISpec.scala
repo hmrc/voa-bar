@@ -18,6 +18,8 @@ package uk.gov.hmrc.voabar.controllers
 
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.scalatest.MockitoSugar
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.SpanSugar
 import org.scalatest.{EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -33,7 +35,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
-import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed}
+import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, Submitted}
 import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, UPSCAN_ERROR}
@@ -42,13 +44,16 @@ import java.net.URL
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.Using
 
 /**
  * @author Yuriy Tumakha
  */
-class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with EitherValues with Status
-  with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar with Injecting {
+class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with EitherValues with Eventually with SpanSugar
+  with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar with Status with Injecting {
+
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
   override def fakeApplication(): Application = {
     val legacyConnector = mock[LegacyConnector]
@@ -93,8 +98,12 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
         ))
 
       val result = controller.onConfirmation(request)
-      status(result) mustBe NO_CONTENT
+      status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
+
+      eventually {
+        await(submissionRepository.getByReference(reference)).value.status.value must not be Submitted.value
+      }
 
       val submissionReport = await(submissionRepository.getByReference(reference))
 
@@ -117,12 +126,15 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
         ))
 
       val result = controller.onConfirmation(request)
-      status(result) mustBe NO_CONTENT
+      status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
+
+      eventually {
+        await(submissionRepository.getByReference(reference2)).value.status.value must not be Submitted.value
+      }
 
       val submissionReport = await(submissionRepository.getByReference(reference2))
 
-      submissionReport.isRight mustBe true
       submissionReport.value.status.value mustBe Failed.value
       submissionReport.value.baCode.value mustBe username
       submissionReport.value.errors mustBe Seq(Error(UPSCAN_ERROR, Seq("QUARANTINE")))
@@ -142,12 +154,15 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
         ))
 
       val result = controller.onConfirmation(request)
-      status(result) mustBe NO_CONTENT
+      status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
+
+      eventually {
+        await(submissionRepository.getByReference(reference3)).value.status.value must not be Submitted.value
+      }
 
       val submissionReport = await(submissionRepository.getByReference(reference3))
 
-      submissionReport.isRight mustBe true
       submissionReport.value.status.value mustBe Failed.value
       submissionReport.value.baCode.value mustBe "BA4444"
       submissionReport.value.errors mustBe Seq(Error(BA_CODE_MATCH, Seq("5090")))
