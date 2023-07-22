@@ -27,7 +27,7 @@ import uk.gov.hmrc.voabar.models.UpScanRequests._
 import uk.gov.hmrc.voabar.models.{Error, Failed, LoginDetails, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, UserReportUploadsRepository}
 import uk.gov.hmrc.voabar.services.{ReportUploadService, WebBarsService}
-import uk.gov.hmrc.voabar.util.UPSCAN_ERROR
+import uk.gov.hmrc.voabar.util.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,9 +44,9 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  def onConfirmation: Action[JsValue] = Action(parse.tolerantJson) { implicit request: Request[JsValue] =>
-    (parseUploadConfirmation(request).map(onSuccessfulConfirmation) orElse
-      parseUploadConfirmationError(request).map(onFailedConfirmation))
+  def onConfirmation(baLogin: String): Action[JsValue] = Action(parse.tolerantJson) { implicit request: Request[JsValue] =>
+    (parseUploadConfirmation(request).map(onSuccessfulConfirmation(baLogin, _)) orElse
+      parseUploadConfirmationError(request).map(onFailedConfirmation(baLogin, _)))
       .fold {
         logger.warn(s"Couldn't parse upload confirmation: \n${request.body}")
         BadRequest("Unable to parse request")
@@ -62,7 +62,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
   private def getLoginDetails(id: String): F[LoginDetails] =
     for {
       userReportUploadOpt <- fromFuture(userReportUploadsRepository.findById(id))
-      userData <- F.fromOption(userReportUploadOpt, VoaBarException(Error(UPSCAN_ERROR, Seq(s"Couldn't get user session for reference: $id"))))
+      userData <- F.fromOption(userReportUploadOpt, VoaBarException(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $id"))))
       decryptedPassword <- F.fromTry(Try(crypto.decrypt(Crypted(userData.userPassword)).value))
     } yield LoginDetails(userData.userId, decryptedPassword)
 
@@ -116,39 +116,46 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
   }
 
 
-  private def onSuccessfulConfirmation(uploadConfirmation: UploadConfirmation)(implicit request: Request[JsValue]): Future[Result] =
+  private def onSuccessfulConfirmation(baLogin: String, uploadConfirmation: UploadConfirmation)(implicit request: Request[JsValue]): Future[Result] =
     run {
       (for {
         login <- getLoginDetails(uploadConfirmation.reference)
         _ <- saveReportStatus(login, uploadConfirmation, status = Submitted)
         _ <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
       } yield NoContent)
-        .recoverWith {
-          case voaBarException: VoaBarException =>
-            logger.warn(s"VoaBarException: ${voaBarException.error}")
-            handleConfirmationError(uploadConfirmation, voaBarException.error)
-        }
+        .recoverWith(handleError(baLogin, uploadConfirmation.reference))
     }
 
-  private def onFailedConfirmation(uploadConfirmationError: UploadConfirmationError): Future[Result] = {
+  private def onFailedConfirmation(baLogin: String, uploadConfirmationError: UploadConfirmationError): Future[Result] = {
     logger.warn(s"Upload failed on upscan with: $uploadConfirmationError")
+    val failureDetails = uploadConfirmationError.failureDetails
     run {
-      for {
+      (for {
         login <- getLoginDetails(uploadConfirmationError.reference)
         _ <- saveReportStatus(login,
           uploadConfirmationError.reference,
-          Seq(Error(UPSCAN_ERROR, Seq(uploadConfirmationError.failureDetails.failureReason))),
+          Seq(Error(UPSCAN_ERROR, Seq(failureDetails.failureReason, failureDetails.message))),
           status = Failed)
-      } yield NoContent
+      } yield NoContent)
+        .recoverWith(handleError(baLogin, uploadConfirmationError.reference))
     }
   }
 
-  private def handleConfirmationError(uploadConfirmation: UploadConfirmation, error: Error): F[Result] = {
+  private def handleError(baLogin: String, reference: String): PartialFunction[Throwable, F[Result]] = {
+    case voaBarException: VoaBarException =>
+      logger.warn(s"VoaBarException: ${voaBarException.error}")
+      saveError(baLogin, reference, voaBarException.error)
+    case exception =>
+      logger.warn(s"Unknown ${exception.getClass}: ${exception.getMessage}")
+      saveError(baLogin, reference, Error(UNKNOWN_ERROR, Seq(exception.getMessage)))
+  }
+
+  private def saveError(baLogin: String, reference: String, error: Error): F[Result] = {
     val errorMsg = s"Error: code: ${error.code} detail messages: ${error.values.mkString(", ")}"
     logger.error(errorMsg)
     for {
-      login <- getLoginDetails(uploadConfirmation.reference)
-      _ <- saveReportStatus(login, uploadConfirmation.reference, Seq(error), status = Failed)
+      login <- getLoginDetails(reference).recover(_ => LoginDetails(baLogin, baLogin))
+      _ <- saveReportStatus(login, reference, Seq(error), status = Failed)
     } yield InternalServerError(errorMsg)
   }
 

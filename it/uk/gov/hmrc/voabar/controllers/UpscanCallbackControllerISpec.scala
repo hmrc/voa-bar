@@ -27,7 +27,7 @@ import play.api.{Application, Configuration}
 import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.test.Helpers.{contentAsString, status}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
@@ -35,10 +35,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
-import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, Submitted}
+import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, UPSCAN_ERROR}
+import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
 import java.net.URL
 import java.nio.file.Paths
@@ -80,8 +80,40 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
   private val reference = "111-777"
   private val reference2 = "222-777"
   private val reference3 = "333-777"
+  private val reference4 = "444-777"
+  private val reference5 = "555-777"
   private val username = "BA5090"
   private val password = crypto.encrypt(PlainText(username)).value
+
+  private def buildUploadConfirmation(submissionReference: String): FakeRequest[JsValue] =
+    buildUpscanRequest(
+      UploadConfirmation(submissionReference, xmlUrl, "READY",
+        UploadDetails(OffsetDateTime.now, "396f101dd52e938510ce46e7a5c7a4e775100", "application/xml", "CTValid1.xml")
+      )
+    )
+
+  private def buildUploadConfirmationError(submissionReference: String, failureDetails: FailureDetails): FakeRequest[JsValue] =
+    buildUpscanRequest(UploadConfirmationError(submissionReference, "FAILED", failureDetails))
+
+  private def buildUpscanRequest[T](upscanRequestObj: T)(implicit tjs: Writes[T]): FakeRequest[JsValue] =
+    FakeRequest("POST", "/voa-bar/upload/confirmation")
+      .withHeaders("Content-Type" -> "application/json")
+      .withBody(Json.toJson(upscanRequestObj))
+
+  private def verifySubmissionReport(submissionReference: String,
+                                     expectedBaCode: String,
+                                     expectedStatus: ReportStatusType,
+                                     expectedErrors: Seq[Error]) = {
+    eventually {
+      await(submissionRepository.getByReference(submissionReference)).value.status.value must not be Submitted.value
+    }
+
+    val submissionReport = await(submissionRepository.getByReference(submissionReference))
+
+    submissionReport.value.status.value mustBe expectedStatus.value
+    submissionReport.value.baCode.value mustBe expectedBaCode
+    submissionReport.value.errors mustBe expectedErrors
+  }
 
   "UpscanCallbackController " must {
     "handle upscan callback with `UploadConfirmation`" in {
@@ -89,27 +121,13 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
       await(userReportUploadsRepository.collection.deleteOne(byId(reference)).toFutureOption())
       await(userReportUploadsRepository.save(UserReportUpload(reference, username, password)))
 
-      val request = FakeRequest("POST", "/voa-bar/upload/confirmation")
-        .withHeaders("Content-Type" -> "application/json")
-        .withBody(Json.toJson(
-          UploadConfirmation(reference, xmlUrl, "READY",
-            UploadDetails(OffsetDateTime.now, "396f101dd52e8b2ace0dcf5ed09b1d1f030e608938510ce46e7a5c7a4e775100", "application/xml", "CTValid1.xml")
-          )
-        ))
+      val request = buildUploadConfirmation(reference)
 
-      val result = controller.onConfirmation(request)
+      val result = controller.onConfirmation(username)(request)
       status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
 
-      eventually {
-        await(submissionRepository.getByReference(reference)).value.status.value must not be Submitted.value
-      }
-
-      val submissionReport = await(submissionRepository.getByReference(reference))
-
-      submissionReport.isRight mustBe true
-      submissionReport.value.status.value mustBe Done.value
-      submissionReport.value.baCode.value mustBe username
+      verifySubmissionReport(reference, username, Done, Seq.empty)
     }
 
     "handle upscan callback with `UploadConfirmationError`" in {
@@ -117,65 +135,64 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
       await(userReportUploadsRepository.collection.deleteOne(byId(reference2)).toFutureOption())
       await(userReportUploadsRepository.save(UserReportUpload(reference2, username, password)))
 
-      val request = FakeRequest("POST", "/voa-bar/upload/confirmation")
-        .withHeaders("Content-Type" -> "application/json")
-        .withBody(Json.toJson(
-          UploadConfirmationError(reference2, "FAILED",
-            FailureDetails("QUARANTINE", "This file has a virus")
-          )
-        ))
+      val request = buildUploadConfirmationError(reference2, FailureDetails("QUARANTINE", "This file has a virus"))
 
-      val result = controller.onConfirmation(request)
+      val result = controller.onConfirmation(username)(request)
       status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
 
-      eventually {
-        await(submissionRepository.getByReference(reference2)).value.status.value must not be Submitted.value
-      }
-
-      val submissionReport = await(submissionRepository.getByReference(reference2))
-
-      submissionReport.value.status.value mustBe Failed.value
-      submissionReport.value.baCode.value mustBe username
-      submissionReport.value.errors mustBe Seq(Error(UPSCAN_ERROR, Seq("QUARANTINE")))
+      verifySubmissionReport(reference2, username, Failed, Seq(Error(UPSCAN_ERROR, Seq("QUARANTINE", "This file has a virus"))))
     }
 
-    "return error BA_CODE_MATCH when different code in file and in db" in {
+    "save error BA_CODE_MATCH when different code in file and in db" in {
       await(submissionRepository.collection.deleteOne(byId(reference3)).toFutureOption())
       await(userReportUploadsRepository.collection.deleteOne(byId(reference3)).toFutureOption())
       await(userReportUploadsRepository.save(UserReportUpload(reference3, "BA4444", password)))
 
-      val request = FakeRequest("POST", "/voa-bar/upload/confirmation")
-        .withHeaders("Content-Type" -> "application/json")
-        .withBody(Json.toJson(
-          UploadConfirmation(reference3, xmlUrl, "READY",
-            UploadDetails(OffsetDateTime.now, "396f101dd52e8b2ace0dcf5ed09b1d1f030e608938510ce46e7a5c7a4e775100", "application/xml", "CTValid1.xml")
-          )
-        ))
+      val request = buildUploadConfirmation(reference3)
 
-      val result = controller.onConfirmation(request)
+      val result = controller.onConfirmation("BA4444")(request)
       status(result) mustBe ACCEPTED
       contentAsString(result) mustBe ""
 
-      eventually {
-        await(submissionRepository.getByReference(reference3)).value.status.value must not be Submitted.value
-      }
+      verifySubmissionReport(reference3, "BA4444", Failed, Seq(Error(BA_CODE_MATCH, Seq("5090"))))
+    }
 
-      val submissionReport = await(submissionRepository.getByReference(reference3))
+    "save UPSCAN_ERROR when UserReportUpload not found by reference" in {
+      await(submissionRepository.collection.deleteOne(byId(reference4)).toFutureOption())
+      await(userReportUploadsRepository.collection.deleteOne(byId(reference4)).toFutureOption())
 
-      submissionReport.value.status.value mustBe Failed.value
-      submissionReport.value.baCode.value mustBe "BA4444"
-      submissionReport.value.errors mustBe Seq(Error(BA_CODE_MATCH, Seq("5090")))
+      val request = buildUploadConfirmation(reference4)
+
+      val result = controller.onConfirmation(username)(request)
+      status(result) mustBe ACCEPTED
+      contentAsString(result) mustBe ""
+
+      verifySubmissionReport(reference4, username, Failed, Seq(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $reference4"))))
+    }
+
+    "save UNKNOWN_ERROR when password decryption failed" in {
+      await(submissionRepository.collection.deleteOne(byId(reference5)).toFutureOption())
+      await(userReportUploadsRepository.collection.deleteOne(byId(reference5)).toFutureOption())
+      await(userReportUploadsRepository.save(UserReportUpload(reference5, username, "wrong-password-encryption")))
+
+      val request = buildUploadConfirmation(reference5)
+
+      val result = controller.onConfirmation(username)(request)
+      status(result) mustBe ACCEPTED
+      contentAsString(result) mustBe ""
+
+      verifySubmissionReport(reference5, username, Failed, Seq(Error(UNKNOWN_ERROR, Seq("Unable to decrypt value"))))
     }
 
     "return 400 BAD_REQUEST for bad json" in {
-      val request = FakeRequest("POST", "/voa-bar/upload/confirmation")
+      val request = FakeRequest("POST", s"/voa-bar/upload/confirmation/$username")
         .withHeaders(
           "Content-Type" -> "application/json"
         )
         .withBody(Json.obj("bad" -> "json"))
 
-      val result = controller.onConfirmation(request)
+      val result = controller.onConfirmation(username)(request)
       status(result) mustBe BAD_REQUEST
       contentAsString(result) mustBe "Unable to parse request"
     }
