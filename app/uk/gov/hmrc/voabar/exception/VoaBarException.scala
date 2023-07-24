@@ -21,4 +21,4 @@ import uk.gov.hmrc.voabar.models.Error
 /**
  * @author Yuriy Tumakha
  */
-case class VoaBarException(error: Error) extends RuntimeException(s"${error.code}  ${error.values.mkString}")
+case class VoaBarException(error: Error) extends RuntimeException(s"${error.code}  ${error.values.mkString(", ")}")
