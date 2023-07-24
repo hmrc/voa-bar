@@ -1,7 +1,7 @@
-import sbt.Keys._
-import sbt._
+import sbt.Keys.*
+import sbt.*
 import scoverage.ScoverageKeys
-import uk.gov.hmrc._
+import uk.gov.hmrc.*
 import DefaultBuildSettings.{defaultSettings, integrationTestSettings, scalaSettings}
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
@@ -22,8 +22,8 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageHighlighting := true,
   )
   .settings(majorVersion := 1 )
-  .settings(scalaSettings: _*)
-  .settings(defaultSettings(): _*)
+  .settings(scalaSettings *)
+  .settings(defaultSettings() *)
   .settings(
     libraryDependencies ++= Dependencies.appDependencies,
     retrieveManaged := true,
@@ -34,8 +34,8 @@ lazy val microservice = Project(appName, file("."))
     Test / fork := true
   )
   .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
-  .settings(integrationTestSettings(): _*)
+  .settings(inConfig(IntegrationTest)(Defaults.itSettings) *)
+  .settings(integrationTestSettings() *)
   .settings(
-    IntegrationTest / fork  := true
+    IntegrationTest / fork := true
   )
