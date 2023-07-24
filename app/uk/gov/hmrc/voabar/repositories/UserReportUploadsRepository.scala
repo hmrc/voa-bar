@@ -68,9 +68,12 @@ class DefaultUserReportUploadsRepository @Inject() (
         case ex: Throwable => handleMongoError("Error saving user report upload entry", ex, logger)
       }
 
-  override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] =
+  override def findById(id: String): Future[Option[UserReportUpload]] =
     collection.withReadPreference(ReadPreference.primary())
       .find(byId(id)).headOption()
+
+  override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] =
+    findById(id)
       .map(Right(_))
       .recover {
         case ex: Throwable => handleMongoError(s"Error getting user report upload entry for $id", ex, logger)
@@ -80,6 +83,7 @@ class DefaultUserReportUploadsRepository @Inject() (
 
 @ImplementedBy(classOf[DefaultUserReportUploadsRepository])
 trait UserReportUploadsRepository {
+  def findById(id: String): Future[Option[UserReportUpload]]
   def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]]
   def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit]]
 }

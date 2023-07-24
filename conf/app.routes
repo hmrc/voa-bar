@@ -1,22 +1,24 @@
 # microservice specific routes
 
-POST        /login                      @uk.gov.hmrc.voabar.controllers.LoginController.login()
+POST        /login                          uk.gov.hmrc.voabar.controllers.LoginController.login()
 
-POST        /upload                     @uk.gov.hmrc.voabar.controllers.UploadController.upload()
+POST        /upload                         uk.gov.hmrc.voabar.controllers.UploadController.upload()
 
-GET         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByUser(filter: Option[String])
+POST        /upload/confirmation/:baLogin   uk.gov.hmrc.voabar.controllers.UpscanCallbackController.onConfirmation(baLogin: String)
 
-GET         /submissions/all            @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getAll()
+GET         /submissions                    uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByUser(filter: Option[String])
 
-PUT         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert: Boolean)
+GET         /submissions/all                uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getAll()
 
-GET         /submissions/:reference     @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByReference(reference: String)
-DELETE      /submissions/:reference     @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.deleteByReference(reference: String)
+PUT         /submissions                    uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert: Boolean)
 
-PUT         /submissions/user-info      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.saveUserInfo()
+GET         /submissions/:reference         uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByReference(reference: String)
+DELETE      /submissions/:reference         uk.gov.hmrc.voabar.controllers.SubmissionStatusController.deleteByReference(reference: String)
 
-GET         /user-report-upload/:id     @uk.gov.hmrc.voabar.controllers.UserReportUploadsController.getById(id)
+PUT         /submissions/user-info          uk.gov.hmrc.voabar.controllers.SubmissionStatusController.saveUserInfo()
 
-PUT         /user-report-upload         @uk.gov.hmrc.voabar.controllers.UserReportUploadsController.save()
+GET         /user-report-upload/:id         uk.gov.hmrc.voabar.controllers.UserReportUploadsController.getById(id)
 
-PUT         /validate-upload/:baLogin   @uk.gov.hmrc.voabar.controllers.ValidateController.validate(baLogin: String)
+PUT         /user-report-upload             uk.gov.hmrc.voabar.controllers.UserReportUploadsController.save()
+
+PUT         /validate-upload/:baLogin       uk.gov.hmrc.voabar.controllers.ValidateController.validate(baLogin: String)
