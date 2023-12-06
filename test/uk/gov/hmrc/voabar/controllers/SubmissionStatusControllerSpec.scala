@@ -18,8 +18,8 @@ package uk.gov.hmrc.voabar.controllers
 
 import java.time.Instant
 import java.util.UUID
-import akka.stream.Materializer
-import akka.stream.testkit.NoMaterializer
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.testkit.NoMaterializer
 import com.typesafe.config.ConfigFactory
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec

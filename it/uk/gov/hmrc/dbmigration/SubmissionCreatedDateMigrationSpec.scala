@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.dbmigration
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import org.mongodb.scala.Document
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.exists

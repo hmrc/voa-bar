@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import akka.stream.testkit.NoMaterializer
-import akka.stream.Materializer
+import org.apache.pekko.stream.testkit.NoMaterializer
+import org.apache.pekko.stream.Materializer
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
