@@ -151,13 +151,13 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                                    login: LoginDetails
                                    ): Future[Either[BarEmailError, Unit]] = {
     emailConnector.sendEmail(
-      reportStatus.baCode.getOrElse("Unknown BA"),
+      reportStatus.baCode,
       Purpose.CT, // Note: This will need to be dynamic when NDR processing is added to the service
       reportStatus.id,
       login.username,
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
-      reportStatus.createdAt.fold("")(_.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)),
+      reportStatus.createdAt.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME),
       reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(()))
       .recover{
@@ -204,7 +204,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarSubmissionValidationError(errors) =>
         statusRepository.saveOrUpdate(
           ReportStatus(
-            id = submissionId, createdAt = Some(Instant.now), baCode = Option(login.username),
+            id = submissionId, createdAt = Instant.now, baCode = login.username,
             reportErrors = errors, status = Some(Failed.value)
           ), upsert = true
         )

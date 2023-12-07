@@ -16,16 +16,15 @@
 
 package uk.gov.hmrc.voabar.services
 
+import org.w3c.dom.Document
+import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
+
 import java.io.ByteArrayInputStream
 import java.net.URL
-
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.sax.SAXResult
-import org.w3c.dom.Document
-import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
-
 import scala.util.{Failure, Success, Try}
 import scala.xml._
 import scala.xml.parsing.NoBindingFactoryAdapter

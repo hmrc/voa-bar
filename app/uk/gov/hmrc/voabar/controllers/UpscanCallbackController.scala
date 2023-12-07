@@ -81,7 +81,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
 
   private def saveSubmission(login: LoginDetails, reportStatus: ReportStatus): F[Unit] =
     for {
-      _ <- fromFuture(submissionStatusRepository.saveOrUpdate(reportStatus.copy(baCode = Some(login.username)), true))
+      _ <- fromFuture(submissionStatusRepository.saveOrUpdate(reportStatus, upsert = true))
     } yield webBarsService.newSubmission(reportStatus, login.username, login.password)
 
   private def saveReportStatus(
@@ -92,6 +92,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
                               ): F[Unit] = {
     val reportStatus = ReportStatus(
       uploadConfirmation.reference,
+      baCode = login.username,
       url = Some(uploadConfirmation.downloadUrl),
       checksum = Some(uploadConfirmation.uploadDetails.checksum),
       status = Some(status.value),
@@ -109,6 +110,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
                               ): F[Unit] = {
     val reportStatus = ReportStatus(
       reference,
+      baCode = login.username,
       status = Some(status.value),
       errors = errors
     )

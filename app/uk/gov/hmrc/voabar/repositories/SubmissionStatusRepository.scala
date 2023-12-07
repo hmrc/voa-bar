@@ -16,30 +16,27 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.{Instant, ZonedDateTime}
-import java.time.format.DateTimeFormatter
 import com.google.inject.ImplementedBy
-
-import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{JsValue, Json}
-import play.api.{Configuration, Logging}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
-import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
-
-import scala.concurrent.{ExecutionContext, Future}
 import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.{and, equal, exists, gt, or}
+import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
-import org.mongodb.scala.model.{FindOneAndReplaceOptions, _}
+import org.mongodb.scala.model._
+import play.api.libs.json.{JsValue, Json}
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, Pending, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
-import uk.gov.hmrc.voabar.util.PlayMongoUtil.{_id, byId, handleMongoError, handleMongoWarn, indexOptionsWithTTL}
+import uk.gov.hmrc.voabar.util.PlayMongoUtil._
+import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
+import java.time.Instant
 import java.time.temporal.ChronoUnit
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 
 object SubmissionStatusRepository {
@@ -56,7 +53,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collectionName = submissionsCollectionName,
     mongoComponent = mongo,
     domainFormat = ReportStatus.format,
-    replaceIndexes = true, // TODO: Remove after 1 January 2023
     indexes = Seq(
       IndexModel(Indexes.hashed("baCode"), IndexOptions().name("submissions_baCodeIdx")),
       IndexModel(Indexes.descending("createdAt"), indexOptionsWithTTL("submissionsTTL", submissionsCollectionName, config))
@@ -69,27 +65,18 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   val timeoutMinutes = 120
 
-  // TODO: Remove after 1 January 2023
-  private def normalize(reportStatus: ReportStatus) =
-    reportStatus.created
-      .fold(reportStatus)(created => reportStatus.copy(createdAt = Some(created.toInstant)))
-
-  def saveOrUpdate(reportStatusTmp: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] = {
-
-    // TODO: Remove after 1 January 2023
-    val reportStatus = normalize(reportStatusTmp)
-
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] =
     collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
       .toFutureOption()
       .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
       }
-  }
 
   def saveOrUpdate(userId: String, reference: String): Future[Either[BarError, Unit]] = {
     val modifierSeq = Seq(
       set("baCode", userId),
+      set("status", Pending.value),
       set("createdAt", Instant.now)
     )
 
@@ -97,19 +84,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   override def getByUser(baCode: String, filterStatus: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]] = {
-    // TODO: Remove isoDate after 1 January 2023 as all records in mongo must have the property 'createdAt'
-    val saveFor90Days = 90
-    val isoDate = ZonedDateTime.now().minusDays(saveFor90Days)
-      .withHour(3) //Set 3AM to prevent submissions disappear during day.
-      .withMinute(0)
-      .format(DateTimeFormatter.ISO_DATE_TIME)
-
     val filters = Seq(
-      equal("baCode", baCode),
-      or( // TODO: Remove `or` statement after 1 January 2023 as all records in mongo must have the property 'createdAt'
-        gt("created", isoDate),
-        exists("createdAt")
-      )
+      equal("baCode", baCode)
     ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
     val finder = and(filters: _*)
@@ -191,16 +167,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  private def checkAndUpdateSubmissionStatus(reportStatus: ReportStatus): Future[ReportStatus] = {
-
-    // TODO: Remove after 1 January 2023
-    val report = normalize(reportStatus)
-
+  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
     if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
     } else {
-      // TODO: After 1 January 2023 define createdAt: Instant, not Option[Instant]
-      if (report.createdAt.exists(_.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0)) {
+      if (report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0) {
         markSubmissionFailed(report)
       } else {
         Future.successful(report)

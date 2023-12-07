@@ -111,7 +111,7 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
     val submissionReport = await(submissionRepository.getByReference(submissionReference))
 
     submissionReport.value.status.value mustBe expectedStatus.value
-    submissionReport.value.baCode.value mustBe expectedBaCode
+    submissionReport.value.baCode mustBe expectedBaCode
     submissionReport.value.errors mustBe expectedErrors
   }
 

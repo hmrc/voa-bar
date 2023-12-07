@@ -231,7 +231,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
-    val reportStatus = ReportStatus("submissionId", filename = Some("filename.xml"), status = Some(Pending.value))
+    val reportStatus = ReportStatus("submissionId", baCode = "BA1010", filename = Some("filename.xml"), status = Some(Pending.value))
 
     when(repository.updateStatus(any[String], any[ReportStatusType]))
       .thenAnswer[InvocationOnMock](_ => Future.successful(Right(true)))
@@ -256,14 +256,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
   }
 
   def aValidationService(): ValidationService = {
-    val xmlParser = new XmlParser()
-
-    val domDocument = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
-    xmlParser.domToScala(domDocument).toOption.get
-
     val validationService = mock[ValidationService]
     when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Right(()))
-
     validationService
   }
 

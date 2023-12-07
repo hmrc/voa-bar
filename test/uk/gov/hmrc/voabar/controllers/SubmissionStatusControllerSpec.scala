@@ -40,13 +40,13 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
   implicit val materializer: Materializer = NoMaterializer
 
   val id = "id"
-  val date = Some(Instant.now)
+  val date = Instant.now
   val userId = "userId"
   val reportStatus = ReportStatus(
     id = id,
     createdAt = date,
     url = Some("url.com"),
-    baCode = Some(userId)
+    baCode = userId
   )
   val configuration = Configuration(ConfigFactory.load())
   val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
