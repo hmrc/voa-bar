@@ -29,7 +29,11 @@ object XmlTestParser {
     val xmlParser = new XmlParser()
 
     val docBuilder = xmlParser.documentBuilderFactory.newDocumentBuilder()
-    docBuilder.parse(new ReaderInputStream(new StringReader(xml), UTF_8))
+    docBuilder.parse(ReaderInputStream.builder()
+      .setReader(new StringReader(xml))
+      .setCharset(UTF_8)
+      .get()
+    )
 
 
   }

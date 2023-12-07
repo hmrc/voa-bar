@@ -20,16 +20,16 @@ import java.io.{FilterInputStream, InputStream}
 import java.math.BigInteger
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.GregorianCalendar
-
 import ebars.xml.CtaxReasonForReportCodeContentType._
 import ebars.xml.{BAreportBodyStructure, BAreports}
-import io.inbot.utils.ReplacingInputStream
 import jakarta.xml.bind.JAXBElement
+
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import javax.xml.namespace.QName
 import models.EbarsBAreports._
 import models.Purpose
 import org.apache.commons.lang3.StringUtils
+import org.apache.poi.util.ReplacingInputStream
 
 import scala.util.{Success, Try}
 
