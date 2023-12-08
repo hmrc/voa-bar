@@ -54,7 +54,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
     "add error" in {
       val submissionId = "111"
-      await(repo.collection.insertOne(ReportStatus(submissionId)).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
 
@@ -67,7 +67,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "add error without description" in {
-      await(repo.collection.insertOne(ReportStatus("ggggg")).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , List())
 
@@ -77,7 +77,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "update status" in {
-      await(repo.collection.insertOne(ReportStatus("222")).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus("222", baCode = "BA1010")).toFutureOption())
 
       val dbResult = await(repo.updateStatus("222", Submitted))
 

@@ -44,7 +44,6 @@ import java.net.URL
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 import scala.util.Using
 
 /**
