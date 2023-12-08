@@ -9,7 +9,6 @@ object Dependencies {
   private val jacksonModuleScalaVersion = "2.16.0"
   private val guiceUtilsVersion = "6.0.0"
   private val catsEffectVersion = "3.5.2"
-  private val saxonHeVersion = "12.4"
   private val xercesVersion = "2.12.2"
   private val apachePOIVersion = "5.2.5"
 
@@ -31,7 +30,6 @@ object Dependencies {
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % jacksonModuleScalaVersion,
     "net.codingwell"               %% "scala-guice"               % guiceUtilsVersion,
     "org.typelevel"                %% "cats-effect"               % catsEffectVersion,
-    "net.sf.saxon"                 % "Saxon-HE"                   % saxonHeVersion,
     "xerces"                       % "xercesImpl"                 % xercesVersion,
     "org.apache.poi"               % "poi"                        % apachePOIVersion
   )

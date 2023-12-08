@@ -22,12 +22,8 @@ import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
 import java.io.ByteArrayInputStream
 import java.net.URL
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.sax.SAXResult
 import scala.util.{Failure, Success, Try}
 import scala.xml._
-import scala.xml.parsing.NoBindingFactoryAdapter
 
 class XmlParser {
 
@@ -74,33 +70,6 @@ class XmlParser {
     val batchHeader = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
     (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}
-  }
-
-  /*
-
-https://martin.elwin.com/blog/2008/05/scala-xml-and-java-dom/
-
-  Using Char array
-//dom is the DOM Element
-val charWriter = new CharArrayWriter()
-TransformerFactory.newInstance.newTransformer.transform(new DOMSource(dom), new StreamResult(charWriter))
-val xml = XML.load(new CharArrayReader(charWriter.toCharArray))
-
-  TODO - test properly with namespace, scala XML libraries handle namespace incorectly!!!
-   */
-  def domToScala(document: Document): Either[BarError, Node] = {
-    Try {
-      val saxHandler = new NoBindingFactoryAdapter()
-      TransformerFactory
-        .newInstance("net.sf.saxon.TransformerFactoryImpl", null)
-        .newTransformer
-        .transform(new DOMSource(document), new SAXResult(saxHandler))
-
-      saxHandler.rootElem
-    } match {
-      case Success(scalaNode) => Right(scalaNode)
-      case Failure(exception) => Left(BarXmlError(exception.getMessage))
-    }
   }
 
 }

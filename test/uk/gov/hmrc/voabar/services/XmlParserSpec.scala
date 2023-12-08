@@ -37,10 +37,6 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
   val invalidWithXXE2 = getClass.getResource("/xml/WithXXE.xml")
 
   val batchSubmission: Node = xmlParser.parse(xmlBatchSubmissionAsString)
-    .map { document =>
-      logger.info(document.getDocumentElement.getTextContent)
-      document
-    }
     .flatMap(document => domToScalaXMLNode(document))
     .left.map(e => logger.error(s"XmlParser error: $e"))
     .getOrElse(fail("Convert DOM Document to Scala XML Node failed"))
