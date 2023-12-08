@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.{Instant, ZonedDateTime}
+import java.time.Instant
 import com.google.inject.ImplementedBy
 
 import javax.inject.{Inject, Singleton}
@@ -34,9 +34,7 @@ import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptio
 final case class UserReportUpload(_id: String,
                                   userId: String,
                                   userPassword: String,
-                                  createdAt: Instant = Instant.now,
-                                  // TODO: After 1 April 2023 remove property 'lastUpdated' as only 'createdAt' is used
-                                  lastUpdated: Option[ZonedDateTime] = None)
+                                  createdAt: Instant = Instant.now)
 
 object UserReportUpload {
 
@@ -55,7 +53,6 @@ class DefaultUserReportUploadsRepository @Inject() (
     collectionName = UserReportUpload.collectionName,
     mongoComponent = mongo,
     domainFormat = UserReportUpload.format,
-    replaceIndexes = true, // TODO: Remove after deployment to production
     indexes = Seq(
       IndexModel(Indexes.descending("createdAt"), indexOptionsWithTTL(UserReportUpload.collectionName + "TTL", UserReportUpload.collectionName, config))
     )

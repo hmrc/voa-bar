@@ -22,20 +22,19 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageHighlighting := true,
   )
   .settings(majorVersion := 1 )
-  .settings(scalaSettings *)
-  .settings(defaultSettings() *)
+  .settings(scalaSettings)
+  .settings(defaultSettings())
   .settings(
     libraryDependencies ++= Dependencies.appDependencies,
     retrieveManaged := true,
     PlayKeys.playDefaultPort := 8447,
-    scalaVersion := "2.13.11",
+    scalaVersion := "2.13.12",
     DefaultBuildSettings.targetJvm := "jvm-11",
     scalacOptions += "-Wconf:src=routes/.*:s",
     Test / fork := true
   )
   .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings) *)
-  .settings(integrationTestSettings() *)
+  .settings(integrationTestSettings())
   .settings(
     IntegrationTest / fork := true
   )

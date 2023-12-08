@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.voabar.util
 
-import java.io.ByteArrayInputStream
+import org.apache.poi.util.ReplacingInputStream
 
-import io.inbot.utils.ReplacingInputStream
+import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 import org.scalatestplus.play.PlaySpec
 

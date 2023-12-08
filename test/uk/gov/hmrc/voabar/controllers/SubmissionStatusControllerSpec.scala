@@ -18,8 +18,8 @@ package uk.gov.hmrc.voabar.controllers
 
 import java.time.Instant
 import java.util.UUID
-import akka.stream.Materializer
-import akka.stream.testkit.NoMaterializer
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.testkit.NoMaterializer
 import com.typesafe.config.ConfigFactory
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -40,13 +40,13 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
   implicit val materializer: Materializer = NoMaterializer
 
   val id = "id"
-  val date = Some(Instant.now)
+  val date = Instant.now
   val userId = "userId"
   val reportStatus = ReportStatus(
     id = id,
     createdAt = date,
     url = Some("url.com"),
-    baCode = Some(userId)
+    baCode = userId
   )
   val configuration = Configuration(ConfigFactory.load())
   val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto

@@ -82,9 +82,9 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
     "properly handle correct XML " in {
       await(submissionRepository.collection.deleteOne(byId("1234")).toFutureOption())
 
-      val reportStatus = ReportStatus("1234", baCode = Option("BA5090"))
+      val reportStatus = ReportStatus("1234", baCode = "BA5090")
 
-      await(submissionRepository.saveOrUpdate(reportStatus, true))
+      await(submissionRepository.saveOrUpdate(reportStatus, upsert = true))
 
       controller.upload()(fakeRequestWithXML)
 

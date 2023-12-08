@@ -42,6 +42,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val legacyCr03ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
+    baCode = "BA1010",
     report = Some(legacyCr03Report)
   )
 
@@ -61,6 +62,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val newCr03ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
+    baCode = "BA1010",
     report = Some(newCr03Report)
   )
 
@@ -80,6 +82,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
   val cr01ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
+    baCode = "BA1010",
     report = Some(cr01Report)
   )
 

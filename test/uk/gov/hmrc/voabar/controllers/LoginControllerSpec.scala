@@ -25,7 +25,6 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
-import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,12 +46,11 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val mockAudit = mock[VoaBarAuditConnector]
-  val migrationTask = mock[SubmissionCreatedDateMigration]
 
   val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
-  private def controller = new LoginController(mockLegacyConnector, mockAudit, migrationTask, stubControllerComponents())
+  private def controller = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents())
 
   "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))

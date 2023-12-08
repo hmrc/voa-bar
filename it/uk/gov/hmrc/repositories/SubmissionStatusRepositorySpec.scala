@@ -54,7 +54,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
     "add error" in {
       val submissionId = "111"
-      await(repo.collection.insertOne(ReportStatus(submissionId)).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
 
@@ -67,7 +67,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "add error without description" in {
-      await(repo.collection.insertOne(ReportStatus("ggggg")).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER , List())
 
@@ -77,7 +77,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "update status" in {
-      await(repo.collection.insertOne(ReportStatus("222")).toFutureOption())
+      await(repo.collection.insertOne(ReportStatus("222", baCode = "BA1010")).toFutureOption())
 
       val dbResult = await(repo.updateStatus("222", Submitted))
 
@@ -95,7 +95,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, baCode = Option("BA2220"), status = Some(Failed.value), createdAt = Some(Instant.now.normalize))
+      val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Some(Failed.value), createdAt = Instant.now.normalize)
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
 
@@ -110,7 +110,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     "Change status to failed for submission after timeout" in {
       val minutesToSubtract = 121
 
-      val report = aReport().copy(createdAt = Some(Instant.now.minus(minutesToSubtract, ChronoUnit.MINUTES)))
+      val report = aReport().copy(createdAt = Instant.now.minus(minutesToSubtract, ChronoUnit.MINUTES))
 
       await(repo.saveOrUpdate(report, upsert = true))
 
@@ -132,7 +132,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
       val daysToSubtract = 21
 
       forAll (finalStates) { case (finalState: String, errors: Seq[Error]) =>
-        val report = aReport().copy(createdAt = Some(Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize), status = Some(finalState), errors = errors)
+        val report = aReport().copy(createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize, status = Some(finalState), errors = errors)
 
         await(repo.collection.insertOne(report).toFutureOption())
 
@@ -153,14 +153,14 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
         url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
-        baCode = Option("BA2020"),
+        baCode = "BA2020",
         status = Option(Submitted.value),
         filename = Option("filename.xml"),
         totalReports = Some(10)
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
       val submissionFromDb = await(repo.getByReference(submissionToStore.id)).value
-      submissionFromDb.baCode.value mustBe submissionToStore.baCode.get
+      submissionFromDb.baCode mustBe submissionToStore.baCode
     }
 
     "Not return submission older 90 days" in {
@@ -174,14 +174,14 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
         url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
-        baCode = Option("BA2020"),
+        baCode = "BA2020",
         status = Option(Submitted.value),
         filename = Option("filename.xml"),
         totalReports = Some(10),
-        createdAt = Some(Instant.now.normalize)
+        createdAt = Instant.now.normalize
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
-      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, createdAt = Some(Instant.now.minus(daysToSubtract, ChronoUnit.DAYS)))
+      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS))
         , upsert = true))
 
       val reports = await(repo.collection.countDocuments().toFutureOption())
@@ -199,7 +199,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
   }
 
   def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID().toString, baCode = Option("BA1010"), status = Some(Pending.value))
+    ReportStatus(UUID.randomUUID().toString, baCode = "BA1010", status = Some(Pending.value))
 
   override protected def afterAll(): Unit = {
     await(mongoComponent.database.drop().toFutureOption())

@@ -20,15 +20,14 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.{Instant, ZoneOffset}
 
 class JsonDeserializationTest extends PlaySpec {
 
   val createdAt = 1669496113080L
 
-  val reportDataWithoutReportErrors =
+  private val reportDataWithoutReportErrors =
     """{ "_id" : "82ad71a8-3dbc-4d05-a035-536f4a9d89db",
-      | "created" : "2020-07-23T05:01:40.064+01:00[Europe/London]",
       | "createdAt" : {"$date" : {"$numberLong" : "1669496113080"}},
       | "totalReports" : 1,
       | "report" : {
@@ -56,9 +55,9 @@ class JsonDeserializationTest extends PlaySpec {
 
       report.id must be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
 
-      report.createdAt mustBe Some(Instant ofEpochMilli createdAt)
+      report.createdAt mustBe Instant.ofEpochMilli(createdAt)
 
-      val createdAtZoned = report.createdAt.fold(ZonedDateTime.now)(_.atZone(ZoneOffset.UTC))
+      val createdAtZoned = report.createdAt.atZone(ZoneOffset.UTC)
       createdAtZoned.format(ISO_DATE_TIME) mustBe "2022-11-26T20:55:13.08Z"
       createdAtZoned.toString mustBe "2022-11-26T20:55:13.080Z"
 

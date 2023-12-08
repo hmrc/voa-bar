@@ -28,7 +28,6 @@ import scala.xml.XML
 class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   val validator = new XmlValidator
-  val parser = new XmlParser
   val reportBuilder = new MockBAReportBuilder
   val xmlParser = new XmlParser()
 

@@ -44,7 +44,6 @@ import java.net.URL
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 import scala.util.Using
 
 /**
@@ -111,7 +110,7 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
     val submissionReport = await(submissionRepository.getByReference(submissionReference))
 
     submissionReport.value.status.value mustBe expectedStatus.value
-    submissionReport.value.baCode.value mustBe expectedBaCode
+    submissionReport.value.baCode mustBe expectedBaCode
     submissionReport.value.errors mustBe expectedErrors
   }
 

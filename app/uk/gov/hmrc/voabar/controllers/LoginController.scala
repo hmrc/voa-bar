@@ -25,14 +25,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
-import uk.gov.hmrc.voabar.dbmigration.SubmissionCreatedDateMigration
 
 import scala.util.{Failure, Success}
 
 @Singleton
 class LoginController @Inject()(val legacyConnector: LegacyConnector,
                                 audit: VoaBarAuditConnector,
-                                submissionCreatedDateMigration: SubmissionCreatedDateMigration, // TODO: Remove after 1 April 2023
                                 controllerComponents: ControllerComponents)
                                (implicit ec: ExecutionContext)
   extends BackendController(controllerComponents) with Logging {

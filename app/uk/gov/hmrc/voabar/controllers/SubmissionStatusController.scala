@@ -61,7 +61,7 @@ class SubmissionStatusController @Inject() (
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusesByUser(userId, filter))
-    } yield (Ok(Json.toJson(reportStatuses))))
+    } yield Ok(Json.toJson(reportStatuses)))
         .valueOr(_ => InternalServerError)
   }
 
@@ -69,7 +69,7 @@ class SubmissionStatusController @Inject() (
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getAllReportStatuses())
-    } yield (Ok(Json.toJson(reportStatuses))))
+    } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
@@ -84,7 +84,7 @@ class SubmissionStatusController @Inject() (
     (for {
       _ <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusByReference(reference))
-    } yield (Ok(Json.toJson(reportStatuses))))
+    } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
@@ -121,16 +121,16 @@ class SubmissionStatusController @Inject() (
         encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
         password <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
         reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-        _ <- EitherT(saveSubmission(reportStatus.copy(baCode = Some(baCode)), upsert))
+        _ <- EitherT(saveSubmission(reportStatus.copy(baCode = baCode), upsert))
         _ = webBarsService.newSubmission(reportStatus, baCode, password)
     } yield NoContent)
-    .valueOr(ex => InternalServerError)
+    .valueOr(_ => InternalServerError)
   }
 
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.id))
+      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode, reportStatus.id))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }
@@ -140,13 +140,16 @@ class SubmissionStatusController @Inject() (
       crypto.decrypt(Crypted(encryptedPassword))
     } match {
       case Success(password) => Right(password.value)
-      case Failure(exception) => Left(Unauthorized("Unable to decrypt password"))
+      case Failure(exception) =>
+        logger.warn("Unable to decrypt password", exception)
+        Left(Unauthorized("Unable to decrypt password"))
     }
   }
 
   private def deleteByReferenceQuery(reference: String, user: String): Future[Either[Result, JsValue]] = {
     submissionStatusRepository.deleteByReference(reference, user).map { deleteResult =>
       deleteResult.left.map { error =>
+        logger.warn(s"deleteByReference failed. $error")
         InternalServerError
       }
     }
@@ -156,7 +159,8 @@ class SubmissionStatusController @Inject() (
     (for {
       baCode <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(deleteByReferenceQuery(reference, baCode))
-    } yield (Ok(Json.toJson(reportStatuses))))
+    } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(x => x)
   }
+
 }

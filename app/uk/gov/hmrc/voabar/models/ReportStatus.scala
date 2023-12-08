@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
-import java.time.{Instant, ZonedDateTime}
+import java.time.Instant
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats.mongoEntity
 
@@ -41,16 +41,13 @@ case object Done extends ReportStatusType
 
 final case class ReportStatus(
                                id: String,
-                               // TODO: After 1 January 2023 define createdAt: Instant = Instant.now as all records in mongo must have property 'createdAt'
-                               createdAt: Option[Instant] = Some(Instant.now),
-                               // TODO: After 1 April 2023 remove property 'created' as only 'createdAt' is used
-                               created: Option[ZonedDateTime] = None,
+                               createdAt: Instant = Instant.now,
                                url: Option[String] = None,
-                               checksum: Option[String] = None,          //TODO -  Do we nee this?
+                               checksum: Option[String] = None,
                                errors: Seq[Error] = Seq(),
                                reportErrors: Seq[ReportError] = Seq(),
-                               baCode: Option[String] = None,            //TODO - Make mandatory. Submission without BA can't exist.
-                               status: Option[String] = Some(Pending.value), //TODO - Make this mandatory and for all new put default values in deserialisation
+                               baCode: String,
+                               status: Option[String] = Some(Pending.value), // TODO status: String = Pending.value after release VOA-3532
                                filename: Option[String] = None,
                                totalReports: Option[Int] = None,
                                report: Option[JsObject] = None

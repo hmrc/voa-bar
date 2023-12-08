@@ -36,7 +36,6 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
   val BA_LOGIN = LoginDetails("BA5090", "BA5090")
 
 
-  val xmlParser = new XmlParser
   val xmlValidator = new XmlValidator
   val reportBuilder = new MockBAReportBuilder
   val ebarsValidator = new EbarsValidator()

@@ -21,12 +21,13 @@ import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
 import services.EbarsValidator
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
+import uk.gov.hmrc.voabar.util.DataMonitor
 
 class VoaBARModule  extends ScalaModule {
 
   override def configure() = {
     bind[EbarsValidator].toInstance(new EbarsValidator)
-
+    bind[DataMonitor].asEagerSingleton()
   }
 
   @Provides

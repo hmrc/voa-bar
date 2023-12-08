@@ -16,15 +16,19 @@
 
 package uk.gov.hmrc.voabar.services
 
+import com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.BarXmlError
+import play.api.Logging
+import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
 
 import java.nio.charset.StandardCharsets.UTF_8
+import scala.util.{Failure, Success, Try}
 import scala.xml._
+import scala.xml.parsing.NoBindingFactoryAdapter
 
-class XmlParserSpec extends PlaySpec with EitherValues {
+class XmlParserSpec extends PlaySpec with EitherValues with Logging {
 
   val xmlParser = new XmlParser()
 
@@ -32,7 +36,27 @@ class XmlParserSpec extends PlaySpec with EitherValues {
   val validWithXXE = getClass.getResource("/xml/CTValidWithXXE.xml")
   val invalidWithXXE2 = getClass.getResource("/xml/WithXXE.xml")
 
-  val batchSubmission: Node = xmlParser.domToScala(xmlParser.parse(xmlBatchSubmissionAsString).toOption.get).toOption.get
+  val batchSubmission: Node = xmlParser.parse(xmlBatchSubmissionAsString)
+    .flatMap(document => domToScalaXMLNode(document))
+    .left.map(e => logger.error(s"XmlParser error: $e"))
+    .getOrElse(fail("Convert DOM Document to Scala XML Node failed"))
+
+  def domToScalaXMLNode(document: org.w3c.dom.Document): Either[BarError, Node] = {
+    Try {
+      val dom2sax = new DOM2SAX(document)
+      val saxHandler = new NoBindingFactoryAdapter() {
+        override def endDocument(): Unit = {}
+      }
+      dom2sax.setContentHandler(saxHandler)
+      dom2sax.parse()
+      saxHandler.rootElem
+    } match {
+      case Success(scalaNode) => Right(scalaNode)
+      case Failure(exception) =>
+        logger.error("DOM2SAX failed", exception)
+        Left(BarXmlError(exception.getMessage))
+    }
+  }
 
   "Xml parser " must {
     "successfuly parse xml to DOM" in {
@@ -177,7 +201,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
 
   "A BA batch submission" must  {
 
-    val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
+    val report: Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
     val result = xmlParser.oneReportPerBatch(report)
 
     "be parsed into multiple smaller batches" in {
