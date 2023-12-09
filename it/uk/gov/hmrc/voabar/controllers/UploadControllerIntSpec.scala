@@ -28,7 +28,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
+import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, UpscanConnector}
 import org.mockito.invocation.InvocationOnMock
 import play.api.http.Status.OK
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
@@ -44,15 +44,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with OptionValues
   with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite  with MockitoSugar {
 
-  val legacyConnector = mock[LegacyConnector]
+  val voaEbarsConnector = mock[VoaEbarsConnector]
 
-  when(legacyConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
+  when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
     .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
 
   override def fakeApplication() = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
     .bindings(
-      bind[LegacyConnector].to(legacyConnector),
+      bind[VoaEbarsConnector].to(voaEbarsConnector),
       bind[UpscanConnector].to[UploadControllerIntSpecUpscanConnector]
     )
     .build()

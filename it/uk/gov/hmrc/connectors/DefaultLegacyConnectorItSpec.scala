@@ -19,8 +19,9 @@ package uk.gov.hmrc.connectors
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import ebars.xml.BAreports
-
 import jakarta.xml.bind.JAXBContext
+import org.apache.pekko.stream.Materializer
+
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -28,42 +29,45 @@ import play.api.Configuration
 import play.api.test.Injecting
 import services.EbarsValidator
 import uk.gov.hmrc.WiremockHelper
-import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.voabar.util.Utils
-import uk.gov.hmrc.voabar.connectors.DefaultLegacyConnector
+import uk.gov.hmrc.voabar.connectors.DefaultVoaEbarsConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
+import uk.gov.hmrc.voabar.services.EbarsClientV2
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.language.postfixOps
 
-class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
+class DefaultVoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 
-  def legacyConnector(port: Int) = {
+  def voaEbarsConnector(port: Int) = {
 
     val config = inject[Configuration]
 
-    val servicesConfig = new ServicesConfig(Configuration("microservice.services.autobars-stubs.port" -> port).withFallback(config))
+    val servicesConfig = new ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
-    new DefaultLegacyConnector(inject[HttpClient], servicesConfig, inject[Utils], inject[ApplicationCrypto])
+    implicit val mat: Materializer = inject[Materializer]
 
+    val ebarsClientV2 = new EbarsClientV2(servicesConfig, config)
+    new DefaultVoaEbarsConnector(servicesConfig, config, ebarsClientV2)
   }
+
   implicit def ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   val ebarsValidator = new EbarsValidator()
 
   val timeout = 1000 milliseconds
 
-  "LegacyConnector" must {
+  val uploadXmlPath = "/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
+
+  "VoaEbarsConnector" must {
     "send all request as UTF-8 with encoding in mime type" in {
 
       withWiremockServer { wireMockServer: WireMockServer =>
         import com.github.tomakehurst.wiremock.client.WireMock._
         wireMockServer.stubFor(
-          post(urlEqualTo("/autobars-stubs/v2/submit"))
+          post(urlEqualTo(uploadXmlPath))
             .willReturn(
               aResponse().withStatus(200)
             )
@@ -82,12 +86,12 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with Gui
           1
         )
 
-        val result = legacyConnector(port).sendBAReport(baReportReques)
+        val result = voaEbarsConnector(port).sendBAReport(baReportReques)
 
         val httpResult = Await.result(result, timeout)
         httpResult mustBe 200
 
-        wireMockServer.verify(postRequestedFor(urlEqualTo("/autobars-stubs/v2/submit"))
+        wireMockServer.verify(postRequestedFor(urlEqualTo(uploadXmlPath))
                 .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8")))
 
       }
@@ -95,14 +99,11 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with Gui
     }
   }
 
-
   def aBaReport: BAreports = {
     val ctx = JAXBContext.newInstance("ebars.xml")
     val unmarshaller = ctx.createUnmarshaller()
     val streamSource = new StreamSource("test/resources/xml/CTValid2.xml")
     unmarshaller.unmarshal( streamSource , classOf[BAreports]).getValue
   }
-
-
 
 }

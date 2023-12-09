@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.controllers
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
-import uk.gov.hmrc.voabar.connectors.{LegacyConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, VoaBarAuditConnector}
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
@@ -38,11 +38,11 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> "1234").withJsonBody(json)
   }
 
-  val mockLegacyConnector = mock[LegacyConnector]
-  when(mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(OK))
+  val mockVoaEbarsConnector = mock[VoaEbarsConnector]
+  when(mockVoaEbarsConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(OK))
 
-  val mockLegacyConnectorFailed = mock[LegacyConnector]
-  when (mockLegacyConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
+  val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
+  when (mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val mockAudit = mock[VoaBarAuditConnector]
@@ -50,7 +50,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
   val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
-  private def controller = new LoginController(mockLegacyConnector, mockAudit, stubControllerComponents())
+  private def controller = new LoginController(mockVoaEbarsConnector, mockAudit, stubControllerComponents())
 
   "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))
