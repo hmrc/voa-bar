@@ -34,7 +34,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.connectors.{DefaultVoaEbarsConnector, VoaBarAuditConnector, VoaEbarsConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.services.EbarsClientV2
+import uk.gov.hmrc.voabar.services.{EbarsApiError, EbarsClientV2}
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.voabar.models.LoginDetails
 
@@ -162,6 +162,11 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     "handle 401 Unauthorised response on login" in {
       testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(new UnauthorizedException("Invalid credentials")),
         UNAUTHORIZED, "unauthorized")
+    }
+
+    "handle 500 response on login" in {
+      testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "Could not login")),
+        INTERNAL_SERVER_ERROR, "eBars server error")
     }
   }
 

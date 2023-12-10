@@ -49,22 +49,20 @@ class LoginController @Inject()(val voaEbarsConnector: VoaEbarsConnector,
 
   def login(): Action[AnyContent] = Action.async { implicit request =>
     verifyLogin(request.body.asJson) match {
-      case Right(loginDetails) => {
+      case Right(loginDetails) =>
         val result = voaEbarsConnector.validate(loginDetails)
         result map {
-          case Success(s) => {
+          case Success(_) =>
             audit.userLogin(loginDetails.username)
             Ok
-          }
           case Failure(ex) =>
             logger.warn("Validating login fails with message " + ex.getMessage)
             BadRequest("Validating login fails with message " + ex.getMessage)
         }
-      }
-      case Left(error) => {
+      case Left(error) =>
         logger.warn(error)
         Future.successful(BadRequest(error))
-      }
     }
   }
+
 }

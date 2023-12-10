@@ -114,4 +114,4 @@ class EbarsClientV2 @Inject()(
 
 }
 
-case class EbarsApiError(status: Int, message: String) extends RuntimeException(message)
+case class EbarsApiError(status: Int, message: String) extends RuntimeException(s"$status. $message")
