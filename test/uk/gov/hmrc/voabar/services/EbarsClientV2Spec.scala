@@ -54,6 +54,5 @@ class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwa
       }
       thrown.getMessage shouldBe "Connection refused: localhost/127.0.0.1:9999"
     }
-
   }
 }
