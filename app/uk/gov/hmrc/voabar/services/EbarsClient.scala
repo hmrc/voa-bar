@@ -33,6 +33,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import scala.util.Try
 
+// TODO: use uk.gov.hmrc.http.HttpClient with WSProxy. Move login() to EbarsClientV2
 class EbarsClient(username: String, password: String, servicesConfig: ServicesConfig, configuration: Configuration)
   extends AutoCloseable with Logging {
 
@@ -90,10 +91,16 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
 
       response.getStatusLine.getStatusCode match {
         case SC_UNAUTHORIZED | SC_FORBIDDEN => throw new UnauthorizedException("Invalid credentials")
-        case SC_OK if errors.nonEmpty => throw LoginError(SC_OK, errors.toString)
-        case SC_OK if isSessionExpired(html) => throw LoginError(SC_OK, "Session expired")
+        case SC_OK if errors.nonEmpty =>
+          logger.warn(s"Login errors: $errors\n$html")
+          throw EbarsApiError(SC_OK, errors.toString)
+        case SC_OK if isSessionExpired(html) =>
+          logger.warn(s"Session expired\n$html")
+          throw EbarsApiError(SC_OK, "Session expired")
         case SC_OK if errors.isEmpty => SC_OK
-        case status => throw LoginError(status, "Could not login")
+        case status =>
+          logger.warn(s"Couldn't login. status: $status\n$html")
+          throw EbarsApiError(status, "Could not login")
       }
     })
   }
@@ -102,16 +109,14 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
 
   private def extractErrors(htmlContent: String) = {
     val source = new Source(htmlContent)
-    val errors = source.getAllElements("name", "errorMsg", true).asScala.toList.map(t => models.Error("legacy-ebars-0002", t.getAttributeValue("value")))
+    val errors = source.getAllElements("name", "errorMsg", true).asScala.toList.map(t => models.Error("voa-ebars-0002", t.getAttributeValue("value")))
 
     val errors2 = source.getAllElements().asScala.filter { e =>
       e.getAttributeValue("style") == "font-family: 'MS Reference Sans Serif', 'Verdana Ref', sans-serif;font-size: 12px;color:red;"
-    }.map(t => models.Error("legacy-ebars-0003", t.getTextExtractor.toString)).toList
+    }.map(t => models.Error("voa-ebars-0003", t.getTextExtractor.toString)).toList
 
     errors ++ errors2
   }
 
   override def close(): Unit = httpClient.close()
 }
-
-case class LoginError(status: Int, message: String) extends RuntimeException(message)

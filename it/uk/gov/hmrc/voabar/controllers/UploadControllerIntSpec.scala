@@ -28,7 +28,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, UpscanConnector}
+import uk.gov.hmrc.voabar.connectors.{UpscanConnector, VoaEbarsConnector}
 import org.mockito.invocation.InvocationOnMock
 import play.api.http.Status.OK
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
@@ -38,6 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -88,7 +89,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       controller.upload()(fakeRequestWithXML)
 
-      Thread.sleep(1500)
+      SECONDS.sleep(2)
 
       val report = await(submissionRepository.getByReference("1234"))
 

@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.models.EbarsRequests._
 import uk.gov.hmrc.voabar.models.LoginDetails
-import uk.gov.hmrc.voabar.services.{EbarsClient, EbarsClientV2, LoginError, SubmitError}
+import uk.gov.hmrc.voabar.services.{EbarsClient, EbarsClientV2, EbarsApiError}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +40,8 @@ import scala.util.{Failure, Success, Try, Using}
 class DefaultVoaEbarsConnector @Inject()(
                                           servicesConfig: ServicesConfig,
                                           configuration: Configuration,
-                                          ebarsClientV2: EbarsClientV2
+                                          ebarsClientV2: EbarsClientV2,
+                                          audit: VoaBarAuditConnector
                                         ) extends VoaEbarsConnector with Logging {
 
   val ebarsValidator: EbarsValidator = new EbarsValidator
@@ -55,7 +56,7 @@ class DefaultVoaEbarsConnector @Inject()(
             ex match {
               case _: UnauthorizedException =>
                 logger.debug(s"Login failed. username: ${loginDetails.username}")
-              case e: LoginError =>
+              case e: EbarsApiError =>
                 logger.warn(s"Login failed. username: ${loginDetails.username}, status: ${e.status}, error: ${e.message}")
               case e =>
                 logger.warn(s"Login failed. username: ${loginDetails.username}, other problem : ${e.getMessage}", e)
@@ -81,7 +82,7 @@ class DefaultVoaEbarsConnector @Inject()(
   }
 
   private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)
-                     (implicit ec: ExecutionContext): Future[Int] = {
+                     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
     ebarsClientV2.uploadXMl(baReportRequest.username, baReportRequest.password, xml, baReportRequest.attempt).flatMap {
       case Success(_) =>
         val billingAuthority = reports.getBAreportHeader.getBillingAuthority
@@ -94,11 +95,12 @@ class DefaultVoaEbarsConnector @Inject()(
 
         val fileName = s"$billingAuthority-$transactionId-$reportNumber.xml"
 
-        //auditJob(baReportRequest.uuid, billingAuthority, transactionId, reportNumber, xml, fileName)
+        audit.sendReport(baReportRequest.username, baReportRequest.uuid, billingAuthority, transactionId, reportNumber, xml, fileName)
 
         Future.successful(OK)
-      case Failure(e: SubmitError) =>
+      case Failure(e: EbarsApiError) =>
         e.status match {
+          case OK => Future.failed(new RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
           case SERVICE_UNAVAILABLE => Future.failed(new RuntimeException("eBars UNAVAILABLE"))
           case INTERNAL_SERVER_ERROR => Future.failed(new RuntimeException("eBars INTERNAL_SERVER_ERROR"))
           case status => Future.failed(new RuntimeException(s"Unspecified eBars error, status: $status"))
@@ -108,11 +110,6 @@ class DefaultVoaEbarsConnector @Inject()(
         Future.failed(e)
     }
   }
-
-//  private def auditJob(uuid: String, billingAuthority: String, transactionId: String, reportNumber: String, xml: String, fileName: String)
-//                      (implicit hc: HeaderCarrier): Future[AuditResult] = {
-//
-//  }
 
 }
 

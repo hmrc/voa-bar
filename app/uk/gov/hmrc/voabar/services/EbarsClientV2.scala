@@ -34,6 +34,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
 
+// TODO: use uk.gov.hmrc.http.HttpClient with WSProxy
 @Singleton
 class EbarsClientV2 @Inject()(
                                      servicesConfig: ServicesConfig,
@@ -83,7 +84,9 @@ class EbarsClientV2 @Inject()(
     response.status match {
       case Status.OK => parseOkResponse(response, attempt)
       case Status.UNAUTHORIZED => Failure(new UnauthorizedException("UNAUTHORIZED"))
-      case v => Failure(SubmitError(v, s"${response.statusText}. attempt: $attempt"))
+      case status =>
+        logger.warn(s"Couldn't send BA Reports. status: $status\n${response.body}")
+        Failure(EbarsApiError(status, s"${response.statusText}. attempt: $attempt"))
     }
   }
 
@@ -92,18 +95,23 @@ class EbarsClientV2 @Inject()(
     if (body.contains("401 Unauthorized")) {
       Failure(new UnauthorizedException("UNAUTHORIZED"))
     } else {
-      logger.debug(s"eBars response body:\n$body")
-      val xmlDocument = XML.loadString(body)
-      val status = (xmlDocument \ "result").text
-      status match {
-        case "success" => Success(OK)
-        case "error" =>
-          val errorDetail = (xmlDocument \ "message").text
-          Failure(SubmitError(OK, s"$errorDetail. attempt: $attempt"))
+      Try {
+        val responseXML = XML.loadString(body)
+        val status = (responseXML \ "result").text
+        status match {
+          case "success" => Success(OK)
+          case "error" =>
+            val errorDetail = (responseXML \ "message").text
+            logger.warn(s"Couldn't send BA Reports. error: $errorDetail")
+            Failure(EbarsApiError(OK, s"$errorDetail. attempt: $attempt"))
+        }
+      } getOrElse {
+        logger.warn(s"Parsing eBars response failed. Body:\n$body")
+        Failure(EbarsApiError(OK, s"Parsing eBars response failed. attempt: $attempt"))
       }
     }
   }
 
 }
 
-case class SubmitError(status: Int, message: String) extends RuntimeException(message)
+case class EbarsApiError(status: Int, message: String) extends RuntimeException(message)

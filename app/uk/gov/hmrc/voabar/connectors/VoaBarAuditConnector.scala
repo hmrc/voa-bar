@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.connectors
 
-import play.api.libs.json.{JsString, OWrites}
+import play.api.libs.json.{JsString, Json, OWrites}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.voabar.util.BillingAuthorities
@@ -25,10 +25,29 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class VoaBarAuditConnector @Inject() (audit: AuditConnector) {
+class VoaBarAuditConnector @Inject() (audit: AuditConnector)(implicit val ec: ExecutionContext) {
 
-  def userLogin(username: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit = {
+  def userLogin(username: String)(implicit hc: HeaderCarrier): Unit = {
     audit.sendExplicitAudit("user-login", Map("username" -> username, "baName" -> BillingAuthorities.find(username).getOrElse("NONE")))
+  }
+
+  def sendReport(username: String, uuid: String, billingAuthority: String, transactionId: String, reportNumber: String,
+                      xml: String, fileName: String)(implicit hc: HeaderCarrier): Unit = {
+
+    val baName = BillingAuthorities.find(username).getOrElse("NONE")
+
+    val detail = Json.obj(
+      "username" -> username,
+      "baName" -> baName,
+      "autobarsJobId" -> uuid,
+      "billingAuthority" -> billingAuthority,
+      "transactionId" -> transactionId,
+      "reportNumber" -> reportNumber,
+      "fileName" -> fileName,
+      "xml" -> xml
+    )
+
+    audit.sendExplicitAudit("OutboundCall", detail)
   }
 
   def successfulReportUploaded(username: String, reports: Int)(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit = {
