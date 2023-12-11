@@ -3,7 +3,7 @@ import play.core.PlayVersion
 
 object Dependencies {
 
-  private val bootstrapVersion = "8.1.0"
+  private val bootstrapVersion = "8.2.0"
   private val hmrcMongoVersion = "1.6.0"
   private val autoBarsXsdVersion = "9.12.0"
   private val jacksonModuleScalaVersion = "2.16.0"
