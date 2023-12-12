@@ -32,7 +32,7 @@ import play.api.test.Helpers.{contentAsString, status}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
+import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, UpscanConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
 import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
@@ -55,14 +55,14 @@ class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with Eith
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
   override def fakeApplication(): Application = {
-    val legacyConnector = mock[LegacyConnector]
+    val voaEbarsConnector = mock[VoaEbarsConnector]
 
-    when(legacyConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
+    when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
 
     new GuiceApplicationBuilder()
       .bindings(
-        bind[LegacyConnector].to(legacyConnector),
+        bind[VoaEbarsConnector].to(voaEbarsConnector),
         bind[UpscanConnector].to(StubUpscanConnector)
       )
       .build()

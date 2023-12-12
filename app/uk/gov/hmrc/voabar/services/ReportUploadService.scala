@@ -27,7 +27,7 @@ import models.Purpose
 import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, VoaEbarsConnector, UpscanConnector, VoaBarAuditConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
@@ -42,7 +42,7 @@ import scala.util.{Failure, Success, Try}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
-                          legacyConnector: LegacyConnector,
+                          voaEbarsConnector: VoaEbarsConnector,
                           emailConnector: EmailConnector,
                           upscanConnector: UpscanConnector,
                           audit: VoaBarAuditConnector)(implicit executionContext: ExecutionContext) extends Logging {
@@ -246,7 +246,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     def internalUpload(jsonString: String):Future[Either[BarError, Boolean]] = {
       val req = BAReportRequest(submissionId, jsonString, login.username, login.password)
-      legacyConnector.sendBAReport(req).map(_ => Right(true)).recover {
+      voaEbarsConnector.sendBAReport(req).map(_ => Right(true)).recover {
         case ex: Exception => Left(BarEbarError(ex.getMessage))
       }
     }
