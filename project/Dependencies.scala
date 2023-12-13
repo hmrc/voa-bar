@@ -19,7 +19,7 @@ object Dependencies {
   private val scalaTestVersion = "3.2.17"
   private val testPlusScalaCheckVersion = "3.2.17.0"
   private val mockitoScalatestVersion = "1.17.30"
-  private val wiremockVersion = "2.35.0"
+  private val wiremockVersion = "3.3.1"
   private val xmlunitVersion = "2.9.1"
   private val flexMarkVersion = "0.64.8"
 
@@ -44,7 +44,7 @@ object Dependencies {
     "org.scalatest"                %% "scalatest"                 % scalaTestVersion % scope,
     "org.scalatestplus"            %% "scalacheck-1-17"           % testPlusScalaCheckVersion % scope,
     "org.mockito"                  %% "mockito-scala-scalatest"   % mockitoScalatestVersion % scope,
-    "com.github.tomakehurst"       % "wiremock-jre8"              % wiremockVersion % scope,
+    "org.wiremock"                 % "wiremock"                   % wiremockVersion % scope,
     "org.xmlunit"                  % "xmlunit-core"               % xmlunitVersion % scope,
     "com.vladsch.flexmark"         % "flexmark-all"               % flexMarkVersion % scope // for scalatest 3.2.x
   )
