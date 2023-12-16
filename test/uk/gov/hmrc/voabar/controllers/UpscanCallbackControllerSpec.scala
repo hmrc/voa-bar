@@ -23,16 +23,16 @@ import org.scalatest.time.SpanSugar
 import org.scalatest.{EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Application, Configuration}
 import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.test.Helpers.{contentAsString, status}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, UpscanConnector}
+import uk.gov.hmrc.voabar.connectors.{UpscanConnector, VoaEbarsConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
 import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
@@ -49,7 +49,7 @@ import scala.util.Using
 /**
  * @author Yuriy Tumakha
  */
-class UpscanCallbackControllerISpec extends PlaySpec with OptionValues with EitherValues with Eventually with SpanSugar
+class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with EitherValues with Eventually with SpanSugar
   with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar with Status with Injecting {
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)

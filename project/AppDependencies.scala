@@ -1,7 +1,7 @@
 import sbt.*
 import play.core.PlayVersion
 
-object Dependencies {
+object AppDependencies {
 
   private val bootstrapVersion = "8.2.0"
   private val hmrcMongoVersion = "1.6.0"
@@ -23,8 +23,6 @@ object Dependencies {
   private val xmlunitVersion = "2.9.1"
   private val flexMarkVersion = "0.64.8"
 
-  lazy val appDependencies: Seq[ModuleID] = compile ++ test()
-
   private val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
@@ -38,15 +36,25 @@ object Dependencies {
     "org.apache.poi"               % "poi"                        % apachePOIVersion
   )
 
-  private def test(scope: String = "test,it") = Seq(
-    "org.scalatestplus.play"       %% "scalatestplus-play"        % scalaTestPlusPlayVersion % scope,
-    "org.playframework"            %% "play-test"                 % PlayVersion.current % scope,
-    "org.scalatest"                %% "scalatest"                 % scalaTestVersion % scope,
-    "org.scalatestplus"            %% "scalacheck-1-17"           % testPlusScalaCheckVersion % scope,
-    "org.mockito"                  %% "mockito-scala-scalatest"   % mockitoScalatestVersion % scope,
-    "org.wiremock"                 % "wiremock"                   % wiremockVersion % scope,
-    "org.xmlunit"                  % "xmlunit-core"               % xmlunitVersion % scope,
-    "com.vladsch.flexmark"         % "flexmark-all"               % flexMarkVersion % scope // for scalatest 3.2.x
+  private val commonTests = Seq(
+    "org.scalatestplus.play"       %% "scalatestplus-play"        % scalaTestPlusPlayVersion % Test,
+    "org.playframework"            %% "play-test"                 % PlayVersion.current % Test,
+    "org.scalatest"                %% "scalatest"                 % scalaTestVersion % Test,
+    "org.scalatestplus"            %% "scalacheck-1-17"           % testPlusScalaCheckVersion % Test,
+    "com.vladsch.flexmark"         % "flexmark-all"               % flexMarkVersion % Test // for scalatest 3.2.x
   )
+
+  private val testOnly = Seq(
+    "org.mockito"                  %% "mockito-scala-scalatest"   % mockitoScalatestVersion % Test,
+    "org.xmlunit"                  % "xmlunit-core"               % xmlunitVersion % Test
+  )
+
+  private val integrationTestOnly = Seq(
+    "org.wiremock"                 % "wiremock"                   % wiremockVersion % Test
+  )
+
+  val appDependencies: Seq[ModuleID] = compile ++ commonTests ++ testOnly
+
+  val itDependencies: Seq[ModuleID] = commonTests ++ integrationTestOnly
 
 }

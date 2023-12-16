@@ -16,29 +16,29 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.net.URL
-import java.nio.file.Paths
-import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
+import org.mockito.invocation.InvocationOnMock
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.http.Status.OK
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.connectors.{UpscanConnector, VoaEbarsConnector}
-import org.mockito.invocation.InvocationOnMock
-import play.api.http.Status.OK
-import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.voabar.connectors.{UpscanConnector, VoaEbarsConnector}
+import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 
+import java.net.URL
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 

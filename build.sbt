@@ -1,15 +1,12 @@
-import sbt.Keys.*
-import sbt.*
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.*
-import DefaultBuildSettings.{defaultSettings, integrationTestSettings, scalaSettings}
-import uk.gov.hmrc.SbtAutoBuildPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, itSettings, scalaSettings}
 
 val appName = "voa-bar"
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always // Resolves versions conflict
+
+ThisBuild / majorVersion := 1
+ThisBuild / scalaVersion := "2.13.12"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
@@ -21,20 +18,18 @@ lazy val microservice = Project(appName, file("."))
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
   )
-  .settings(majorVersion := 1 )
   .settings(scalaSettings)
   .settings(defaultSettings())
   .settings(
-    libraryDependencies ++= Dependencies.appDependencies,
-    retrieveManaged := true,
     PlayKeys.playDefaultPort := 8447,
-    scalaVersion := "2.13.12",
-    DefaultBuildSettings.targetJvm := "jvm-11",
+    libraryDependencies ++= AppDependencies.appDependencies,
     scalacOptions += "-Wconf:src=routes/.*:s",
+    retrieveManaged := true,
     Test / fork := true
   )
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings())
-  .settings(
-    IntegrationTest / fork := true
-  )
+
+lazy val it = (project in file("it"))
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice)
+  .settings(itSettings)
+  .settings(libraryDependencies ++= AppDependencies.itDependencies)

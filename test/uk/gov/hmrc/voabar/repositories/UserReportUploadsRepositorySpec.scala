@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.repositories
+package uk.gov.hmrc.voabar.repositories
 
-import java.util.UUID
+import org.mockito.scalatest.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import org.mockito.scalatest.MockitoSugar
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 
 import java.time.Instant
+import java.util.UUID
 
 
 class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll with OptionValues

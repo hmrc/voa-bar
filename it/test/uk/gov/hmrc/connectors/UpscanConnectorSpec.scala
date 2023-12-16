@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.connectors
+package uk.gov.hmrc.connectors
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, equalTo, get, getRequestedFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, WsTestClient}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.RequestId
+import uk.gov.hmrc.http.{HeaderCarrier, RequestId}
+import uk.gov.hmrc.voabar.connectors.DefaultUpscanConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTimeout with EitherValues with BeforeAndAfterEach {
 
-  var wireMockServer: WireMockServer = null
+  var wireMockServer: WireMockServer = _
 
   "upscan connector" should {
     "Include requestId" in {
       WsTestClient.withClient { client =>
+        implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
+
         val connector = new DefaultUpscanConnector(client)
-        implicit val hc = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
         val response = await(connector.downloadReport(url))
         response mustBe Symbol("right")
         wireMockServer.verify(
@@ -46,7 +47,7 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
     }
   }
 
-  def url = {
+  private def url: String = {
     s"http://localhost:${wireMockServer.port()}/upscan/submission.xml"
   }
 
