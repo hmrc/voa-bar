@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.services
 
-import com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
@@ -24,6 +23,9 @@ import play.api.Logging
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
 
 import java.nio.charset.StandardCharsets.UTF_8
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.sax.SAXResult
 import scala.util.{Failure, Success, Try}
 import scala.xml._
 import scala.xml.parsing.NoBindingFactoryAdapter
@@ -43,17 +45,19 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
 
   def domToScalaXMLNode(document: org.w3c.dom.Document): Either[BarError, Node] = {
     Try {
-      val dom2sax = new DOM2SAX(document)
       val saxHandler = new NoBindingFactoryAdapter() {
         override def endDocument(): Unit = {}
       }
-      dom2sax.setContentHandler(saxHandler)
-      dom2sax.parse()
+
+      TransformerFactory.newInstance
+        .newTransformer
+        .transform(new DOMSource(document), new SAXResult(saxHandler))
+
       saxHandler.rootElem
     } match {
       case Success(scalaNode) => Right(scalaNode)
       case Failure(exception) =>
-        logger.error("DOM2SAX failed", exception)
+        logger.error("Transforming DOM to Scala XML Node failed", exception)
         Left(BarXmlError(exception.getMessage))
     }
   }
@@ -62,21 +66,20 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
     "successfuly parse xml to DOM" in {
       val document = xmlParser.parse(xmlBatchSubmissionAsString)
       document mustBe Symbol("right")
-      document.value.getDocumentElement.getNodeName mustBe("BAreports")
+      document.value.getDocumentElement.getNodeName mustBe ("BAreports")
     }
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
       document mustBe Symbol("left")
-      document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
+      document.left.value mustBe (BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
     "fail for xml with DTD embedded entity" in {
       val document = xmlParser.parse(validWithXXE)
       document mustBe Symbol("left")
-      document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
+      document.left.value mustBe (BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
 
   }
-
 
 
   "A BatchSubmission" must {
@@ -199,7 +202,7 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
     }
   }
 
-  "A BA batch submission" must  {
+  "A BA batch submission" must {
 
     val report: Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
     val result = xmlParser.oneReportPerBatch(report)
@@ -210,21 +213,21 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
     }
 
     "each batch should contain a single (non-empty) header node" in {
-      val nonEmptyHeaders:Seq[NodeSeq] = result.map(_ \ "BAreportHeader")
+      val nonEmptyHeaders: Seq[NodeSeq] = result.map(_ \ "BAreportHeader")
 
       nonEmptyHeaders.size mustBe 4
       nonEmptyHeaders.forall(_.size == 1) mustBe true
     }
 
     "each batch should contain a single (non-empty) trailer node" in {
-      val nonEmptyTrailers:Seq[NodeSeq] = result.map(_ \ "BAreportTrailer")
+      val nonEmptyTrailers: Seq[NodeSeq] = result.map(_ \ "BAreportTrailer")
 
       nonEmptyTrailers.size mustBe 4
       nonEmptyTrailers.forall(_.size == 1) mustBe true
     }
 
     "each batch should contain a single (non-empty) property report" in {
-      val nonEmptyPropertyReports:Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
+      val nonEmptyPropertyReports: Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
 
       nonEmptyPropertyReports.size mustBe 4
       nonEmptyPropertyReports.forall(_.size == 1) mustBe true
