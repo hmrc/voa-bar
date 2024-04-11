@@ -56,7 +56,7 @@ class LoginController @Inject()(val voaEbarsConnector: VoaEbarsConnector,
             audit.userLogin(loginDetails.username)
             Ok
           case Failure(ex) =>
-            logger.warn("Validating login fails with message " + ex.getMessage)
+            logger.warn("Validating login fails with message " + ex.getMessage, ex)
             BadRequest("Validating login fails with message " + ex.getMessage)
         }
       case Left(error) =>

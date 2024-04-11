@@ -87,6 +87,7 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
   def login: Try[Int] = Try {
     httpClient.execute(new HttpGet(loginUrl), (response: HttpResponse) => {
       val html = EntityUtils.toString(response.getEntity)
+      logger.warn(s"Response ${response.getStatusLine.getStatusCode}:\n$html") // TODO: remove after successful release
       val errors = extractErrors(html)
 
       response.getStatusLine.getStatusCode match {
