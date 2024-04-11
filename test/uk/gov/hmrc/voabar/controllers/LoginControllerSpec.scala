@@ -18,19 +18,21 @@ package uk.gov.hmrc.voabar.controllers
 
 import org.mockito.scalatest.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.FakeRequest
-import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.voabar.connectors.{VoaBarAuditConnector, VoaEbarsConnector}
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class LoginControllerSpec extends PlaySpec with MockitoSugar {
+class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
   val fakeRequest = FakeRequest("GET", "/")
 
   def fakeRequestWithJson(jsonStr: String) = {
@@ -47,10 +49,13 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
 
   val mockAudit = mock[VoaBarAuditConnector]
 
-  val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
+  val applicationCrypto = app.injector.instanceOf[ApplicationCrypto]
+  val encryptedPassword = applicationCrypto.JsonCrypto.encrypt (PlainText ("xxxdyyy") ).value
+
+  val goodJson = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
-  private def controller = new LoginController(mockVoaEbarsConnector, mockAudit, stubControllerComponents())
+  private def controller = new LoginController(mockVoaEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
 
   "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))

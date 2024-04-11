@@ -24,22 +24,28 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import uk.gov.hmrc.voabar.connectors.{VoaEbarsConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
+import uk.gov.hmrc.voabar.connectors.{VoaBarAuditConnector, VoaEbarsConnector}
 
 import scala.util.{Failure, Success}
 
 @Singleton
 class LoginController @Inject()(val voaEbarsConnector: VoaEbarsConnector,
                                 audit: VoaBarAuditConnector,
+                                applicationCrypto: ApplicationCrypto,
                                 controllerComponents: ControllerComponents)
                                (implicit ec: ExecutionContext)
   extends BackendController(controllerComponents) with Logging {
+
+  private val crypto = applicationCrypto.JsonCrypto
+
   def verifyLogin(json: Option[JsValue]): Either[String, LoginDetails] = {
     json match {
       case Some(value) => {
         val model = Json.fromJson[LoginDetails](value)
         model match {
-          case JsSuccess(contact, _) => Right(contact)
+          case JsSuccess(loginDetails, _) =>
+            Right(loginDetails.copy(password = crypto.decrypt(Crypted(loginDetails.password)).value))
           case JsError(_) => Left("Unable to parse " + value)
         }
       }
