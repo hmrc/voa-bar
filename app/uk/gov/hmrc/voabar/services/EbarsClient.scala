@@ -87,11 +87,12 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
   def login: Try[Int] = Try {
     httpClient.execute(new HttpGet(loginUrl), (response: HttpResponse) => {
       val html = EntityUtils.toString(response.getEntity)
-      logger.warn(s"Response ${response.getStatusLine.getStatusCode}:\n$html") // TODO: remove after successful release
       val errors = extractErrors(html)
 
       response.getStatusLine.getStatusCode match {
-        case SC_UNAUTHORIZED | SC_FORBIDDEN => throw new UnauthorizedException("Invalid credentials")
+        case SC_UNAUTHORIZED | SC_FORBIDDEN =>
+          logger.warn(s"Response ${response.getStatusLine.getStatusCode}:\n$html")
+          throw new UnauthorizedException("Invalid credentials")
         case SC_OK if errors.nonEmpty =>
           logger.warn(s"Login errors: $errors\n$html")
           throw EbarsApiError(SC_OK, errors.toString)
