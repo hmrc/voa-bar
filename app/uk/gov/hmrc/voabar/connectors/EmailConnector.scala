@@ -20,7 +20,7 @@ import com.google.inject.{ImplementedBy, Singleton}
 import com.typesafe.config.ConfigException
 import javax.inject.Inject
 import models.Purpose.Purpose
-import play.api.{Configuration, Environment}
+import play.api.Configuration
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import uk.gov.hmrc.http.HttpClient
@@ -32,8 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class DefaultEmailConnector @Inject() (val http: HttpClient,
                                        val configuration: Configuration,
-                                       utils: Utils,
-                                       environment: Environment)(implicit ec: ExecutionContext)
+                                       utils: Utils)(implicit ec: ExecutionContext)
   extends EmailConnector {
 
   private val emailConfigPrefix = "microservice.services.email"

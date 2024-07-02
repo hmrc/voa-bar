@@ -19,7 +19,6 @@ package uk.gov.hmrc.voabar.models
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistry}
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.voabar.util.ErrorCode
-import org.mongodb.scala.bson.codecs.Macros
 import org.bson.codecs.configuration.CodecRegistries.fromProviders
 import uk.gov.hmrc.mongo.play.json.CodecProviders
 

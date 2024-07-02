@@ -17,17 +17,17 @@
 package uk.gov.hmrc.voabar.modules
 
 import com.google.inject.Provides
-import net.codingwell.scalaguice.ScalaModule
+import com.google.inject.AbstractModule
 import play.api.Configuration
 import services.EbarsValidator
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
 import uk.gov.hmrc.voabar.util.DataMonitor
 
-class VoaBARModule  extends ScalaModule {
+class VoaBARModule extends AbstractModule {
 
   override def configure() = {
-    bind[EbarsValidator].toInstance(new EbarsValidator)
-    bind[DataMonitor].asEagerSingleton()
+    bind(classOf[EbarsValidator]).toInstance(new EbarsValidator)
+    bind(classOf[DataMonitor]).asEagerSingleton()
   }
 
   @Provides
