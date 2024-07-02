@@ -43,7 +43,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
 
   private def parseUserReportUpload(request: Request[JsValue]): Either[Status, UserReportUpload] =
     request.body.validate[UserReportUploadRest] match {
-      case userReportUpload: JsSuccess[UserReportUploadRest] => Right(userReportUpload.value.toMongoEntity)
+      case userReportUpload: JsSuccess[UserReportUploadRest @unchecked] => Right(userReportUpload.value.toMongoEntity)
       case _ =>
         logger.error(s"Couldn't parse:\n${request.body.toString}")
         Left(BadRequest)
