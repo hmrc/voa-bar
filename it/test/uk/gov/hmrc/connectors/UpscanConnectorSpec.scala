@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package uk.gov.hmrc.connectors
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatestplus.play.PlaySpec
+import play.api.http.Status.OK
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, WsTestClient}
 import uk.gov.hmrc.http.{HeaderCarrier, RequestId}
 import uk.gov.hmrc.voabar.connectors.DefaultUpscanConnector
@@ -57,7 +58,7 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
     wireMockServer.stubFor(
       get(urlEqualTo("/upscan/submission.xml"))
         .willReturn(
-          aResponse().withStatus(200)
+          aResponse().withStatus(OK)
             .withBody("""<root>test</root>""")
         )
     )

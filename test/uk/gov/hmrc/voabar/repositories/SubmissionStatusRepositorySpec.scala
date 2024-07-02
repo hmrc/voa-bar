@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import org.mockito.scalatest.MockitoSugar
+
+import org.mongodb.scala.SingleObservableFuture
+
+import scala.language.postfixOps
+
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.Eventually
+
 import org.scalatest.time.SpanSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -121,7 +127,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "Not change status or anything else for final submission state" in {
-      import org.scalatest.prop.TableDrivenPropertyChecks._
+      import org.scalatest.prop.TableDrivenPropertyChecks.*
       val finalStates = Table(("Final state", "errors"),
         (Submitted.value, Seq()),
         (Done.value, Seq()),
@@ -146,7 +152,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "Save baCode when saving or updating submission" in {
-      import uk.gov.hmrc.voabar.util._
+      import uk.gov.hmrc.voabar.util.*
 
       val submissionToStore = ReportStatus(UUID.randomUUID().toString,
         url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
@@ -163,7 +169,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "Not return submission older 90 days" in {
-      import uk.gov.hmrc.voabar.util._
+      import uk.gov.hmrc.voabar.util.*
 
       await(repo.collection.deleteMany(Document()).toFutureOption())
 

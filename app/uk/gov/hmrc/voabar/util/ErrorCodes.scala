@@ -50,16 +50,31 @@ case object TIMEOUT_ERROR extends ErrorCode { val errorCode = "4500" }
 case object UNKNOWN_ERROR extends ErrorCode { val errorCode = "5000" }
 
 object ErrorCode {
-  private lazy val errorCodeClasses: Map[String, ErrorCode] = typeOf[ErrorCode]
-    .typeSymbol
-    .asClass
-    .knownDirectSubclasses.foldLeft(Map[String, ErrorCode]()) { (acc, c) =>
-      val caseObjectStaticClass = Class.forName(c.fullName + "$") //This is not perfect but I don't know better solution yet.
-            // We can't create new instance of case object, we MUST use the only one.
-            // Read  "Typesafe Enum Pattern" in "Effective Java" first edition (before java 1.5)
-      val instance = caseObjectStaticClass.getField("MODULE$").get(null).asInstanceOf[ErrorCode]
-      acc + (instance.errorCode -> instance)
-    }
+
+  private val errorCodeClasses: Map[String, ErrorCode] =
+    Seq(
+      CHARACTER,
+      ONE_PROPOSED,
+      NONE_EXISTING,
+      EITHER_ONE_EXISTING_OR_ONE_PROPOSED,
+      ATLEAST_ONE_PROPOSED,
+      ATLEAST_ONE_EXISTING,
+      NOT_IN_USE,
+      ONE_EXISTING,
+      NONE_PROPOSED,
+      BA_CODE_MATCH,
+      BA_CODE_REPORT,
+      UNSUPPORTED_TAX_TYPE,
+      UNKNOWN_TYPE_OF_TAX,
+      UNKNOWN_DATA_OBJECT,
+      INVALID_XML_XSD,
+      INVALID_XML,
+      EBARS_UNAVAILABLE,
+      UPSCAN_ERROR,
+      TIMEOUT_ERROR,
+      UNKNOWN_ERROR
+    ).map(e => e.errorCode -> e).toMap
+
   implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
     override def reads(json: JsValue): JsResult[ErrorCode] = {
       val value = json.validate[String].get

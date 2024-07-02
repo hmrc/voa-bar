@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,14 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+
+import org.mongodb.scala.SingleObservableFuture
+
 import org.apache.commons.io.IOUtils
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -48,7 +53,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   val voaEbarsConnector = mock[VoaEbarsConnector]
 
   when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
-    .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
+    .thenAnswer(_ => Future.successful(OK))
 
   override def fakeApplication() = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
   private def testEbarsGetCall(path: String, ebarsCall: VoaEbarsConnector => Future[Try[?]], expectedResult: Try[Int],
                                responseStatus: Int, responseBody: String): Unit =
-    withWiremockServer { wireMockServer: WireMockServer =>
+    withWiremockServer { wireMockServer =>
       wireMockServer.stubFor(
         get(urlEqualTo(path))
           .willReturn(
@@ -110,7 +110,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
   private def testEbarsPostCall(path: String, ebarsCall: VoaEbarsConnector => Future[?],
                             requestContentType: String, responseStatus: Int, responseBody: String): Unit =
-    withWiremockServer { wireMockServer: WireMockServer =>
+    withWiremockServer { wireMockServer =>
       wireMockServer.stubFor(
         post(urlEqualTo(path))
           .willReturn(

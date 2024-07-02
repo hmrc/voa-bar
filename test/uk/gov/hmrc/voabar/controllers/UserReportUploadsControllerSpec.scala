@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+
 import org.apache.pekko.stream.testkit.NoMaterializer
 import org.apache.pekko.stream.Materializer
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest

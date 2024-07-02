@@ -44,8 +44,10 @@ class DataMonitor @Inject()()(
         countWithoutStatus <- repo.collection.countDocuments(not(exists("status"))).toFuture()
       } yield {
         val withoutCreatedAtStr = Option.when(countWithoutCreatedAt > 0)(countWithoutCreatedAt).fold("")(cnt => s" ($cnt - without `.createdAt`)")
-        val withoutBACodeStr = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode).fold("")(cnt => s" ($cnt - without `.baCode`)")
-        val withoutStatusStr = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus).fold("")(cnt => s" ($cnt - without `.status`)")
+        val withoutBACodeStr = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode)
+          .fold("")(cnt => s" ($cnt - without `.baCode`)")
+        val withoutStatusStr = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus)
+          .fold("")(cnt => s" ($cnt - without `.status`)")
         s"collection '${repo.collectionName}': $count$withoutCreatedAtStr$withoutBACodeStr$withoutStatusStr"
       }
     }).map(messages => logger.warn(messages.mkString(" \n")))

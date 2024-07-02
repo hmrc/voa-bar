@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,24 @@ import java.net.URL
 import java.nio.file.Paths
 import ebars.xml.BAreports
 import models.Purpose.Purpose
-
+import org.mockito.ArgumentMatchers.{any, same}
+import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
 import jakarta.xml.bind.JAXBContext
 import org.apache.commons.io.IOUtils
 import org.scalatest.OptionValues
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.WsScalaTestClient
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import org.mockito.invocation.InvocationOnMock
 import org.scalatest.matchers.must
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status.OK
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, VoaEbarsConnector, UpscanConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, UpscanConnector, VoaBarAuditConnector, VoaEbarsConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.models._
+import uk.gov.hmrc.voabar.models.*
 import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
 import scala.util.Try
@@ -101,7 +101,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
       val res = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         verify(statusRepository, times(1)).updateStatus(same(uploadReference), same(Pending))
-        verifyZeroInteractions(validationService, voaEbarsConnector, xmlParser)
+        verifyNoInteractions(validationService, voaEbarsConnector, xmlParser)
         result mustBe "failed"
       }
     }
@@ -234,16 +234,16 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     val reportStatus = ReportStatus("submissionId", baCode = "BA1010", filename = Some("filename.xml"), status = Some(Pending.value))
 
     when(repository.updateStatus(any[String], any[ReportStatusType]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(Right(true)))
+      .thenAnswer(_ => Future.successful(Right(true)))
 
     when(repository.update(any[String], any[ReportStatusType], any[Int]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(Right(true)))
+      .thenAnswer(_ => Future.successful(Right(true)))
 
     when(repository.addError(any[String], any[Error]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(Right(true)))
+      .thenAnswer(_ => Future.successful(Right(true)))
 
     when(repository.getByReference(any[String]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(Right(reportStatus)))
+      .thenAnswer(_ => Future.successful(Right(reportStatus)))
 
     repository
   }
@@ -281,10 +281,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     val connector = mock[VoaEbarsConnector]
 
     when(connector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
+      .thenAnswer(_ => Future.successful(OK))
 
     when(connector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(Try(OK)))
+      .thenAnswer(_ => Future.successful(Try(OK)))
 
     connector
   }
@@ -293,7 +293,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     val emailConnector = mock[EmailConnector]
 
     when(emailConnector.sendEmail(any[String], any[Purpose], any[String], any[String], any[String], any[String], any[String], any[String]))
-      .thenAnswer[InvocationOnMock](_ => Future.unit)
+      .thenAnswer(_ => Future.unit)
 
     emailConnector
   }

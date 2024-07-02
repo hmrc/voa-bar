@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.scalatest.MockitoSugar
+import org.mongodb.scala.SingleObservableFuture
+
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.SpanSugar
 import org.scalatest.{EitherValues, OptionValues}
@@ -44,6 +47,7 @@ import java.net.URL
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.Using
 
 /**
@@ -58,7 +62,7 @@ class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with Eithe
     val voaEbarsConnector = mock[VoaEbarsConnector]
 
     when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
+      .thenAnswer(_ => Future.successful(OK))
 
     new GuiceApplicationBuilder()
       .bindings(

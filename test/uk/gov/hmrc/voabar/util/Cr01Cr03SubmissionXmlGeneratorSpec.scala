@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   it should "generate valid XML for all generated CR03 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll(getCr03Submission) { submission: Cr01Cr03Submission =>
+    forAll(getCr03Submission) { submission =>
       val jaxbStructure =
         new Cr01Cr03SubmissionXmlGenerator(
           submission, 1010,
@@ -155,7 +155,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   it should "generate valid XML for all generated CR01 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll(getCr01Submission) { submission: Cr01Cr03Submission =>
+    forAll(getCr01Submission) { submission =>
       val jaxbStructure =
         new Cr01Cr03SubmissionXmlGenerator(
           submission, 1010,

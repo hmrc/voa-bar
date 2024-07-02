@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR03 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll(genCr03Submission) { submission: Cr01Cr03Submission =>
+    forAll(genCr03Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
           submission, 1010,
@@ -175,7 +175,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR01 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll(genCr01Submission) { submission: Cr01Cr03Submission =>
+    forAll(genCr01Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
           submission, 1010,
@@ -190,7 +190,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR05 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll(genCr05Submission) { submission: Cr05Submission =>
+    forAll(genCr05Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
           submission, 1010,
@@ -206,7 +206,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
   "XmlSubmissionGenerator" should "generate generate same valid XML for both implementation for CR03" in {
     val id = UUID.randomUUID().toString
-    forAll(genCr03Submission) { submission: Cr01Cr03Submission =>
+    forAll(genCr03Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
           submission, 1010,
@@ -231,7 +231,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   // Cr01Cr03SubmissionXmlGenerator have for CR01 and doesn't use proposed entries.
   "XmlSubmissionGenerator" should "generate generate different valid XML for both implementation for CR01" in {
     val id = UUID.randomUUID().toString
-    forAll(genCr01Submission) { submission: Cr01Cr03Submission =>
+    forAll(genCr01Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
           submission, 1010,
