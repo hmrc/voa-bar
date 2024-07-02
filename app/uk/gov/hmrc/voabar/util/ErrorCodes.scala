@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ object ErrorCode {
 
   implicit val errorCodeReader: BsonValue => ErrorCode = Codecs.fromBson(_)
 
-  implicit val errorCodeWriter: ErrorCode => BsonValue = Codecs.toBson(_, legacyNumbers = false)
+  implicit val errorCodeWriter: ErrorCode => BsonValue = Codecs.toBson(_)
 
 //  implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
 //    override def read(bson: BSONString): ErrorCode = errorCodeClasses.get(bson.value).get

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import org.apache.pekko.stream.Materializer
 import play.api.http.Status
 import play.api.libs.ws.ahc.{AhcConfigBuilder, AhcWSClient, StandaloneAhcWSClient}
-import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse, writeableOf_urlEncodedForm}
 import play.api.{Configuration, Logging}
 import play.shaded.ahc.org.asynchttpclient.proxy.{ProxyServer, ProxyType}
 import play.shaded.ahc.org.asynchttpclient.{AsyncHttpClient, DefaultAsyncHttpClient, Realm}
@@ -28,7 +28,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.util.Collections
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}

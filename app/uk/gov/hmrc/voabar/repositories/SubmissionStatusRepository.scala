@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package uk.gov.hmrc.voabar.repositories
 
 import com.google.inject.ImplementedBy
-import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.*
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
-import org.mongodb.scala.model._
+import org.mongodb.scala.{ObservableFuture, ReadPreference, SingleObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, Pending, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
-import uk.gov.hmrc.voabar.util.PlayMongoUtil._
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.*
 import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import java.time.Instant

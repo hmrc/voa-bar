@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.util
 
+import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.model.Filters.{exists, not}
 import play.api.Logging
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository

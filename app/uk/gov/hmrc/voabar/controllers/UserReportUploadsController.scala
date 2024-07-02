@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package uk.gov.hmrc.voabar.controllers
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue, Json}
-import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.models.UserReportUploadRest
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
@@ -34,7 +34,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
                                              controllerComponents: ControllerComponents
                                             )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) with Logging {
 
-  def getById(id: String) = Action.async {
+  def getById(id: String): Action[AnyContent] = Action.async {
     userReportUploadsRepository.getById(id).map(_.fold(
       _ => InternalServerError,
       _.map(userReportUpload => Ok(Json.toJson(UserReportUploadRest(userReportUpload)))).getOrElse(NotFound)
@@ -55,7 +55,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
       _ => Right(())
     ))
 
-  def save() = Action.async(parse.tolerantJson) { implicit request =>
+  def save: Action[JsValue] = Action.async(parse.tolerantJson) { implicit request =>
     (for {
       userReportUpload <- EitherT.fromEither[Future](parseUserReportUpload(request))
       _ <- EitherT(saveUserReportUpload(userReportUpload))

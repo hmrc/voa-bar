@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package uk.gov.hmrc.voabar.controllers
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
+
 import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Logger}
 import play.api.libs.json.{JsSuccess, JsValue}
-import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
@@ -50,14 +51,14 @@ class SubmissionStatusController @Inject() (
     ))
   }
 
-  private def getAllReportStatuses(): Future[Either[Result, Seq[ReportStatus]]] = {
+  private def getAllReportStatuses: Future[Either[Result, Seq[ReportStatus]]] = {
     submissionStatusRepository.getAll().map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
   }
 
-  def getByUser(filter: Option[String] = None) = Action.async { implicit request =>
+  def getByUser(filter: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusesByUser(userId, filter))
@@ -65,10 +66,10 @@ class SubmissionStatusController @Inject() (
         .valueOr(_ => InternalServerError)
   }
 
-  def getAll() = Action.async { implicit request =>
+  def getAll: Action[AnyContent] = Action.async { implicit request =>
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
-      reportStatuses <- EitherT(getAllReportStatuses())
+      reportStatuses <- EitherT(getAllReportStatuses)
     } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
@@ -80,7 +81,7 @@ class SubmissionStatusController @Inject() (
     ))
   }
 
-  def getByReference(reference: String) = Action.async { implicit request =>
+  def getByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
     (for {
       _ <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusByReference(reference))
@@ -111,7 +112,7 @@ class SubmissionStatusController @Inject() (
     ))
   }
 
-  def save(upsert: Boolean = false) = Action.async(parse.tolerantJson) { request =>
+  def save(upsert: Boolean = false): Action[JsValue] = Action.async(parse.tolerantJson) { request =>
     val headers = request.headers
 
     logger.info(s"Saving submission upsert $upsert")
@@ -127,7 +128,7 @@ class SubmissionStatusController @Inject() (
     .valueOr(_ => InternalServerError)
   }
 
-  def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
+  def saveUserInfo: Action[JsValue] = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
       _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode, reportStatus.id))
@@ -155,7 +156,7 @@ class SubmissionStatusController @Inject() (
     }
   }
 
-  def deleteByReference(reference: String) = Action.async { implicit request =>
+  def deleteByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
     (for {
       baCode <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(deleteByReferenceQuery(reference, baCode))

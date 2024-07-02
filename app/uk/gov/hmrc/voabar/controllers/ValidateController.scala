@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.mvc.ControllerComponents
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.services.V1ValidationService
@@ -34,7 +35,7 @@ class ValidateController @Inject() (controllerComponents: ControllerComponents,
 
   val logger = Logger("v2-validation")
 
-  def validate(baLogin: String) = Action.async(parse.temporaryFile) { implicit request =>
+  def validate(baLogin: String): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
 
     Future {
 

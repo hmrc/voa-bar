@@ -3,10 +3,10 @@ import play.core.PlayVersion
 
 object AppDependencies {
 
-  private val bootstrapVersion = "8.2.0"
-  private val hmrcMongoVersion = "1.6.0"
-  private val autoBarsXsdVersion = "9.12.0"
-  private val jacksonModuleScalaVersion = "2.16.0"
+  private val bootstrapVersion = "9.0.0"
+  private val hmrcMongoVersion = "2.1.0"
+  private val autoBarsXsdVersion = "9.13.0"
+  private val jacksonModuleScalaVersion = "2.17.0"
   private val guiceUtilsVersion = "6.0.0"
   private val catsEffectVersion = "3.5.2"
   private val jerichoHtmlVersion = "3.4"
@@ -15,12 +15,12 @@ object AppDependencies {
   private val apachePOIVersion = "5.2.5"
 
   // Test dependencies
-  private val scalaTestPlusPlayVersion = "7.0.0"
-  private val scalaTestVersion = "3.2.17"
-  private val testPlusScalaCheckVersion = "3.2.17.0"
-  private val mockitoScalatestVersion = "1.17.30"
-  private val wiremockVersion = "3.3.1"
-  private val xmlunitVersion = "2.9.1"
+  private val scalaTestPlusPlayVersion = "7.0.1"
+  private val scalaTestVersion = "3.2.19"
+  private val testPlusScalaCheckVersion = "3.2.19.0"
+  private val scalaTestPlusMockitoVersion = "3.2.19.0"
+  private val wiremockVersion = "3.5.4"
+  private val xmlunitVersion = "2.10.0"
   private val flexMarkVersion = "0.64.8"
 
   private val compile = Seq(
@@ -40,12 +40,12 @@ object AppDependencies {
     "org.scalatestplus.play"       %% "scalatestplus-play"        % scalaTestPlusPlayVersion % Test,
     "org.playframework"            %% "play-test"                 % PlayVersion.current % Test,
     "org.scalatest"                %% "scalatest"                 % scalaTestVersion % Test,
-    "org.scalatestplus"            %% "scalacheck-1-17"           % testPlusScalaCheckVersion % Test,
+    "org.scalatestplus"            %% "scalacheck-1-18"           % testPlusScalaCheckVersion % Test,
     "com.vladsch.flexmark"         % "flexmark-all"               % flexMarkVersion % Test // for scalatest 3.2.x
   )
 
   private val testOnly = Seq(
-    "org.mockito"                  %% "mockito-scala-scalatest"   % mockitoScalatestVersion % Test,
+    "org.scalatestplus"            %% "mockito-5-12"              % scalaTestPlusMockitoVersion % Test,
     "org.xmlunit"                  % "xmlunit-core"               % xmlunitVersion % Test
   )
 

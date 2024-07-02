@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.mvc.{ControllerComponents, Result}
+import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.models.{LoginDetails, UploadDetails}
@@ -32,7 +32,7 @@ class UploadController @Inject()(reportUploadService: ReportUploadService, confi
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  def upload() = Action(parse.json[UploadDetails]) { implicit request =>
+  def upload: Action[UploadDetails] = Action(parse.json[UploadDetails]) { implicit request =>
     val headers = request.headers
     val uploadDetails = request.body
 

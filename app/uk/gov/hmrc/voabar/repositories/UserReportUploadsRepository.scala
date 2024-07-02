@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.Instant
 import com.google.inject.ImplementedBy
-
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.BarError
+import org.mongodb.scala.{ReadPreference, SingleObservableFuture}
+import org.mongodb.scala.model.*
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
-
-import scala.concurrent.{ExecutionContext, Future}
-import org.mongodb.scala.ReadPreference
-import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.voabar.models.BarError
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.{byId, handleMongoError, indexOptionsWithTTL}
+
+import java.time.Instant
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 final case class UserReportUpload(_id: String,
                                   userId: String,
@@ -38,7 +37,7 @@ final case class UserReportUpload(_id: String,
 
 object UserReportUpload {
 
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.*
 
   implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
   final val collectionName = classOf[UserReportUpload].getSimpleName.toLowerCase

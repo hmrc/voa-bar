@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: Execu
     httpClient.url(url)
       .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID)): _*)
       .get().map { wsResponse =>
-      Right(wsResponse.body[Array[Byte]])
+      //Right(wsResponse.body[Array[Byte]])
+      Right(wsResponse.bodyAsBytes.toArrayUnsafe())
     }.recover {
       case e: Exception => {
         logger.warn("Unable to download file from upscan", e)
