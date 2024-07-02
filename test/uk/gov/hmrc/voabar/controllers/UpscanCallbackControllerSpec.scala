@@ -41,7 +41,7 @@ import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmat
 import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
+import uk.gov.hmrc.voabar.util.ErrorCode.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
 import java.net.URL
 import java.nio.file.Paths

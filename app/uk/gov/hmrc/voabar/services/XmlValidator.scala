@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,19 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.BAreports
-
-import java.io.InputStream
-import javax.xml.XMLConstants
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.SchemaFactory
+import jakarta.xml.bind.JAXBContext
 import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
 import play.api.Logger
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, BarXmlValidationError, Error}
-import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
+import uk.gov.hmrc.voabar.util.ErrorCode.INVALID_XML_XSD
 
-import jakarta.xml.bind.JAXBContext
+import java.io.InputStream
+import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.SchemaFactory
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 

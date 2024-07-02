@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
-import javax.xml.transform.stream.StreamSource
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError, ReportErrorDetail, ReportErrorDetailCode}
-import uk.gov.hmrc.voabar.util._
+import uk.gov.hmrc.voabar.util.ErrorCode.*
+
+import javax.xml.transform.stream.StreamSource
 
 
 class ValidationServiceSpec extends PlaySpec with EitherValues {

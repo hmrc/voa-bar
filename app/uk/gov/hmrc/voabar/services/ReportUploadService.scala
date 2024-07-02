@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,27 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.ByteArrayInputStream
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import ebars.xml.BAreports
-
-import javax.inject.Inject
-import javax.xml.transform.stream.StreamSource
 import models.Purpose
 import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, VoaEbarsConnector, UpscanConnector, VoaBarAuditConnector}
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, UpscanConnector, VoaBarAuditConnector, VoaEbarsConnector}
+import uk.gov.hmrc.voabar.models.*
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
-import uk.gov.hmrc.voabar.util._
+import uk.gov.hmrc.voabar.util.ErrorCode.*
 
-import java.time.{Instant, ZoneOffset}
+import java.io.ByteArrayInputStream
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneOffset}
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.inject.Inject
+import javax.xml.transform.stream.StreamSource
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,

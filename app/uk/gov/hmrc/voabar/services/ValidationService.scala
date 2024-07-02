@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports}
-
-import javax.inject.Singleton
 import jakarta.xml.bind.JAXBElement
 import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}
-import uk.gov.hmrc.voabar.util._
+import uk.gov.hmrc.voabar.util.ErrorCode.*
 
-import scala.jdk.CollectionConverters._
+import javax.inject.Singleton
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 @Singleton
@@ -153,8 +152,8 @@ class ValidationService {
   def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] = {
     Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
       case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
-      case Some(baCode) if (baCode == 0) => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
-      case Some(baCode) if (baCode == baLogin.baCode) => List.empty
+      case Some(baCode) if baCode == 0 => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+      case Some(baCode) if baCode == baLogin.baCode => List.empty
       case Some(wrongBaNumber) => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
     }
   }

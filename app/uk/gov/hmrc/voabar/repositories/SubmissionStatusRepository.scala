@@ -30,8 +30,8 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, Pending, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
+import uk.gov.hmrc.voabar.util.ErrorCode.TIMEOUT_ERROR
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.*
-import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit

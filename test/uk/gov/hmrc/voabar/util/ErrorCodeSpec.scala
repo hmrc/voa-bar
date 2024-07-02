@@ -20,8 +20,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsSuccess, JsValue, Json}
+import uk.gov.hmrc.voabar.util.ErrorCode.*
 
-class ErrorCodesSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar  {
+class ErrorCodeSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar  {
   "ErrorCode" should {
     "return valid ErrorCode from String" in {
       val value:JsValue = Json.toJson(NOT_IN_USE.errorCode)

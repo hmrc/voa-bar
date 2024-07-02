@@ -18,12 +18,8 @@ package uk.gov.hmrc.voabar.repositories
 
 
 import org.mongodb.scala.SingleObservableFuture
-
-import scala.language.postfixOps
-
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.Eventually
-
 import org.scalatest.time.SpanSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -33,11 +29,12 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
-import uk.gov.hmrc.voabar.util.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR}
+import uk.gov.hmrc.voabar.util.ErrorCode.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR, UNKNOWN_TYPE_OF_TAX}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import scala.language.postfixOps
 
 class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll with Eventually with SpanSugar
   with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar {

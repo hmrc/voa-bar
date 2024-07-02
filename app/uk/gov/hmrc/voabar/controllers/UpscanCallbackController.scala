@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.exception.VoaBarException
-import uk.gov.hmrc.voabar.models.UpScanRequests._
+import uk.gov.hmrc.voabar.models.UpScanRequests.*
 import uk.gov.hmrc.voabar.models.{Error, Failed, LoginDetails, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, UserReportUploadsRepository}
 import uk.gov.hmrc.voabar.services.{ReportUploadService, WebBarsService}
-import uk.gov.hmrc.voabar.util.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
+import uk.gov.hmrc.voabar.util.ErrorCode.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

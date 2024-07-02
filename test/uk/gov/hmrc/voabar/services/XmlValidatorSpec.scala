@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BarXmlError, BarXmlValidationError, Error}
-import uk.gov.hmrc.voabar.util.{INVALID_XML_XSD, XmlTestParser}
+import uk.gov.hmrc.voabar.util.XmlTestParser
+import uk.gov.hmrc.voabar.util.ErrorCode.INVALID_XML_XSD
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML

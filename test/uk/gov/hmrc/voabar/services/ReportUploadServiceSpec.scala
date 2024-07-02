@@ -38,7 +38,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.voabar.connectors.{EmailConnector, UpscanConnector, VoaBarAuditConnector, VoaEbarsConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.*
-import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
+import uk.gov.hmrc.voabar.util.ErrorCode.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
 import scala.util.Try
 
@@ -145,9 +145,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
       val result = reportUploadService.upload(loginDetails, aXmlUrl, "reference1")
 
       result.map { value =>
-        value mustBe("failed")
         verify(statusRepository, times(1)).addError("reference1", Error(INVALID_XML, Seq("validation error")))
-        true mustBe(true)
+        value mustBe "failed"
       }
     }
 
@@ -169,10 +168,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
 
       result.map { value =>
-        value mustBe("failed")
-        verify(statusRepository, times(1)).addError("reference1", Error(CHARACTER, Seq()))
-        verify(statusRepository, times(1)).addError("reference1", Error(ATLEAST_ONE_PROPOSED, Seq()))
-        true mustBe(true)
+        verify(statusRepository, times(1)).addErrors("reference1", errors)
+//        verify(statusRepository, times(1)).addError("reference1", Error(CHARACTER, Seq()))
+//        verify(statusRepository, times(1)).addError("reference1", Error(ATLEAST_ONE_PROPOSED, Seq()))
+        value mustBe "failed"
       }
 
     }
@@ -209,26 +208,6 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
   }
 
-//  "SubmissionProcessingService" must {
-//    "not crash ReportUploadService" in {
-//      val submissionProcessingService = mock[SubmissionProcessingService]
-//      when(submissionProcessingService.processAsV1(any[String], any[String], any[String], any[BarError]))
-//        .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
-//
-//      when(submissionProcessingService.processAsV1(any[Array[Byte]], any[String], any[String]))
-//        .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
-//
-//      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationThrowError(), submissionProcessingService, aVoaEbarsConnector(), aEmailConnector(), aUpscanConnector())
-//      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
-//
-//      res.map { result =>
-//        verify(submissionProcessingService, times(1)).processAsV1(any[String], any[String], any[String], any[BarError])
-//        result mustBe "failed"
-//      }
-//
-//    }
-//  }
-
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
     val reportStatus = ReportStatus("submissionId", baCode = "BA1010", filename = Some("filename.xml"), status = Some(Pending.value))
@@ -240,6 +219,9 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
       .thenAnswer(_ => Future.successful(Right(true)))
 
     when(repository.addError(any[String], any[Error]))
+      .thenAnswer(_ => Future.successful(Right(true)))
+
+    when(repository.addErrors(any[String], any))
       .thenAnswer(_ => Future.successful(Right(true)))
 
     when(repository.getByReference(any[String]))
