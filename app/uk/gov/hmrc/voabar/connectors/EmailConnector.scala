@@ -41,7 +41,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
   private val emailUrl          = s"$protocol://$host:$port"
   private val needsToSendEmail  = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
 
-  private val email             = configuration.getOptional[String]("email")
+  private val email = configuration.getOptional[String]("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
 
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {

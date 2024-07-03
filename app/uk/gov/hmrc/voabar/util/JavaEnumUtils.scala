@@ -31,7 +31,7 @@ object JavaEnumUtils {
         catch {
           case _: NoSuchElementException => JsError(s"Enumeration expected of type: ${c.getName}, but it does not appear to contain the value: '$s'")
         }
-      case _           => JsError(s"String value expected")
+      case _           => JsError("String value expected")
     }
   }
 

@@ -78,16 +78,23 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     phone     <- Gen.option(genNum(max = 20))
   } yield ContactDetails(firstName, lastName, email, phone)
 
-  def genPlanningReference = for {
-    planningRef   <- Gen.option(genRestrictedString(max = 25))
-    noPlanningRef <-
-      Gen.oneOf(WithoutPlanningPermission, NotApplicablePlanningPermission, NotRequiredPlanningPermission, PermittedDevelopment, NoPlanningApplicationSubmitted)
-  } yield
-    if (planningRef.isDefined) {
-      (planningRef, None)
-    } else {
-      (planningRef, Some(noPlanningRef))
-    }
+  def genPlanningReference =
+    for {
+      planningRef   <- Gen.option(genRestrictedString(max = 25))
+      noPlanningRef <-
+        Gen.oneOf(
+          WithoutPlanningPermission,
+          NotApplicablePlanningPermission,
+          NotRequiredPlanningPermission,
+          PermittedDevelopment,
+          NoPlanningApplicationSubmitted
+        )
+    } yield
+      if (planningRef.isDefined) {
+        (planningRef, None)
+      } else {
+        (planningRef, Some(noPlanningRef))
+      }
 
   def getCr03Submission =
     for {

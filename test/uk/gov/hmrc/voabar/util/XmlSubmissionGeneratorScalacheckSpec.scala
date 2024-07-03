@@ -82,16 +82,23 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     phone     <- Gen.option(genNum(max = 20))
   } yield ContactDetails(firstName, lastName, email, phone)
 
-  def genPlanningReference = for {
-    planningRef   <- Gen.option(genRestrictedString(max = 25))
-    noPlanningRef <-
-      Gen.oneOf(WithoutPlanningPermission, NotApplicablePlanningPermission, NotRequiredPlanningPermission, PermittedDevelopment, NoPlanningApplicationSubmitted)
-  } yield
-    if (planningRef.isDefined) {
-      (planningRef, None)
-    } else {
-      (planningRef, Some(noPlanningRef))
-    }
+  def genPlanningReference =
+    for {
+      planningRef   <- Gen.option(genRestrictedString(max = 25))
+      noPlanningRef <-
+        Gen.oneOf(
+          WithoutPlanningPermission,
+          NotApplicablePlanningPermission,
+          NotRequiredPlanningPermission,
+          PermittedDevelopment,
+          NoPlanningApplicationSubmitted
+        )
+    } yield
+      if (planningRef.isDefined) {
+        (planningRef, None)
+      } else {
+        (planningRef, Some(noPlanningRef))
+      }
 
   def genCr03Submission =
     for {
@@ -314,6 +321,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   val evaluator =
     new DifferenceEvaluator {
+
       override def evaluate(comparison: Comparison, outcome: ComparisonResult): ComparisonResult =
         if (outcome != ComparisonResult.EQUAL) {
           if (comparison.getControlDetails.getTarget.getParentNode.getNodeName == "EntryDateTime") {

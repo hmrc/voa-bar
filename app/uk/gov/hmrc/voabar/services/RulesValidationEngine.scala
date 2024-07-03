@@ -75,9 +75,9 @@ class RulesValidationEngine {
           case (Some(ct), Some(ndr)) => throw new RuntimeException(s"Invalid tax, two codes in XML, ct: $ct ndr: $ndr")
           case (Some(_), None)       => Purpose.CT
           case (None, Some(_))       => Purpose.NDR
-          case (None, None)          => throw new RuntimeException(s"No tax code specified")
+          case (None, None)          => throw new RuntimeException("No tax code specified")
         }
-      }.getOrElse(throw new RuntimeException(s"Unable to find type of tax"))
+      }.getOrElse(throw new RuntimeException("Unable to find type of tax"))
 
 }
 
@@ -117,7 +117,7 @@ case object NdrValidationRules {
   }
 
   case object NdrCodeValidation extends ValidationRule {
-    val validCodes                                             = (1 to 19).map(x => "%02d".format(x)).toSet
+    val validCodes = (1 to 19).map(x => "%02d".format(x)).toSet
 
     override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       EbarsXmlCutter.extractCR(baReports) match {

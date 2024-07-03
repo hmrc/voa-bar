@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ object ContactDetails { implicit val format: OFormat[ContactDetails] = Json.form
 case class ContactDetails(firstName: String, lastName: String, email: Option[String], phoneNumber: Option[String])
 object Cr01Cr03Submission { val format: OFormat[Cr01Cr03Submission] = Json.format[Cr01Cr03Submission] }
 
-case class Cr01Cr03Submission(
+final case class Cr01Cr03Submission(
   reasonReport: Option[ReasonReportType],
   removalReason: Option[RemovalReasonType],
   otherReason: Option[String],
@@ -59,7 +59,7 @@ case class Cr05AddProperty(
 
 object Cr05AddProperty { implicit val format: OFormat[Cr05AddProperty] = Json.format[Cr05AddProperty] }
 
-case class Cr05Submission(
+final case class Cr05Submission(
   baReport: String,
   baRef: String,
   effectiveDate: LocalDate,

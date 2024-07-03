@@ -103,8 +103,10 @@ class SubmissionStatusRepositoryImpl @Inject() (
   override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] =
     collection.withReadPreference(ReadPreference.primary())
       .find(byId(reference)).sort(descending("createdAt")).toFuture()
-      .flatMap { res =>
-        checkAndUpdateSubmissionStatus(res.head).map(Right(_))
+      .flatMap {
+        _.headOption.fold(Future.failed(Exception("Submission not found"))) {
+          report => checkAndUpdateSubmissionStatus(report).map(Right(_))
+        }
       }
       .recover {
         case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports for reference $reference", ex, logger)

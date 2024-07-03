@@ -25,7 +25,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.connectors.{VoaBarAuditConnector, VoaEbarsConnector}
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
-import play.api.test.Helpers.{status, *}
+import play.api.test.Helpers.*
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
@@ -63,7 +63,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))
 
     result.isRight mustBe true
-    result.toOption.get mustBe LoginDetails("ba0121", "xxxdyyy")
+    result.toOption mustBe Some(LoginDetails("ba0121", "xxxdyyy"))
   }
 
   "return 200 for a POST carrying login details" in {

@@ -26,7 +26,7 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
-import play.api.test.Helpers.{status, _}
+import play.api.test.Helpers.*
 import uk.gov.hmrc.voabar.models.{BarMongoError, UserReportUploadRest}
 import play.api.test.Helpers.stubControllerComponents
 
@@ -37,8 +37,8 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
 
   implicit val materializer: Materializer = NoMaterializer
 
-  val error                = BarMongoError("error")
-  val id                   = "id"
+  val error = BarMongoError("error")
+  val id    = "id"
 
   val userReportUploadRest = UserReportUploadRest(
     id = id,
@@ -46,13 +46,13 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     userPassword = "pass"
   )
 
-  val userReportUpload     = UserReportUpload(
+  val userReportUpload = UserReportUpload(
     _id = id,
     userId = "userId",
     userPassword = "pass"
   )
-  val json                 = Json.toJson(userReportUploadRest)
-  val fakeRequest          = FakeRequest("", "").withBody(json)
+  val json             = Json.toJson(userReportUploadRest)
+  val fakeRequest      = FakeRequest("", "").withBody(json)
 
   "UserReportUploadsController" should {
     "save a user report upload successfully" in {

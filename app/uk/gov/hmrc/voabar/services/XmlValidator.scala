@@ -34,7 +34,7 @@ import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 class XmlErrorHandler extends ErrorHandler {
-  val errors                                               = mutable.Map[Int, Error]()
+  val errors = mutable.Map[Int, Error]()
 
   private def addError(exception: SAXParseException): Unit = {
     val split = exception.getMessage.split(":", 2) map (_.trim)

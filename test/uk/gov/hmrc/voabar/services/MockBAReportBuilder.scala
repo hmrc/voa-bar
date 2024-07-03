@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.voabar.services
 
-import scala.xml._
+import scala.annotation.tailrec
+import scala.xml.*
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 class MockBAReportBuilder {
@@ -67,6 +68,7 @@ class MockBAReportBuilder {
     addNode(root, newChilds)
   }
 
+  @tailrec
   private def concat(node: NodeSeq, existing: Int, proposed: Int): NodeSeq = existing match {
     case 0 => if (proposed == 0) {
         node
@@ -93,6 +95,7 @@ class MockBAReportBuilder {
   private def invalidate(node: Node, key: String, newValue: String): Seq[Node] = invalidator(invalidate(key, newValue), node)
 
   def invalidateBatch(node: Node, rules: Map[String, String]): NodeSeq = {
+    @tailrec
     def inval(keys: List[String], n: NodeSeq): NodeSeq = keys match {
       case Nil      => n
       case hd :: tl => inval(tl, invalidate(n.head, hd, rules(hd)))

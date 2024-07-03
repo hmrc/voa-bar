@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
   def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B]
 }
 
-case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() extends ExceptionsAccumulator[A, B] {
+final case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() extends ExceptionsAccumulator[A, B] {
 
   override def get: Seq[ReportErrorDetail] = Seq.empty[ReportErrorDetail]
 
@@ -42,7 +42,7 @@ case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() exten
   override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 }
 
-case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
+final case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
 
   override def get: Seq[ReportErrorDetail] = errors
 
