@@ -26,7 +26,6 @@ import uk.gov.hmrc.voabar.models.UploadDetails
 import uk.gov.hmrc.voabar.services.ReportUploadService
 import play.api.test.Helpers.stubControllerComponents
 
-
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val reportUploadService = mock[ReportUploadService]
@@ -39,25 +38,24 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val controller = new UploadController(reportUploadService, configuration, stubControllerComponents())
 
-  def fakeRequestWithXML = {
+  def fakeRequestWithXML =
     FakeRequest("POST", "/request?reference=1234")
       .withHeaders(
-        "BA-Code" -> "1234",
-        "password" -> encryptedPassword)
-        .withBody(UploadDetails("1234", "url"))
-  }
+        "BA-Code"  -> "1234",
+        "password" -> encryptedPassword
+      )
+      .withBody(UploadDetails("1234", "url"))
 
-  def fakeRequestWithXMLButNoBACode = {
+  def fakeRequestWithXMLButNoBACode =
     FakeRequest("POST", "")
-        .withBody(UploadDetails("1234", "url"))
-  }
+      .withBody(UploadDetails("1234", "url"))
 
-  def fakeRequestWithXMLButNoPassword = {
+  def fakeRequestWithXMLButNoPassword =
     FakeRequest("POST", "")
       .withHeaders(
-        "BA-Code" -> "1234")
+        "BA-Code" -> "1234"
+      )
       .withBody(UploadDetails("1234", "url"))
-  }
 
   "Return status 200 (OK) for a post carrying xml" in {
     val result = controller.upload()(fakeRequestWithXML)

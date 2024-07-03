@@ -35,24 +35,25 @@ trait WebBarsService {
 }
 
 @Singleton
-class DefaultWebBarsService @Inject() (reportUploadService: ReportUploadService)(
-  implicit ec: ExecutionContext) extends WebBarsService {
+class DefaultWebBarsService @Inject() (
+  reportUploadService: ReportUploadService
+)(implicit ec: ExecutionContext
+) extends WebBarsService {
 
   val log = Logger(this.getClass)
 
-  def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit = {
-    if(reportStatus.report.isDefined) {
+  def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit =
+    if (reportStatus.report.isDefined) {
       processReport(reportStatus, username, password)
     }
-  }
 
   def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
     val submission = DefaultWebBarsService.readReport(reportStatus)
 
     submission.foreach { submission =>
-      implicit val hc = HeaderCarrier()
-      val submissionGenerator = new XmlSubmissionGenerator(submission, username.substring(2).toInt,
-        BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
+      implicit val hc         = HeaderCarrier()
+      val submissionGenerator =
+        new XmlSubmissionGenerator(submission, username.substring(2).toInt, BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
       val areports = submissionGenerator.generateXml()
       log.debug("Generated report")
@@ -60,45 +61,42 @@ class DefaultWebBarsService @Inject() (reportUploadService: ReportUploadService)
       reportUploadService.upload(LoginDetails(username, password), areports, reportStatus.id)
     }
   }.recover {
-    case x: Exception => {
+    case x: Exception =>
       log.warn(s"Unable to process webBars report : ${reportStatus.redacted}")
-    }
   }
 
   import jakarta.xml.bind.Marshaller
   import java.io.StringWriter
 
   // Temporary methods to help validate the ticket generation
-  private def logReports(employee: BAreports): Unit = {
+  private def logReports(employee: BAreports): Unit =
     try {
-      val jaxbContext = JAXBContext.newInstance(classOf[BAreports])
+      val jaxbContext    = JAXBContext.newInstance(classOf[BAreports])
       val jaxbMarshaller = jaxbContext.createMarshaller
       jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, java.lang.Boolean.TRUE)
-      val sw = new StringWriter
+      val sw             = new StringWriter
       jaxbMarshaller.marshal(employee, sw)
-      val xmlContent = sw.toString
+      val xmlContent     = sw.toString
       log.debug(xmlContent)
     } catch {
       case e: JAXBException =>
-       log.warn(e.getMessage, e)
+        log.warn(e.getMessage, e)
     }
-  }
 
 }
 
 object DefaultWebBarsService {
 
-  def readReport(reportStatus: ReportStatus): Option[CrSubmission] = {
+  def readReport(reportStatus: ReportStatus): Option[CrSubmission] =
     reportStatus.report
       .map(_.value)
       .filter(x => x.contains("type") && x.contains("submission"))
       .flatMap { x =>
         x("type") match {
-          case JsString("Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
-          case JsString("Cr01Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
+          case JsString("Cr03Submission")                     => Cr01Cr03Submission.format.reads(x("submission")).asOpt
+          case JsString("Cr01Cr03Submission")                 => Cr01Cr03Submission.format.reads(x("submission")).asOpt
           case JsString(Cr05Submission.REPORT_SUBMISSION_KEY) => Cr05Submission.format.reads(x("submission")).asOpt
-          case _ => None
+          case _                                              => None
         }
       }
-  }
 }

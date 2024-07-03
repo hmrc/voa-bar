@@ -35,15 +35,15 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
   val xmlParser = new XmlParser()
 
   val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTValid1.xml")
-  val validWithXXE = getClass.getResource("/xml/CTValidWithXXE.xml")
-  val invalidWithXXE2 = getClass.getResource("/xml/WithXXE.xml")
+  val validWithXXE               = getClass.getResource("/xml/CTValidWithXXE.xml")
+  val invalidWithXXE2            = getClass.getResource("/xml/WithXXE.xml")
 
   val batchSubmission: Node = xmlParser.parse(xmlBatchSubmissionAsString)
     .flatMap(document => domToScalaXMLNode(document))
     .left.map(e => logger.error(s"XmlParser error: $e"))
     .getOrElse(fail("Convert DOM Document to Scala XML Node failed"))
 
-  def domToScalaXMLNode(document: org.w3c.dom.Document): Either[BarError, Node] = {
+  def domToScalaXMLNode(document: org.w3c.dom.Document): Either[BarError, Node] =
     Try {
       val saxHandler = new NoBindingFactoryAdapter() {
         override def endDocument(): Unit = {}
@@ -60,13 +60,12 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
         logger.error("Transforming DOM to Scala XML Node failed", exception)
         Left(BarXmlError(exception.getMessage))
     }
-  }
 
   "Xml parser " must {
     "successfuly parse xml to DOM" in {
       val document = xmlParser.parse(xmlBatchSubmissionAsString)
       document mustBe Symbol("right")
-      document.value.getDocumentElement.getNodeName mustBe ("BAreports")
+      document.value.getDocumentElement.getNodeName mustBe "BAreports"
     }
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
@@ -80,7 +79,6 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
     }
 
   }
-
 
   "A BatchSubmission" must {
 
@@ -96,7 +94,6 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
       (batchSubmission \ "BAreportTrailer").isEmpty mustBe false
     }
   }
-
 
   "A BatchHeader" must {
 
@@ -205,7 +202,7 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
   "A BA batch submission" must {
 
     val report: Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
-    val result = xmlParser.oneReportPerBatch(report)
+    val result       = xmlParser.oneReportPerBatch(report)
 
     "be parsed into multiple smaller batches" in {
 

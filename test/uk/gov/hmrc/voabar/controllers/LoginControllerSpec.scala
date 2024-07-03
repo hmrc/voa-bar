@@ -46,15 +46,15 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
   when(mockVoaEbarsConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(OK))
 
   val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
-  when (mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
+  when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val mockAudit = mock[VoaBarAuditConnector]
 
   val applicationCrypto = app.injector.instanceOf[ApplicationCrypto]
-  val encryptedPassword = applicationCrypto.JsonCrypto.encrypt (PlainText ("xxxdyyy") ).value
+  val encryptedPassword = applicationCrypto.JsonCrypto.encrypt(PlainText("xxxdyyy")).value
 
-  val goodJson = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
+  val goodJson  = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
   private def controller = new LoginController(mockVoaEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
@@ -73,13 +73,13 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
 
   "return 400 (badrequest) when given no json" in {
     val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json")
-    val result = controller.login()(fakeRequest)
+    val result      = controller.login()(fakeRequest)
     status(result) mustBe BAD_REQUEST
   }
 
   "return 400 (badrequest) when given garbled json" in {
     val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withTextBody("{")
-    val result = controller.login()(fakeRequest)
+    val result      = controller.login()(fakeRequest)
     status(result) mustBe BAD_REQUEST
   }
 

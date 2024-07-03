@@ -45,7 +45,7 @@ trait FunctionalRun extends Logging {
       case voaBarException: VoaBarException =>
         logger.error(s"VoaBarException: ${voaBarException.error}")
         InternalServerError(voaBarException.getMessage)
-      case ex =>
+      case ex                               =>
         logger.error(s"Exception: $ex")
         InternalServerError(ex.getMessage)
     }.unsafeToFuture()

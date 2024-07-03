@@ -31,8 +31,7 @@ class VoaBARModule extends AbstractModule {
   }
 
   @Provides
-  def jsonCryptoProvider(config: Configuration): Encrypter with Decrypter = {
+  def jsonCryptoProvider(config: Configuration): Encrypter with Decrypter =
     new ApplicationCrypto(config.underlying).JsonCrypto
-  }
 
 }

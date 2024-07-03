@@ -23,17 +23,11 @@ case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[Strin
 
 object ReportErrorDetail {
   implicit val errorCodeFormat: Format[ReportErrorDetailCode] = JavaEnumUtils.format[ReportErrorDetailCode]
-  implicit val format: OFormat[ReportErrorDetail] = Json.format[ReportErrorDetail]
+  implicit val format: OFormat[ReportErrorDetail]             = Json.format[ReportErrorDetail]
 
 }
 
-
-
-case class ReportError(reportNumber: Option[String],
-                       baTransaction: Option[String],
-                       uprn: Seq[Long],
-                       errors: Seq[ReportErrorDetail]
-                      )
+case class ReportError(reportNumber: Option[String], baTransaction: Option[String], uprn: Seq[Long], errors: Seq[ReportErrorDetail])
 
 object ReportError {
   implicit val format: OFormat[ReportError] = Json.format[ReportError]

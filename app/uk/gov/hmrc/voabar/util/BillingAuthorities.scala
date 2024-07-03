@@ -374,5 +374,6 @@ object BillingAuthorities {
     "BA6950" -> "Vale of Glamorgan",
     "BA6955" -> "Wrexham",
     "BA3515" -> "Ipswich",
-    "BA3520" -> "Mid Suffolk")
+    "BA3520" -> "Mid Suffolk"
+  )
 }

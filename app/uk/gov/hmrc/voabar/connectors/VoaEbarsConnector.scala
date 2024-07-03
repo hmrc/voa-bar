@@ -26,39 +26,38 @@ import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.models.EbarsRequests._
 import uk.gov.hmrc.voabar.models.LoginDetails
-import uk.gov.hmrc.voabar.services.{EbarsClient, EbarsClientV2, EbarsApiError}
+import uk.gov.hmrc.voabar.services.{EbarsApiError, EbarsClient, EbarsClientV2}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try, Using}
 
-
 /**
  * @author Yuriy Tumakha
  */
 @Singleton
-class DefaultVoaEbarsConnector @Inject()(
-                                          servicesConfig: ServicesConfig,
-                                          configuration: Configuration,
-                                          ebarsClientV2: EbarsClientV2,
-                                          audit: VoaBarAuditConnector
-                                        ) extends VoaEbarsConnector with Logging {
+class DefaultVoaEbarsConnector @Inject() (
+  servicesConfig: ServicesConfig,
+  configuration: Configuration,
+  ebarsClientV2: EbarsClientV2,
+  audit: VoaBarAuditConnector
+) extends VoaEbarsConnector
+  with Logging {
 
   val ebarsValidator: EbarsValidator = new EbarsValidator
 
-  override def validate(loginDetails: LoginDetails)(implicit executionContext: ExecutionContext,
-                                                    headerCarrier: HeaderCarrier): Future[Try[Int]] =
+  override def validate(loginDetails: LoginDetails)(implicit executionContext: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] =
     Future.successful {
       Using(new EbarsClient(loginDetails.username, loginDetails.password, servicesConfig, configuration)) {
         _.login match {
-          case Success(_) => OK
+          case Success(_)  => OK
           case Failure(ex) =>
             ex match {
               case _: UnauthorizedException =>
                 logger.debug(s"Login failed. username: ${loginDetails.username}")
-              case e: EbarsApiError =>
+              case e: EbarsApiError         =>
                 logger.warn(s"Login failed. username: ${loginDetails.username}, status: ${e.status}, error: ${e.message}")
-              case e =>
+              case e                        =>
                 logger.warn(s"Login failed. username: ${loginDetails.username}, other problem : ${e.getMessage}", e)
             }
             throw ex
@@ -66,7 +65,7 @@ class DefaultVoaEbarsConnector @Inject()(
       }
     }
 
-  def sendBAReport(baReportRequest: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+  def sendBAReport(baReportRequest: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] =
     Try(ebarsValidator.fromJson(baReportRequest.propertyReport)) map { reports =>
       val xml = ebarsValidator.toXml(reports)
       (reports, xml, ebarsValidator.validate(xml))
@@ -74,22 +73,21 @@ class DefaultVoaEbarsConnector @Inject()(
       case Success((reports, _, errors)) if errors.hasErrors =>
         import models.EbarsBAreports._
         Future.failed(new RuntimeException(s"propertyReferenceNumbers: ${reports.uniquePropertyReferenceNumbers}. errors: $errors"))
-      case Success((reports, xml, _)) =>
+      case Success((reports, xml, _))                        =>
         sendXML(baReportRequest, reports, xml)
-      case Failure(e) if e.getCause != null => Future.failed(e.getCause)
-      case Failure(e) => Future.failed(e)
+      case Failure(e) if e.getCause != null                  => Future.failed(e.getCause)
+      case Failure(e)                                        => Future.failed(e)
     }
-  }
 
-  private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)
-                     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+  private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier)
+    : Future[Int] =
     ebarsClientV2.uploadXMl(baReportRequest.username, baReportRequest.password, xml, baReportRequest.attempt).flatMap {
-      case Success(_) =>
-        val billingAuthority = reports.getBAreportHeader.getBillingAuthority
+      case Success(_)                =>
+        val billingAuthority     = reports.getBAreportHeader.getBillingAuthority
         val billingAuthorityCode = reports.getBAreportHeader.getBillingAuthorityIdentityCode
-        val reportContent = reports.getBApropertyReport.get(0).getContent
-        val transactionId = reportContent.get(1).getValue.toString
-        val reportNumber = reportContent.get(3).getValue.toString
+        val reportContent        = reports.getBApropertyReport.get(0).getContent
+        val transactionId        = reportContent.get(1).getValue.toString
+        val reportNumber         = reportContent.get(3).getValue.toString
 
         logger.info(s"Report [$reportNumber]/${baReportRequest.attempt} for $billingAuthority [$billingAuthorityCode]: TxId:[$transactionId] to eBars")
 
@@ -100,16 +98,15 @@ class DefaultVoaEbarsConnector @Inject()(
         Future.successful(OK)
       case Failure(e: EbarsApiError) =>
         e.status match {
-          case OK => Future.failed(new RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
-          case SERVICE_UNAVAILABLE => Future.failed(new RuntimeException("eBars UNAVAILABLE"))
+          case OK                    => Future.failed(new RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
+          case SERVICE_UNAVAILABLE   => Future.failed(new RuntimeException("eBars UNAVAILABLE"))
           case INTERNAL_SERVER_ERROR => Future.failed(new RuntimeException("eBars INTERNAL_SERVER_ERROR"))
-          case status => Future.failed(new RuntimeException(s"Unspecified eBars error, status: $status"))
+          case status                => Future.failed(new RuntimeException(s"Unspecified eBars error, status: $status"))
         }
-      case Failure(e) =>
+      case Failure(e)                =>
         logger.warn(s"Couldn't send BA Reports. ${e.getMessage}", e)
         Future.failed(e)
     }
-  }
 
 }
 

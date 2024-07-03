@@ -25,14 +25,13 @@ object JavaEnumUtils {
   private def enumReads[T <: Enum[T]](c: Class[T]): Reads[T] = new Reads[T] {
 
     def reads(json: JsValue): JsResult[T] = json match {
-      case JsString(s) => {
-        try {
+      case JsString(s) =>
+        try
           JsSuccess(Enum.valueOf[T](c, s))
-        } catch {
+        catch {
           case _: NoSuchElementException => JsError(s"Enumeration expected of type: ${c.getName}, but it does not appear to contain the value: '$s'")
         }
-      }
-      case _ => JsError(s"String value expected")
+      case _           => JsError(s"String value expected")
     }
   }
 
@@ -40,8 +39,7 @@ object JavaEnumUtils {
     def writes(v: T): JsValue = JsString(v.toString)
   }
 
-  def format[T <: Enum[T]](implicit classTag: ClassTag[T]): Format[T] = {
+  def format[T <: Enum[T]](implicit classTag: ClassTag[T]): Format[T] =
     Format(JavaEnumUtils.enumReads[T](classTag.runtimeClass.asInstanceOf[Class[T]]), JavaEnumUtils.enumWrites[T])
-  }
 
 }

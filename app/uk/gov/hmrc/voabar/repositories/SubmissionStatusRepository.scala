@@ -38,18 +38,16 @@ import java.time.temporal.ChronoUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
 object SubmissionStatusRepository {
   val submissionsCollectionName = "submissions"
 }
 
 @Singleton
-class SubmissionStatusRepositoryImpl @Inject()(
-                                                mongo: MongoComponent,
-                                                config: Configuration
-                                              )
-                                              (implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[ReportStatus](
+class SubmissionStatusRepositoryImpl @Inject() (
+  mongo: MongoComponent,
+  config: Configuration
+)(implicit executionContext: ExecutionContext
+) extends PlayMongoRepository[ReportStatus](
     collectionName = submissionsCollectionName,
     mongoComponent = mongo,
     domainFormat = ReportStatus.format,
@@ -61,7 +59,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
       Codecs.playFormatCodec(Error.format),
       Codecs.playFormatCodec(MongoJavatimeFormats.instantFormat)
     )
-  ) with SubmissionStatusRepository with Logging {
+  )
+  with SubmissionStatusRepository
+  with Logging {
 
   val timeoutMinutes = 120
 
@@ -100,7 +100,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
+  override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] =
     collection.withReadPreference(ReadPreference.primary())
       .find(byId(reference)).sort(descending("createdAt")).toFuture()
       .flatMap { res =>
@@ -109,9 +109,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports for reference $reference", ex, logger)
       }
-  }
 
-  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
+  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] =
     collection.withReadPreference(ReadPreference.primary())
       .find().sort(descending("createdAt")).toFuture()
       .flatMap { res =>
@@ -120,7 +119,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => handleMongoWarn("Couldn't retrieve all BA reports", ex, logger)
       }
-  }
 
   def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
     val modifier = pushEach("errors", errors: _*)
@@ -158,7 +156,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.deleteOne(deleteSelector).toFutureOption()
       .map { deleteResult =>
         val deletedCount = deleteResult.map(_.getDeletedCount).getOrElse(0L)
-        val response = Json.obj("n" -> deletedCount)
+        val response     = Json.obj("n" -> deletedCount)
         logger.warn(s"Deletion on $collectionName done, returning response : $response")
         Right(response)
       }
@@ -167,7 +165,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
+  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] =
     if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
     } else {
@@ -177,7 +175,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
         Future.successful(report)
       }
     }
-  }
 
   private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
     val update = Updates.combine(
@@ -186,12 +183,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
     )
 
     collection
-      .findOneAndUpdate(byId(report.id), update,
-        FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER))
+      .findOneAndUpdate(byId(report.id), update, FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER))
       .toFutureOption()
       .flatMap {
         case Some(reportStatus) => Future.successful(reportStatus)
-        case _ => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
+        case _                  => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
       }
   }
 
@@ -199,7 +195,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
-        case _ =>
+        case _                                                        =>
           val errorMsg = s"Report status wasn't updated for $submissionId"
           logger.error(errorMsg)
           Left(BarMongoError(errorMsg))
@@ -212,7 +208,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
-        case _ =>
+        case _                                                        =>
           val errorMsg = s"Error message wasn't recorded for $submissionId"
           logger.error(errorMsg)
           Left(BarMongoError(errorMsg))
@@ -248,11 +244,11 @@ trait SubmissionStatusRepository {
 
   def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]]
 
-  def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
+  def getByUser(userId: String, filter: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]]
 
-  def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
+  def getByReference(reference: String): Future[Either[BarError, ReportStatus]]
 
-  def deleteByReference(reference: String, user: String) : Future[Either[BarError, JsValue]]
+  def deleteByReference(reference: String, user: String): Future[Either[BarError, JsValue]]
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 

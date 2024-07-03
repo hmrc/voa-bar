@@ -30,32 +30,31 @@ import java.time.Instant
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-final case class UserReportUpload(_id: String,
-                                  userId: String,
-                                  userPassword: String,
-                                  createdAt: Instant = Instant.now)
+final case class UserReportUpload(_id: String, userId: String, userPassword: String, createdAt: Instant = Instant.now)
 
 object UserReportUpload {
 
   import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.*
 
   implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
-  final val collectionName = classOf[UserReportUpload].getSimpleName.toLowerCase
+  final val collectionName                       = classOf[UserReportUpload].getSimpleName.toLowerCase
 }
 
 @Singleton
 class DefaultUserReportUploadsRepository @Inject() (
-                                                   mongo: MongoComponent,
-                                                   config: Configuration
-                                 )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[UserReportUpload](
+  mongo: MongoComponent,
+  config: Configuration
+)(implicit ec: ExecutionContext
+) extends PlayMongoRepository[UserReportUpload](
     collectionName = UserReportUpload.collectionName,
     mongoComponent = mongo,
     domainFormat = UserReportUpload.format,
     indexes = Seq(
       IndexModel(Indexes.descending("createdAt"), indexOptionsWithTTL(UserReportUpload.collectionName + "TTL", UserReportUpload.collectionName, config))
     )
-  ) with UserReportUploadsRepository with Logging {
+  )
+  with UserReportUploadsRepository
+  with Logging {
 
   override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit]] =
     collection.insertOne(userReportUpload).toFuture()

@@ -32,5 +32,5 @@ object Error {
 
   val errorCodecRegistry: CodecRegistry = fromProviders(errorCodecProvider)
 
-  //implicit val errorHandler: BSONHandler[BsonDocument, Error] = Macros.handler[Error]
+  // implicit val errorHandler: BSONHandler[BsonDocument, Error] = Macros.handler[Error]
 }

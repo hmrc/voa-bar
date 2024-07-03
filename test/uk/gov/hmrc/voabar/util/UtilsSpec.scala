@@ -29,15 +29,15 @@ import org.mockito.ArgumentMatchers.any
 
 class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
-  private val username = "ba0121"
-  private val password = "wibble"
+  private val username  = "ba0121"
+  private val password  = "wibble"
   private val goodLogin = LoginDetails(username, password)
   "Utils" must {
-    "have decryptPassword method that" must {
+    "have decryptPassword method that"   must {
       "Decrypt the  encrypted password and return it in plain text" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
+        val cryptoMock        = mock[Encrypter with Decrypter]
         when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
-        val utils = new Utils(cryptoMock)
+        val utils             = new Utils(cryptoMock)
         val decryptedPassword = utils.decryptPassword(password)
         decryptedPassword mustBe password
       }
@@ -46,32 +46,34 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
       "include some basic authorization in the header" in {
         val cryptoMock = mock[Encrypter with Decrypter]
-        val utils = new Utils(cryptoMock)
+        val utils      = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
 
-        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
+        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
         hc.authorization match {
-          case Some(s) => hc.authorization.isDefined mustBe true
-            s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
-          case _ => assert(false)
+          case Some(s) =>
+            hc.authorization.isDefined mustBe true
+            s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
+          case _       => assert(false)
         }
       }
 
       "include some basic authorization in the header for existing header carrier" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
-        val utils = new Utils(cryptoMock)
+        val cryptoMock    = mock[Encrypter with Decrypter]
+        val utils         = new Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 
         val hc = utils.generateHeader(goodLogin, headerCarrier)
 
-        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
+        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
         hc.authorization match {
-          case Some(s) => hc.authorization.isDefined mustBe true
-            s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
-          case _ => assert(false)
+          case Some(s) =>
+            hc.authorization.isDefined mustBe true
+            s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
+          case _       => assert(false)
         }
       }
     }

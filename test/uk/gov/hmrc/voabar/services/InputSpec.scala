@@ -21,11 +21,12 @@ import java.io.Reader
 import org.scalatestplus.play.PlaySpec
 
 class InputSpec extends PlaySpec {
-  val input = new Input
-  val encoding = "some encoding"
+  val input      = new Input
+  val encoding   = "some encoding"
   val stringData = "some data"
 
-  class FakeReader extends Reader{override def read(cbuf: Array[Char], off: Int, len: Int): Int = 1
+  class FakeReader extends Reader {
+    override def read(cbuf: Array[Char], off: Int, len: Int): Int = 1
 
     override def close(): Unit = ()
   }
@@ -53,9 +54,9 @@ class InputSpec extends PlaySpec {
       input.getCertifiedText mustBe false
     }
 
-    "setStringData method shouls set the stringData variable to 'some data' when calling the method with 'some data' value" in{
-       input.setStringData(stringData)
-       input.getStringData mustBe stringData
+    "setStringData method shouls set the stringData variable to 'some data' when calling the method with 'some data' value" in {
+      input.setStringData(stringData)
+      input.getStringData mustBe stringData
     }
 
     "setCharacterStream method should set the variable reader to the given value" in {

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.connectors
 
-
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.{times, verify, when}
 import models.Purpose
@@ -39,30 +38,34 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   private def injector: Injector = app.injector
 
   private val configuration = injector.instanceOf[Configuration]
-  private val crypto = new ApplicationCrypto(configuration.underlying)
-  private val utils = new Utils(crypto.JsonCrypto)
-  private val username = "username"
-  private val password = "password"
-  private val baCode = "BA1234"
-  private val purpose = Purpose.CT
-  private val submissionId = "submissionId"
-  private val filename = "filename.xml"
-  private val date = "2000-01-01"
+  private val crypto        = new ApplicationCrypto(configuration.underlying)
+  private val utils         = new Utils(crypto.JsonCrypto)
+  private val username      = "username"
+  private val password      = "password"
+  private val baCode        = "BA1234"
+  private val purpose       = Purpose.CT
+  private val submissionId  = "submissionId"
+  private val filename      = "filename.xml"
+  private val date          = "2000-01-01"
 
   def getConfiguration(sendEmail: Boolean = true): Configuration =
     Configuration(
-      "microservice.services.email.host"-> "localhost",
-      "microservice.services.email.port" -> "80",
+      "microservice.services.email.host"     -> "localhost",
+      "microservice.services.email.port"     -> "80",
       "microservice.services.email.protocol" -> "http",
-      "needToSendEmail" -> sendEmail,
-      "email" -> "foo@bar.co.uk"
+      "needToSendEmail"                      -> sendEmail,
+      "email"                                -> "foo@bar.co.uk"
     )
 
   "EmailConnector" must {
     "verify that the email service gets called when email needs to be sent" in {
       val httpMock = mock[HttpClient]
-      when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[JsValue]], any[HttpReads[Any]],
-        any[HeaderCarrier], any[ExecutionContext])) thenReturn Future.successful(HttpResponse(OK, ""))
+      when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(
+        any[Writes[JsValue]],
+        any[HttpReads[Any]],
+        any[HeaderCarrier],
+        any[ExecutionContext]
+      )) thenReturn Future.successful(HttpResponse(OK, ""))
 
       val connector = new DefaultEmailConnector(httpMock, getConfiguration(), utils)
 
@@ -72,7 +75,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
         .POST[JsObject, Unit](anyString, any[JsObject], any)(any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
     }
     "verify that the email service doesn't get called when email needn't to be sent" in {
-      val httpMock = mock[HttpClient]
+      val httpMock  = mock[HttpClient]
       val connector = new DefaultEmailConnector(httpMock, getConfiguration(sendEmail = false), utils)
 
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")

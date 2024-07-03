@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
@@ -46,9 +45,15 @@ import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
-class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with OptionValues
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite  with MockitoSugar {
+class UploadControllerIntSpec
+  extends PlaySpec
+  with BeforeAndAfterAll
+  with OptionValues
+  with EitherValues
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar {
 
   val voaEbarsConnector = mock[VoaEbarsConnector]
 
@@ -56,17 +61,17 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
     .thenAnswer(_ => Future.successful(OK))
 
   override def fakeApplication() = new GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
+    .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
     .bindings(
       bind[VoaEbarsConnector].to(voaEbarsConnector),
       bind[UpscanConnector].to[UploadControllerIntSpecUpscanConnector]
     )
     .build()
 
-  lazy val controller = app.injector.instanceOf[UploadController]
-  lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
+  lazy val controller           = app.injector.instanceOf[UploadController]
+  lazy val mongoComponent       = app.injector.instanceOf[MongoComponent]
   lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
-  lazy val configuration = app.injector.instanceOf[play.api.Configuration]
+  lazy val configuration        = app.injector.instanceOf[play.api.Configuration]
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -76,12 +81,11 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
     FakeRequest("POST", "/voa-bar/upload")
       .withHeaders(
-        "BA-Code" -> "BA5090",
+        "BA-Code"  -> "BA5090",
         "password" -> crypto.encrypt(PlainText("BA5090")).value
       )
       .withBody(UploadDetails("1234", xmlURL))
   }
-
 
   "Upload controller " must {
 
@@ -107,16 +111,14 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   }
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll(): Unit =
     mongoComponent.client.close()
-  }
 
 }
 
 @Singleton
 class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector {
 
-  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
+  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
-  }
 }

@@ -24,7 +24,7 @@ import uk.gov.hmrc.voabar.util.ErrorCode.*
 
 class ErrorSpec extends PlaySpec {
 
-  val code = CHARACTER
+  val code       = CHARACTER
   val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)

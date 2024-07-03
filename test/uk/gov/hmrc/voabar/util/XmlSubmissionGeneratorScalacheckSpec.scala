@@ -37,135 +37,178 @@ import jakarta.xml.bind.{JAXBContext, Marshaller}
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 
-
 class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 500)
 
-  val parser = new XmlParser()
+  val parser    = new XmlParser()
   val validator = new XmlValidator()
 
-  val jaxb = JAXBContext.newInstance(classOf[BAreports])
+  val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
   def otherChar = Gen.oneOf(""" ~!"@#$%+&;'()*,-./:;<=>?[\]_{}^£€""".toSeq)
 
-  def restrictedChar = frequency((1,otherChar), (5,Gen.alphaNumChar))
+  def restrictedChar = frequency((1, otherChar), (5, Gen.alphaNumChar))
 
   def genRestrictedString(min: Int = 1, max: Int = 8) = for {
-    lenght <- Gen.chooseNum(min,max)
-    str <- Gen.containerOfN[List,Char](lenght, restrictedChar)
-  }yield (str.mkString)
+    lenght <- Gen.chooseNum(min, max)
+    str    <- Gen.containerOfN[List, Char](lenght, restrictedChar)
+  } yield str.mkString
 
   def genNum(min: Int = 1, max: Int = 8) = for {
-    lenght <- Gen.chooseNum(min,max)
-    str <- Gen.containerOfN[List,Char](lenght, Gen.numChar)
-  }yield (str.mkString)
+    lenght <- Gen.chooseNum(min, max)
+    str    <- Gen.containerOfN[List, Char](lenght, Gen.numChar)
+  } yield str.mkString
 
   def genEffectiveDate = for {
-    year <- Gen.chooseNum(1993, 2010)
-    month <- Gen.chooseNum(1,12)
-    day <- Gen.chooseNum(1,28)
-  } yield(LocalDate.of(year, month, day))
+    year  <- Gen.chooseNum(1993, 2010)
+    month <- Gen.chooseNum(1, 12)
+    day   <- Gen.chooseNum(1, 28)
+  } yield LocalDate.of(year, month, day)
 
-  def genAddress(max:Int = 35) = for {
-    line1 <- genRestrictedString(max=max)
-    line2 <- genRestrictedString(max=max)
-    line3 <- Gen.option(genRestrictedString(max=max))
-    line4 <- Gen.option(genRestrictedString(max=max))
-  }yield (Address(line1, line2, line3, line4, "BN12 4AX"))
+  def genAddress(max: Int = 35) = for {
+    line1 <- genRestrictedString(max = max)
+    line2 <- genRestrictedString(max = max)
+    line3 <- Gen.option(genRestrictedString(max = max))
+    line4 <- Gen.option(genRestrictedString(max = max))
+  } yield Address(line1, line2, line3, line4, "BN12 4AX")
 
   def genContactDetails = for {
-    firstName <- genRestrictedString(max=35)
-    lastName <- genRestrictedString(max=35)
-    email <- Gen.option(genRestrictedString())
-    phone <- Gen.option(genNum(max=20))
-  }yield (ContactDetails(firstName, lastName, email, phone))
+    firstName <- genRestrictedString(max = 35)
+    lastName  <- genRestrictedString(max = 35)
+    email     <- Gen.option(genRestrictedString())
+    phone     <- Gen.option(genNum(max = 20))
+  } yield ContactDetails(firstName, lastName, email, phone)
 
   def genPlanningReference = for {
-    planningRef <- Gen.option(genRestrictedString(max=25))
-    noPlanningRef <- Gen.oneOf(WithoutPlanningPermission, NotApplicablePlanningPermission, NotRequiredPlanningPermission, PermittedDevelopment, NoPlanningApplicationSubmitted)
-  }yield {
-    if(planningRef.isDefined) {
+    planningRef   <- Gen.option(genRestrictedString(max = 25))
+    noPlanningRef <-
+      Gen.oneOf(WithoutPlanningPermission, NotApplicablePlanningPermission, NotRequiredPlanningPermission, PermittedDevelopment, NoPlanningApplicationSubmitted)
+  } yield
+    if (planningRef.isDefined) {
       (planningRef, None)
-    }else {
+    } else {
       (planningRef, Some(noPlanningRef))
     }
-  }
 
-  def genCr03Submission = for {
-    //reportReason <- Gen.option(AddProperty)
-    baReport <- genRestrictedString(max = 12)
-    baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
-    address <- genAddress(max = 100)
-    contactAddress <- Gen.option(genAddress())
-    contactDetails <- genContactDetails
-    effectiveDate <- genEffectiveDate
-    (planningRef, noPlanningRef) <- genPlanningReference
-    comment <- Gen.option(genRestrictedString(max=226))
-  } yield Cr01Cr03Submission(Some(AddProperty), None, None,
-    baReport, baRef, uprn, address, contactDetails, contactAddress.isEmpty, contactAddress,
-    effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment
-  )
+  def genCr03Submission =
+    for {
+      // reportReason <- Gen.option(AddProperty)
+      baReport                     <- genRestrictedString(max = 12)
+      baRef                        <- genRestrictedString(max = 25)
+      uprn                         <- Gen.option(Gen.chooseNum(1L, 999999999999L).map(_.toString))
+      address                      <- genAddress(max = 100)
+      contactAddress               <- Gen.option(genAddress())
+      contactDetails               <- genContactDetails
+      effectiveDate                <- genEffectiveDate
+      (planningRef, noPlanningRef) <- genPlanningReference
+      comment                      <- Gen.option(genRestrictedString(max = 226))
+    } yield Cr01Cr03Submission(
+      Some(AddProperty),
+      None,
+      None,
+      baReport,
+      baRef,
+      uprn,
+      address,
+      contactDetails,
+      contactAddress.isEmpty,
+      contactAddress,
+      effectiveDate,
+      planningRef.isDefined,
+      planningRef,
+      noPlanningRef,
+      comment
+    )
 
-  def genCr01Submission = for {
-    reportReason <- Gen.some(RemoveProperty)
-    removalReason <- Gen.option(Gen.oneOf[RemovalReasonType](
-      Demolition, Disrepair, Renovating, NotComplete,
-      BandedTooSoon, CaravanRemoved, Duplicate, OtherReason))
-    otherReason <-  if (removalReason.contains(OtherReason))
-      Gen.some(genRestrictedString(max = 32)) else Gen.const(Option.empty[String])
-    baReport <- genRestrictedString(max = 12)
-    baRef <- genRestrictedString(max = 25)
-    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
-    address <- genAddress(max = 100)
-    contactAddress <- Gen.some(genAddress())
-    contactDetails <- genContactDetails
-    effectiveDate <- genEffectiveDate
-    (planningRef, noPlanningRef) <- genPlanningReference
-    comment <- Gen.option(genRestrictedString(max=150))
-  } yield Cr01Cr03Submission(reportReason, removalReason, otherReason,
-    baReport, baRef, uprn, address, contactDetails, contactAddress.isEmpty, contactAddress,
-    effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment
-  )
+  def genCr01Submission =
+    for {
+      reportReason                 <- Gen.some(RemoveProperty)
+      removalReason                <- Gen.option(Gen.oneOf[RemovalReasonType](
+                                        Demolition,
+                                        Disrepair,
+                                        Renovating,
+                                        NotComplete,
+                                        BandedTooSoon,
+                                        CaravanRemoved,
+                                        Duplicate,
+                                        OtherReason
+                                      ))
+      otherReason                  <- if (removalReason.contains(OtherReason))
+                                        Gen.some(genRestrictedString(max = 32))
+                                      else Gen.const(Option.empty[String])
+      baReport                     <- genRestrictedString(max = 12)
+      baRef                        <- genRestrictedString(max = 25)
+      uprn                         <- Gen.option(Gen.chooseNum(1L, 999999999999L).map(_.toString))
+      address                      <- genAddress(max = 100)
+      contactAddress               <- Gen.some(genAddress())
+      contactDetails               <- genContactDetails
+      effectiveDate                <- genEffectiveDate
+      (planningRef, noPlanningRef) <- genPlanningReference
+      comment                      <- Gen.option(genRestrictedString(max = 150))
+    } yield Cr01Cr03Submission(
+      reportReason,
+      removalReason,
+      otherReason,
+      baReport,
+      baRef,
+      uprn,
+      address,
+      contactDetails,
+      contactAddress.isEmpty,
+      contactAddress,
+      effectiveDate,
+      planningRef.isDefined,
+      planningRef,
+      noPlanningRef,
+      comment
+    )
 
   def genProperty = for {
-    uprn <- Gen.option(Gen.chooseNum(1L,999999999999L).map(_.toString))
-    address <- genAddress()
+    uprn                   <- Gen.option(Gen.chooseNum(1L, 999999999999L).map(_.toString))
+    address                <- genAddress()
     propertyContactDetails <- genContactDetails
-    contactAddress <- Gen.option(genAddress())
-  }yield Cr05AddProperty(uprn, address, propertyContactDetails, contactAddress.isEmpty,contactAddress)
+    contactAddress         <- Gen.option(genAddress())
+  } yield Cr05AddProperty(uprn, address, propertyContactDetails, contactAddress.isEmpty, contactAddress)
 
   def genProperties = for {
     numberOfProperties <- Gen.chooseNum(1, 5)
-    properties <- Gen.containerOfN[List,Cr05AddProperty](numberOfProperties, genProperty)
+    properties         <- Gen.containerOfN[List, Cr05AddProperty](numberOfProperties, genProperty)
   } yield properties
 
-  def genCr05Submission = for {
-    baReport <- genRestrictedString(max = 12)
-    baRef <- genRestrictedString(max = 25)
-    effectiveDate <- genEffectiveDate
-    commentValue <- Gen.option(genRestrictedString(max=150))
-    proposedProperties <- genProperties
-    existingPropertis <- genProperties
-    (planningRef, noPlanningRef) <- genPlanningReference
-  } yield Cr05Submission(baReport = baReport, baRef = baRef, effectiveDate = effectiveDate,
-    proposedProperties = proposedProperties,
-    existingPropertis = existingPropertis,
-    planningRef = planningRef, noPlanningReference = noPlanningRef,
-    comments = commentValue
-  )
+  def genCr05Submission =
+    for {
+      baReport                     <- genRestrictedString(max = 12)
+      baRef                        <- genRestrictedString(max = 25)
+      effectiveDate                <- genEffectiveDate
+      commentValue                 <- Gen.option(genRestrictedString(max = 150))
+      proposedProperties           <- genProperties
+      existingPropertis            <- genProperties
+      (planningRef, noPlanningRef) <- genPlanningReference
+    } yield Cr05Submission(
+      baReport = baReport,
+      baRef = baRef,
+      effectiveDate = effectiveDate,
+      proposedProperties = proposedProperties,
+      existingPropertis = existingPropertis,
+      planningRef = planningRef,
+      noPlanningReference = noPlanningRef,
+      comments = commentValue
+    )
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR03 submissions" in {
     val id = UUID.randomUUID().toString
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
-          submission, 1010,
-          "Brighton and Hove", id).generateXml()
-      val xml = printXml(jaxbStructure)
+          submission,
+          1010,
+          "Brighton and Hove",
+          id
+        ).generateXml()
+      val xml           = printXml(jaxbStructure)
 
       validateXml(xml)
 
@@ -178,9 +221,12 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
-          submission, 1010,
-          "Brighton and Hove", id).generateXml()
-      val xml = printXml(jaxbStructure)
+          submission,
+          1010,
+          "Brighton and Hove",
+          id
+        ).generateXml()
+      val xml           = printXml(jaxbStructure)
 
       validateXml(xml)
 
@@ -193,9 +239,12 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     forAll(genCr05Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
-          submission, 1010,
-          "Brighton and Hove", id).generateXml()
-      val xml = printXml(jaxbStructure)
+          submission,
+          1010,
+          "Brighton and Hove",
+          id
+        ).generateXml()
+      val xml           = printXml(jaxbStructure)
 
       validateXml(xml)
 
@@ -209,13 +258,16 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
-          submission, 1010,
-          "Brighton and Hove", id).generateXml()
-      val xml = printXml(jaxbStructure)
+          submission,
+          1010,
+          "Brighton and Hove",
+          id
+        ).generateXml()
+      val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
       val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
-      val oldXml = printXml(oldXmlJaxbStructure)
+      val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
       import org.xmlunit.builder.Input
@@ -223,7 +275,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
         .withTest(Input.fromString(oldXml))
         .withDifferenceEvaluator(evaluator).build()
 
-      diff.hasDifferences mustBe(false)
+      diff.hasDifferences mustBe false
     }
   }
 
@@ -234,13 +286,16 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
         new XmlSubmissionGenerator(
-          submission, 1010,
-          "Brighton and Hove", id).generateXml()
-      val xml = printXml(jaxbStructure)
+          submission,
+          1010,
+          "Brighton and Hove",
+          id
+        ).generateXml()
+      val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
       val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
-      val oldXml = printXml(oldXmlJaxbStructure)
+      val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
       import org.xmlunit.builder.Input
@@ -248,32 +303,29 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
         .withTest(Input.fromString(oldXml))
         .withDifferenceEvaluator(evaluator).build()
 
-      diff.hasDifferences mustBe(true)
+      diff.hasDifferences mustBe true
 
       val differences = diff.getDifferences.asScala.toList
       differences must have length 1
-      differences(0).getComparison.getControlDetails.getTarget.getNodeName mustBe("ExistingEntries")
+      differences(0).getComparison.getControlDetails.getTarget.getNodeName mustBe "ExistingEntries"
 
     }
   }
 
-
-  val evaluator = {
+  val evaluator =
     new DifferenceEvaluator {
-      override def evaluate(comparison: Comparison, outcome: ComparisonResult): ComparisonResult = {
-        if(outcome != ComparisonResult.EQUAL) {
-          if(comparison.getControlDetails.getTarget.getParentNode.getNodeName == "EntryDateTime") {
+      override def evaluate(comparison: Comparison, outcome: ComparisonResult): ComparisonResult =
+        if (outcome != ComparisonResult.EQUAL) {
+          if (comparison.getControlDetails.getTarget.getParentNode.getNodeName == "EntryDateTime") {
             ComparisonResult.EQUAL
-          }else {
+          } else {
             outcome
           }
-        }else {
+        } else {
           outcome
         }
 
-      }
     }
-  }
 
   def printXml(report: BAreports): String = {
     val sw = new StringWriter()
@@ -282,13 +334,13 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   }
 
   def validateXml(xml: String): Unit = {
-    val file = Files.createTempFile("test-xml", ".xml")
+    val file       = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
-    val dom = parser.parse(file.toUri.toURL).toOption.get
+    val dom        = parser.parse(file.toUri.toURL).toOption.get
     val validation = validator.validate(dom)
 
-    if(validation.isLeft) {
-      Console.println(s"\n\n\n${validation.left}\n\n${xml}")
+    if (validation.isLeft) {
+      Console.println(s"\n\n\n${validation.left}\n\n$xml")
     }
 
     validation.value mustBe true

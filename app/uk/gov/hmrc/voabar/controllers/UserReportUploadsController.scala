@@ -30,9 +30,12 @@ import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepos
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserReportUploadsController @Inject() (userReportUploadsRepository: UserReportUploadsRepository,
-                                             controllerComponents: ControllerComponents
-                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) with Logging {
+class UserReportUploadsController @Inject() (
+  userReportUploadsRepository: UserReportUploadsRepository,
+  controllerComponents: ControllerComponents
+)(implicit ec: ExecutionContext
+) extends BackendController(controllerComponents)
+  with Logging {
 
   def getById(id: String): Action[AnyContent] = Action.async {
     userReportUploadsRepository.getById(id).map(_.fold(
@@ -44,7 +47,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
   private def parseUserReportUpload(request: Request[JsValue]): Either[Status, UserReportUpload] =
     request.body.validate[UserReportUploadRest] match {
       case userReportUpload: JsSuccess[UserReportUploadRest @unchecked] => Right(userReportUpload.value.toMongoEntity)
-      case _ =>
+      case _                                                            =>
         logger.error(s"Couldn't parse:\n${request.body.toString}")
         Left(BadRequest)
     }
@@ -58,7 +61,7 @@ class UserReportUploadsController @Inject() (userReportUploadsRepository: UserRe
   def save: Action[JsValue] = Action.async(parse.tolerantJson) { implicit request =>
     (for {
       userReportUpload <- EitherT.fromEither[Future](parseUserReportUpload(request))
-      _ <- EitherT(saveUserReportUpload(userReportUpload))
+      _                <- EitherT(saveUserReportUpload(userReportUpload))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

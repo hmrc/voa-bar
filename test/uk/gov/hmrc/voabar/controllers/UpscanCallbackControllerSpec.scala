@@ -53,10 +53,20 @@ import scala.util.Using
 /**
  * @author Yuriy Tumakha
  */
-class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with EitherValues with Eventually with SpanSugar
-  with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar with Status with Injecting {
+class UpscanCallbackControllerSpec
+  extends PlaySpec
+  with OptionValues
+  with EitherValues
+  with Eventually
+  with SpanSugar
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar
+  with Status
+  with Injecting {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
   override def fakeApplication(): Application = {
     val voaEbarsConnector = mock[VoaEbarsConnector]
@@ -74,23 +84,26 @@ class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with Eithe
 
   private val controller = inject[UpscanCallbackController]
 
-  private val submissionRepository = inject[SubmissionStatusRepositoryImpl]
+  private val submissionRepository        = inject[SubmissionStatusRepositoryImpl]
   private val userReportUploadsRepository = inject[DefaultUserReportUploadsRepository]
-  private val configuration = inject[Configuration]
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val configuration               = inject[Configuration]
+  private val crypto                      = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  private val xmlUrl = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
-  private val reference = "111-777"
+  private val xmlUrl     = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
+  private val reference  = "111-777"
   private val reference2 = "222-777"
   private val reference3 = "333-777"
   private val reference4 = "444-777"
   private val reference5 = "555-777"
-  private val username = "BA5090"
-  private val password = crypto.encrypt(PlainText(username)).value
+  private val username   = "BA5090"
+  private val password   = crypto.encrypt(PlainText(username)).value
 
   private def buildUploadConfirmation(submissionReference: String): FakeRequest[JsValue] =
     buildUpscanRequest(
-      UploadConfirmation(submissionReference, xmlUrl, "READY",
+      UploadConfirmation(
+        submissionReference,
+        xmlUrl,
+        "READY",
         UploadDetails(OffsetDateTime.now, "396f101dd52e938510ce46e7a5c7a4e775100", "application/xml", "CTValid1.xml")
       )
     )
@@ -103,10 +116,7 @@ class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with Eithe
       .withHeaders("Content-Type" -> "application/json")
       .withBody(Json.toJson(upscanRequestObj))
 
-  private def verifySubmissionReport(submissionReference: String,
-                                     expectedBaCode: String,
-                                     expectedStatus: ReportStatusType,
-                                     expectedErrors: Seq[Error]) = {
+  private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) = {
     eventually {
       await(submissionRepository.getByReference(submissionReference)).value.status.value must not be Submitted.value
     }

@@ -26,7 +26,6 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import java.nio.file.Paths
 import java.util.UUID
 
-
 class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with DefaultAwaitTimeout with FutureAwaits {
 
   val BA_LOGIN = "BA5090"
@@ -39,10 +38,9 @@ class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with
 
   def wsClient = app.injector.instanceOf[WSClient]
 
-
   "Validate controller" should {
     "validate correct xml" in {
-      val url = s"http://localhost:${port}/voa-bar/validate-upload/${BA_LOGIN}"
+      val url = s"http://localhost:$port/voa-bar/validate-upload/$BA_LOGIN"
 
       val response = await(wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)
@@ -54,7 +52,7 @@ class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with
     }
 
     "validate incorrect XML" in {
-      val url = s"http://localhost:${port}/voa-bar/validate-upload/7777"
+      val url = s"http://localhost:$port/voa-bar/validate-upload/7777"
 
       val response = await(wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)

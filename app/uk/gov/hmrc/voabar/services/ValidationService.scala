@@ -29,16 +29,16 @@ import scala.util.Try
 
 @Singleton
 class ValidationService {
-  val x = new EbarsValidator()
+  val x   = new EbarsValidator()
   val log = Logger(this.getClass)
 
   def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] = {
 
     log.warn(s"submissions in XML : ${submissions.getBApropertyReport.size()}, isEmpty ${submissions.getBApropertyReport.isEmpty}")
 
-    if(submissions.getBApropertyReport.isEmpty) {
+    if (submissions.getBApropertyReport.isEmpty) {
       Left(BarXmlError("No submission found."))
-    }else {
+    } else {
       val headerErros = validateHeaderTrailer(submissions, baLogin)
       if (headerErros.isEmpty) {
         val bodyErrros = validateBody(submissions)
@@ -53,17 +53,12 @@ class ValidationService {
     }
   }
 
-  def validateBody(submissions: BAreports): List[ReportError] = {
-
+  def validateBody(submissions: BAreports): List[ReportError] =
     x.split(submissions).flatMap { submission =>
       validateSubmission(submission)
     }.toList
 
-  }
-
-
   /**
-   *
    * @param submission only one submission!!!!.
    * @return
    */
@@ -71,7 +66,7 @@ class ValidationService {
     assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
 
     val validation = new RulesValidationEngine
-    val errors = validation.applyRules(submission)
+    val errors     = validation.applyRules(submission)
 
     Option(errors)
       .filter(_.nonEmpty)
@@ -80,8 +75,8 @@ class ValidationService {
   }
 
   def createSubmissionDetailDescription(submission: BAreports) = {
-    //TODO should we have assert or just return None, or take head ???
-    //TODO maybe delete after full development.
+    // TODO should we have assert or just return None, or take head ???
+    // TODO maybe delete after full development.
     assert(submission.getBApropertyReport.size() == 1, "createPropertyDescription can create description for only one submission")
 
     submission.getBApropertyReport.asScala.headOption.map { submission =>
@@ -101,8 +96,7 @@ class ValidationService {
     }.getOrElse(ReportError(None, None, Seq.empty, Seq.empty))
   }
 
-
-  def extractUPRN(submission: BAreportBodyStructure, entries: String) = {
+  def extractUPRN(submission: BAreportBodyStructure, entries: String) =
     Try {
       submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
         .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
@@ -113,11 +107,13 @@ class ValidationService {
             .map(z => z.asInstanceOf[JAXBElement[Long]].getValue)
           UPRN
         }
-    }.fold(e => {
-      log.warn("Unable to extract UPRN: ", e)
-      List.empty[Long]
-    }, identity)
-  }
+    }.fold(
+      e => {
+        log.warn("Unable to extract UPRN: ", e)
+        List.empty[Long]
+      },
+      identity
+    )
 
   /*
    * Uncle Bob say it should be deleted, but it's so handy and also document hacks in autobars.
@@ -143,19 +139,17 @@ class ValidationService {
       List.empty[String]
     }, identity)
   }
- */
+   */
 
-  def validateHeaderTrailer(submission: BAreports, baLogin: LoginDetails): List[Error] = {
+  def validateHeaderTrailer(submission: BAreports, baLogin: LoginDetails): List[Error] =
     validationBACode(submission, baLogin)
-  }
 
-  def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] = {
+  def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] =
     Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
-      case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
-      case Some(baCode) if baCode == 0 => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+      case None                                     => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+      case Some(baCode) if baCode == 0              => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if baCode == baLogin.baCode => List.empty
-      case Some(wrongBaNumber) => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
+      case Some(wrongBaNumber)                      => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
     }
-  }
 
 }

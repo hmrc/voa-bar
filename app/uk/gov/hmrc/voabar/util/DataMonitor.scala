@@ -30,23 +30,25 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Yuriy Tumakha
  */
 @Singleton
-class DataMonitor @Inject()()(
+class DataMonitor @Inject() (
+)(
   submissionStatusRepository: SubmissionStatusRepositoryImpl,
   userReportUploadsRepository: DefaultUserReportUploadsRepository
-)(implicit ec: ExecutionContext) extends Logging {
+)(implicit ec: ExecutionContext
+) extends Logging {
 
   Future.sequence(Seq(submissionStatusRepository, userReportUploadsRepository)
     .map { repo =>
       for {
-        count <- repo.collection.countDocuments().toFuture()
+        count                 <- repo.collection.countDocuments().toFuture()
         countWithoutCreatedAt <- repo.collection.countDocuments(not(exists("createdAt"))).toFuture()
-        countWithoutBACode <- repo.collection.countDocuments(not(exists("baCode"))).toFuture()
-        countWithoutStatus <- repo.collection.countDocuments(not(exists("status"))).toFuture()
+        countWithoutBACode    <- repo.collection.countDocuments(not(exists("baCode"))).toFuture()
+        countWithoutStatus    <- repo.collection.countDocuments(not(exists("status"))).toFuture()
       } yield {
         val withoutCreatedAtStr = Option.when(countWithoutCreatedAt > 0)(countWithoutCreatedAt).fold("")(cnt => s" ($cnt - without `.createdAt`)")
-        val withoutBACodeStr = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode)
+        val withoutBACodeStr    = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode)
           .fold("")(cnt => s" ($cnt - without `.baCode`)")
-        val withoutStatusStr = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus)
+        val withoutStatusStr    = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus)
           .fold("")(cnt => s" ($cnt - without `.status`)")
         s"collection '${repo.collectionName}': $count$withoutCreatedAtStr$withoutBACodeStr$withoutStatusStr"
       }

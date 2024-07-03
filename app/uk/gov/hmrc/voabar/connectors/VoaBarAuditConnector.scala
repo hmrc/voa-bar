@@ -27,41 +27,50 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class VoaBarAuditConnector @Inject() (audit: AuditConnector)(implicit val ec: ExecutionContext) {
 
-  def userLogin(username: String)(implicit hc: HeaderCarrier): Unit = {
+  def userLogin(username: String)(implicit hc: HeaderCarrier): Unit =
     audit.sendExplicitAudit("user-login", Map("username" -> username, "baName" -> BillingAuthorities.find(username).getOrElse("NONE")))
-  }
 
-  def sendReport(username: String, uuid: String, billingAuthority: String, transactionId: String, reportNumber: String,
-                      xml: String, fileName: String)(implicit hc: HeaderCarrier): Unit = {
+  def sendReport(
+    username: String,
+    uuid: String,
+    billingAuthority: String,
+    transactionId: String,
+    reportNumber: String,
+    xml: String,
+    fileName: String
+  )(implicit hc: HeaderCarrier
+  ): Unit = {
 
     val baName = BillingAuthorities.find(username).getOrElse("NONE")
 
     val detail = Json.obj(
-      "username" -> username,
-      "baName" -> baName,
-      "autobarsJobId" -> uuid,
+      "username"         -> username,
+      "baName"           -> baName,
+      "autobarsJobId"    -> uuid,
       "billingAuthority" -> billingAuthority,
-      "transactionId" -> transactionId,
-      "reportNumber" -> reportNumber,
-      "fileName" -> fileName,
-      "xml" -> xml
+      "transactionId"    -> transactionId,
+      "reportNumber"     -> reportNumber,
+      "fileName"         -> fileName,
+      "xml"              -> xml
     )
 
     audit.sendExplicitAudit("OutboundCall", detail)
   }
 
-  def successfulReportUploaded(username: String, reports: Int)(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit = {
-    audit.sendExplicitAudit("report-upload", Map("username" -> username,
-      "baName" -> BillingAuthorities.find(username).getOrElse("NONE"),
-      "reports" -> reports.toString))
-  }
+  def successfulReportUploaded(username: String, reports: Int)(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+    audit.sendExplicitAudit(
+      "report-upload",
+      Map("username" -> username, "baName" -> BillingAuthorities.find(username).getOrElse("NONE"), "reports" -> reports.toString)
+    )
 
-  def reportUploadFailed[T](username: String, error:T)(implicit ec: ExecutionContext, hc: HeaderCarrier, w: OWrites[T]) = {
+  def reportUploadFailed[T](username: String, error: T)(implicit ec: ExecutionContext, hc: HeaderCarrier, w: OWrites[T]) = {
     val oErrors = w.writes(error)
 
-    audit.sendExplicitAudit("report-upload", oErrors +
-      ("username" -> JsString(username)) +
-      ("baName" -> JsString(BillingAuthorities.find(username).getOrElse("NONE")))
+    audit.sendExplicitAudit(
+      "report-upload",
+      oErrors +
+        ("username" -> JsString(username)) +
+        ("baName"   -> JsString(BillingAuthorities.find(username).getOrElse("NONE")))
     )
   }
 

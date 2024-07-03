@@ -19,4 +19,3 @@ package uk.gov.hmrc.voabar.models
 import scala.xml.NodeSeq
 
 case class ValidationResult(baPropertyReports: NodeSeq, errors: Seq[Error])
-

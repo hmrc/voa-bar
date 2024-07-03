@@ -23,9 +23,9 @@ import org.w3c.dom.ls.LSInput
 class Input extends LSInput {
   private var systemId, baseURI, publicId: String = _
 
-  private var reader: Reader = _
-  private var byteStream: InputStream = _
-  private var certifiedText: Boolean = _
+  private var reader: Reader               = _
+  private var byteStream: InputStream      = _
+  private var certifiedText: Boolean       = _
   private var encoding, stringData: String = _
 
   override def getBaseURI: String = baseURI

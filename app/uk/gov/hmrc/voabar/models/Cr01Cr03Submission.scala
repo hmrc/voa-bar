@@ -25,32 +25,50 @@ sealed trait CrSubmission {
   def effectiveDate: LocalDate
 }
 
-
 object Address { implicit val format: OFormat[Address] = Json.format[Address] }
 case class Address(line1: String, line2: String, line3: Option[String], line4: Option[String], postcode: String)
-object ContactDetails {implicit val format: OFormat[ContactDetails] = Json.format[ContactDetails] }
+object ContactDetails { implicit val format: OFormat[ContactDetails] = Json.format[ContactDetails] }
 case class ContactDetails(firstName: String, lastName: String, email: Option[String], phoneNumber: Option[String])
 object Cr01Cr03Submission { val format: OFormat[Cr01Cr03Submission] = Json.format[Cr01Cr03Submission] }
-case class Cr01Cr03Submission(reasonReport: Option[ReasonReportType], removalReason: Option[RemovalReasonType], otherReason: Option[String],
-                              baReport: String, baRef: String, uprn: Option[String], address: Address,
-                              propertyContactDetails: ContactDetails,
-                              sameContactAddress: Boolean, contactAddress: Option[Address],
-                              effectiveDate: LocalDate, havePlaningReference: Boolean,
-                              planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType], comments: Option[String]) extends CrSubmission
 
+case class Cr01Cr03Submission(
+  reasonReport: Option[ReasonReportType],
+  removalReason: Option[RemovalReasonType],
+  otherReason: Option[String],
+  baReport: String,
+  baRef: String,
+  uprn: Option[String],
+  address: Address,
+  propertyContactDetails: ContactDetails,
+  sameContactAddress: Boolean,
+  contactAddress: Option[Address],
+  effectiveDate: LocalDate,
+  havePlaningReference: Boolean,
+  planningRef: Option[String],
+  noPlanningReference: Option[NoPlanningReferenceType],
+  comments: Option[String]
+) extends CrSubmission
 
-case class Cr05AddProperty(uprn: Option[String], address: Address,
-                           propertyContactDetails: ContactDetails,
-                           sameContactAddress: Boolean, contactAddress: Option[Address])
+case class Cr05AddProperty(
+  uprn: Option[String],
+  address: Address,
+  propertyContactDetails: ContactDetails,
+  sameContactAddress: Boolean,
+  contactAddress: Option[Address]
+)
 
 object Cr05AddProperty { implicit val format: OFormat[Cr05AddProperty] = Json.format[Cr05AddProperty] }
 
-case class Cr05Submission( baReport: String, baRef: String, effectiveDate: LocalDate,
-                           proposedProperties: Seq[Cr05AddProperty],
-                           existingPropertis: Seq[Cr05AddProperty],
-                           planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType],
-                           comments: Option[String]
-                         ) extends CrSubmission
+case class Cr05Submission(
+  baReport: String,
+  baRef: String,
+  effectiveDate: LocalDate,
+  proposedProperties: Seq[Cr05AddProperty],
+  existingPropertis: Seq[Cr05AddProperty],
+  planningRef: Option[String],
+  noPlanningReference: Option[NoPlanningReferenceType],
+  comments: Option[String]
+) extends CrSubmission
 
 object Cr05Submission {
 
@@ -58,4 +76,3 @@ object Cr05Submission {
 
   implicit val format: Format[Cr05Submission] = Json.format[Cr05Submission]
 }
-

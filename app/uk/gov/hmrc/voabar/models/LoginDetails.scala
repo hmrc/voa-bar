@@ -18,10 +18,10 @@ package uk.gov.hmrc.voabar.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class LoginDetails(username:String, password:String) {
-  def baCode = {
+case class LoginDetails(username: String, password: String) {
+
+  def baCode =
     username.substring(2).toInt
-  }
 }
 
 object LoginDetails {

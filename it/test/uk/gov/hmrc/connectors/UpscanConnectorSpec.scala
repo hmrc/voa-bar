@@ -38,7 +38,7 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
         implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
 
         val connector = new DefaultUpscanConnector(client)
-        val response = await(connector.downloadReport(url))
+        val response  = await(connector.downloadReport(url))
         response mustBe Symbol("right")
         wireMockServer.verify(
           getRequestedFor(urlEqualTo("/upscan/submission.xml"))
@@ -48,9 +48,8 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
     }
   }
 
-  private def url: String = {
+  private def url: String =
     s"http://localhost:${wireMockServer.port()}/upscan/submission.xml"
-  }
 
   override protected def beforeEach(): Unit = {
     wireMockServer = new WireMockServer(options().dynamicPort())
@@ -64,7 +63,6 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
     )
   }
 
-  override protected def afterEach(): Unit = {
+  override protected def afterEach(): Unit =
     wireMockServer.stop()
-  }
 }

@@ -24,8 +24,8 @@ import org.scalatest.OptionValues
 import services.EbarsValidator
 
 /**
-  * Created by rgallet on 09/12/15.
-  */
+ * Created by rgallet on 09/12/15.
+ */
 class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues {
   val ebarsValidator = new EbarsValidator
 
@@ -47,19 +47,18 @@ class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with Option
     }
   }
 
-
   "working from a file with just a proposed entry" should {
     "move first existing entry to proposed" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_EXISTING_PROPERTIES.xml")))
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
 
       EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(reports)
 
-      EbarsXmlCutter.findLastTypeOfTaxIdx(reports) should contain(4)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findLastTypeOfTaxIdx(reports)   should contain(4)
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
     }
   }
 }

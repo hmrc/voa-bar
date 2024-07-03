@@ -31,10 +31,9 @@ class ResourceResolver extends LSResourceResolver {
 
     resourceAsStream match {
       case null => throw new IllegalArgumentException(s"Classpath resource /xsd/$systemId not found")
-      case _ =>
+      case _    =>
         input.setByteStream(resourceAsStream)
         input
     }
   }
 }
-

@@ -19,11 +19,10 @@ package uk.gov.hmrc.voabar.models
 import ebars.xml.BAreports
 
 /**
-  * Created by rgallet on 16/02/16.
-  *
-  * Monad style baby!
-  */
-
+ * Created by rgallet on 16/02/16.
+ *
+ * Monad style baby!
+ */
 
 sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
 
@@ -47,12 +46,11 @@ case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[
 
   override def get: Seq[ReportErrorDetail] = errors
 
-  override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] = {
+  override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] =
     f(report) match {
       case Some(newErrors) => copy(errors = errors :+ newErrors)
-      case _ => this
+      case _               => this
     }
-  }
 
   override def flatMap(f: (B) => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = f(report)
 }

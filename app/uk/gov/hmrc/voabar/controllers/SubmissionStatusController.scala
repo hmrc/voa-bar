@@ -35,66 +35,63 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class SubmissionStatusController @Inject() (
-                                           submissionStatusRepository: SubmissionStatusRepository,
-                                           controllerComponents: ControllerComponents,
-                                           webBarsService: WebBarsService,
-                                           configuration: Configuration
-                                           )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+  submissionStatusRepository: SubmissionStatusRepository,
+  controllerComponents: ControllerComponents,
+  webBarsService: WebBarsService,
+  configuration: Configuration
+)(implicit ec: ExecutionContext
+) extends BackendController(controllerComponents) {
 
-  val logger = Logger("SubmissionStatusController")
+  val logger      = Logger("SubmissionStatusController")
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
+  private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] =
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
-  }
 
-  private def getAllReportStatuses: Future[Either[Result, Seq[ReportStatus]]] = {
+  private def getAllReportStatuses: Future[Either[Result, Seq[ReportStatus]]] =
     submissionStatusRepository.getAll().map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
-  }
 
   def getByUser(filter: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
     (for {
-      userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
+      userId         <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusesByUser(userId, filter))
     } yield Ok(Json.toJson(reportStatuses)))
-        .valueOr(_ => InternalServerError)
+      .valueOr(_ => InternalServerError)
   }
 
   def getAll: Action[AnyContent] = Action.async { implicit request =>
     (for {
-      userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
+      userId         <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getAllReportStatuses)
     } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
-  private def getReportStatusByReference(reference: String): Future[Either[Result, ReportStatus]] = {
+  private def getReportStatusByReference(reference: String): Future[Either[Result, ReportStatus]] =
     submissionStatusRepository.getByReference(reference).map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
-  }
 
   def getByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
     (for {
-      _ <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
+      _              <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusByReference(reference))
     } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
-  private def parseReportStatus(request: Request[JsValue]): Either[Result, ReportStatus] = {
+  private def parseReportStatus(request: Request[JsValue]): Either[Result, ReportStatus] =
     request.body.validate[ReportStatus] match {
       case result: JsSuccess[ReportStatus] => Right(result.get)
-      case _ => Left(BadRequest)
+      case _                               => Left(BadRequest)
     }
-  }
 
   private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit]] = {
     logger.debug(s"Save submission ${reportStatus.redacted} upsert $upsert")
@@ -104,13 +101,11 @@ class SubmissionStatusController @Inject() (
     ))
   }
 
-  private def saveSubmissionUserInfo(userId: String, reference: String)
-    : Future[Either[Result, Unit]] = {
+  private def saveSubmissionUserInfo(userId: String, reference: String): Future[Either[Result, Unit]] =
     submissionStatusRepository.saveOrUpdate(userId, reference).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(())
     ))
-  }
 
   def save(upsert: Boolean = false): Action[JsValue] = Action.async(parse.tolerantJson) { request =>
     val headers = request.headers
@@ -118,47 +113,45 @@ class SubmissionStatusController @Inject() (
     logger.info(s"Saving submission upsert $upsert")
 
     (for {
-        baCode <- EitherT.fromEither[Future](headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")))
-        encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
-        password <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
-        reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-        _ <- EitherT(saveSubmission(reportStatus.copy(baCode = baCode), upsert))
-        _ = webBarsService.newSubmission(reportStatus, baCode, password)
+      baCode            <- EitherT.fromEither[Future](headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")))
+      encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
+      password          <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
+      reportStatus      <- EitherT.fromEither[Future](parseReportStatus(request))
+      _                 <- EitherT(saveSubmission(reportStatus.copy(baCode = baCode), upsert))
+      _                  = webBarsService.newSubmission(reportStatus, baCode, password)
     } yield NoContent)
-    .valueOr(_ => InternalServerError)
+      .valueOr(_ => InternalServerError)
   }
 
   def saveUserInfo: Action[JsValue] = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode, reportStatus.id))
+      _            <- EitherT(saveSubmissionUserInfo(reportStatus.baCode, reportStatus.id))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }
 
-  private def decryptPassword(encryptedPassword: String): Either[Result, String] = {
+  private def decryptPassword(encryptedPassword: String): Either[Result, String] =
     Try {
       crypto.decrypt(Crypted(encryptedPassword))
     } match {
-      case Success(password) => Right(password.value)
+      case Success(password)  => Right(password.value)
       case Failure(exception) =>
         logger.warn("Unable to decrypt password", exception)
         Left(Unauthorized("Unable to decrypt password"))
     }
-  }
 
-  private def deleteByReferenceQuery(reference: String, user: String): Future[Either[Result, JsValue]] = {
+  private def deleteByReferenceQuery(reference: String, user: String): Future[Either[Result, JsValue]] =
     submissionStatusRepository.deleteByReference(reference, user).map { deleteResult =>
       deleteResult.left.map { error =>
         logger.warn(s"deleteByReference failed. $error")
         InternalServerError
       }
     }
-  }
 
   def deleteByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
     (for {
-      baCode <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
+      baCode         <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(deleteByReferenceQuery(reference, baCode))
     } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(x => x)

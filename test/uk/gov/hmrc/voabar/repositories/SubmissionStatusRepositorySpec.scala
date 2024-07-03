@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-
 import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.Eventually
@@ -36,8 +35,16 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import scala.language.postfixOps
 
-class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll with Eventually with SpanSugar
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar {
+class SubmissionStatusRepositorySpec
+  extends PlaySpec
+  with BeforeAndAfterAll
+  with Eventually
+  with SpanSugar
+  with EitherValues
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar {
 
   implicit class NormalizedInstant(instant: Instant) {
     def normalize: Instant = Instant ofEpochMilli instant.toEpochMilli
@@ -49,7 +56,6 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
   lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
 
-
   val repo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
 
   "repository" should {
@@ -58,7 +64,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
       val submissionId = "111"
       await(repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption())
 
-      val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
+      val reportStatusError = Error(CHARACTER, Seq("message", "detail"))
 
       val dbResult = await(repo.addError(submissionId, reportStatusError))
 
@@ -71,7 +77,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     "add error without description" in {
       await(repo.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption())
 
-      val reportStatusError = Error(CHARACTER , List())
+      val reportStatusError = Error(CHARACTER, List())
 
       val dbResult = await(repo.addError("ggggg", reportStatusError))
 
@@ -87,10 +93,10 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     }
 
     "failed for nonExisting UUID" in {
-        val dbResult = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
+      val dbResult = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
 
-        dbResult mustBe Symbol("left")
-        dbResult mustBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
+      dbResult mustBe Symbol("left")
+      dbResult mustBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
     }
 
     "serialise and deserialize ReportStatus" in {
@@ -100,7 +106,6 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
       val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Some(Failed.value), createdAt = Instant.now.normalize)
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
-
 
       val res = await(repo.getByReference(guid))
 
@@ -125,15 +130,12 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
     "Not change status or anything else for final submission state" in {
       import org.scalatest.prop.TableDrivenPropertyChecks.*
-      val finalStates = Table(("Final state", "errors"),
-        (Submitted.value, Seq()),
-        (Done.value, Seq()),
-        (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters"))))
-      )
+      val finalStates =
+        Table(("Final state", "errors"), (Submitted.value, Seq()), (Done.value, Seq()), (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
 
       val daysToSubtract = 21
 
-      forAll (finalStates) { case (finalState: String, errors: Seq[Error]) =>
+      forAll(finalStates) { case (finalState: String, errors: Seq[Error]) =>
         val report = aReport().copy(createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize, status = Some(finalState), errors = errors)
 
         await(repo.collection.insertOne(report).toFutureOption())
@@ -151,7 +153,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
     "Save baCode when saving or updating submission" in {
       import uk.gov.hmrc.voabar.util.*
 
-      val submissionToStore = ReportStatus(UUID.randomUUID().toString,
+      val submissionToStore = ReportStatus(
+        UUID.randomUUID().toString,
         url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
@@ -161,7 +164,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
         totalReports = Some(10)
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
-      val submissionFromDb = await(repo.getByReference(submissionToStore.id)).value
+      val submissionFromDb  = await(repo.getByReference(submissionToStore.id)).value
       submissionFromDb.baCode mustBe submissionToStore.baCode
     }
 
@@ -172,7 +175,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
 
       val daysToSubtract = 91
 
-      val submissionToStore = ReportStatus(UUID.randomUUID().toString,
+      val submissionToStore = ReportStatus(
+        UUID.randomUUID().toString,
         url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
@@ -183,8 +187,10 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll wit
         createdAt = Instant.now.normalize
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
-      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS))
-        , upsert = true))
+      await(repo.saveOrUpdate(
+        submissionToStore.copy(id = UUID.randomUUID().toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS)),
+        upsert = true
+      ))
 
       val reports = await(repo.collection.countDocuments().toFutureOption())
       reports.value mustBe 2

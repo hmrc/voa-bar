@@ -29,13 +29,13 @@ import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters._
 
 /**
-  * Created by rgallet on 09/12/15.
-  */
+ * Created by rgallet on 09/12/15.
+ */
 class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks {
   val ebarsValidator = new EbarsValidator
 
   "RulesCorrectionEngine" should {
-    val engine =  new RulesCorrectionEngine
+    val engine = new RulesCorrectionEngine
 
     "ignore NDR files" in {
 
@@ -47,24 +47,24 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR14_BOTH_PROPERTIES.xml")))
       engine.applyRules(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "CR14 - only proposed" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR14_PROPOSED_ENTRIES.xml")))
       engine.applyRules(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "CR14 - only existing" in {
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR14_EXISTING_ENTRIES.xml")))
       engine.applyRules(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -79,8 +79,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR02" in {
@@ -89,8 +89,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR06" in {
@@ -99,8 +99,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR07" in {
@@ -109,8 +109,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR09" in {
@@ -119,8 +119,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR10" in {
@@ -129,8 +129,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "leaves Proposed and Existing entries alone with CR14" in {
@@ -139,58 +139,63 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "use Proposed Entries with CR01" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_ProposedEntries.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_ProposedEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "use Proposed Entries with CR06" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR06_ProposedEntries.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR06_ProposedEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "use Proposed Entries with CR07" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR07_ProposedEntries.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR07_ProposedEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "use Proposed Entries with CR09" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR09_ProposedEntries.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR09_ProposedEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "use Proposed Entries with CR10" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR10_ProposedEntries.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR10_ProposedEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "remove ProposedEntries with CR02 from xml" in {
@@ -199,8 +204,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "remove ProposedEntries with CR14 from xml" in {
@@ -209,8 +214,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "not change anything" in {
@@ -219,8 +224,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -235,8 +240,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "remove ProposedEntries with CR14" in {
@@ -245,8 +250,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (0)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "not change anything" in {
@@ -255,8 +260,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -271,8 +276,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr03AndCr04BothProposedAndExistingEntries.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (0)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 0
     }
 
     "not change anything" in {
@@ -281,8 +286,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr03AndCr04BothProposedAndExistingEntries.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -297,8 +302,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr03AndCr04MissingProposedEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (0)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 0
     }
 
     "not change anything" in {
@@ -307,8 +312,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr03AndCr04MissingProposedEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -323,8 +328,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "copy ExistingEntry with CR05" in {
@@ -333,8 +338,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
 
     "not change anything" in {
@@ -343,8 +348,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
 
-      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size (1)
-      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size (1)
+      EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
+      EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1
     }
   }
 
@@ -370,13 +375,13 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/REMARKS_WITH_WHITESPACE.xml")))
 
-      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+      EbarsXmlCutter.findRemarksIdx(reports) should have size 1
 
       RemarksTrimmer.apply(reports)
 
       val indices = EbarsXmlCutter.findRemarksIdx(reports)
 
-      indices should have size (1)
+      indices should have size 1
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
 
       remarks.getValue.asInstanceOf[String] should be("THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT")
@@ -389,17 +394,19 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
         ("""This is test with  space and      space""", "This is test with space and space"),
         (
           """This is string with multiple space
-            | and new line""".stripMargin, "This is string with multiple space and new line"),
+            | and new line""".stripMargin,
+          "This is string with multiple space and new line"
+        ),
         ("simple \u00A0space", "simple space"),
         ("simple\u00A0space", "simple space"),
         ("simple\u2005\u1680space", "simple space"),
         ("simple\u3000 \u2029 \nspace", "simple space"),
-        ("simple\nspace", "simple space"),
+        ("simple\nspace", "simple space")
       )
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/REMARKS_WITH_WHITESPACE.xml")))
 
-      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+      EbarsXmlCutter.findRemarksIdx(reports) should have size 1
 
       val indices = EbarsXmlCutter.findRemarksIdx(reports)
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0)).asInstanceOf[JAXBElement[String]]
@@ -428,13 +435,13 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_WITH_SUFFIX.xml")))
 
-      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+      EbarsXmlCutter.findRemarksIdx(reports) should have size 1
 
       RemarksFillDefault.apply(reports)
 
       val indices = EbarsXmlCutter.findRemarksIdx(reports)
 
-      indices should have size (1)
+      indices should have size 1
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
 
       remarks.getValue.asInstanceOf[String] should be("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
@@ -444,13 +451,13 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_EMPTY_REMARKS.xml")))
 
-      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+      EbarsXmlCutter.findRemarksIdx(reports) should have size 1
 
       RemarksFillDefault.apply(reports)
 
       val indices = EbarsXmlCutter.findRemarksIdx(reports)
 
-      indices should have size (1)
+      indices should have size 1
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
 
       remarks.getValue.asInstanceOf[String] should be("NO REMARKS")
@@ -460,13 +467,13 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_MISSING_REMARKS.xml")))
 
-      EbarsXmlCutter.findRemarksIdx(reports) should have size (0)
+      EbarsXmlCutter.findRemarksIdx(reports) should have size 0
 
       RemarksFillDefault.apply(reports)
 
       val indices = EbarsXmlCutter.findRemarksIdx(reports)
 
-      indices should have size (1)
+      indices should have size 1
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
 
       remarks.getValue.asInstanceOf[String] should be("NO REMARKS")
@@ -478,22 +485,22 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED.xml")))
 
-      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size 3
 
       RemovingInvalidTaxBand.apply(reports)
 
-      EbarsXmlCutter.getCurrentTaxes(reports) should have size (3)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size 3
     }
 
     "remove if invalid" in {
 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml")))
 
-      EbarsXmlCutter.getCurrentTaxes(reports) should have size (1)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size 1
 
       RemovingInvalidTaxBand.apply(reports)
 
-      EbarsXmlCutter.getCurrentTaxes(reports) should have size (0)
+      EbarsXmlCutter.getCurrentTaxes(reports) should have size 0
     }
   }
 
@@ -502,7 +509,7 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
-      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (1)
+      EbarsXmlCutter.getPropertyDescriptions(reports)                               should have size 1
       EbarsXmlCutter.getPropertyDescriptions(reports)(0).getPropertyDescriptionText should be("valid length")
 
       PropertyDescriptionTextRemoval.apply(reports)
@@ -512,14 +519,15 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
     "invalid property description - too short" in {
 
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
+      val reports =
+        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
 
-      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (1)
+      EbarsXmlCutter.getPropertyDescriptions(reports)                               should have size 1
       EbarsXmlCutter.getPropertyDescriptions(reports)(0).getPropertyDescriptionText should be("B")
 
       PropertyDescriptionTextRemoval.apply(reports)
 
-      EbarsXmlCutter.getPropertyDescriptions(reports) should have size (0)
+      EbarsXmlCutter.getPropertyDescriptions(reports) should have size 0
     }
   }
 
@@ -533,18 +541,18 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR05_BOTH_PROPERTIES.xml")))
 
       val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
-      textAddressStructures should have size (2)
+      textAddressStructures should have size 2
 
       Cr05CopyProposedEntriesToExistingEntries.apply(reports)
 
       val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
-      textAddressStructuresAfter should have size (3)
+      textAddressStructuresAfter should have size 3
 
       textAddressStructuresAfter(1).getAddressLine.get(0) should be("[PROPOSED] ROMAIN - GROUND FLOOR FLAT")
       textAddressStructuresAfter(1).getAddressLine.get(1) should be("[PROPOSED] ROMAIN - 11 RUBY STREET")
       textAddressStructuresAfter(1).getAddressLine.get(2) should be("[PROPOSED] ROMAIN - ADAMSDOWN")
       textAddressStructuresAfter(1).getAddressLine.get(3) should be("[PROPOSED] ROMAIN - CARDIFF")
-      textAddressStructuresAfter(1).getPostcode should be("CF24 1LP")
+      textAddressStructuresAfter(1).getPostcode           should be("CF24 1LP")
     }
   }
 
@@ -558,12 +566,12 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR12_BOTH_PROPERTIES.xml")))
 
       val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
-      textAddressStructures should have size (2)
+      textAddressStructures should have size 2
 
       Cr12CopyProposedEntriesToRemarks.apply(reports)
 
       val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
-      textAddressStructuresAfter should have size (2)
+      textAddressStructuresAfter should have size 2
 
       EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
     }
@@ -571,25 +579,27 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "RemoveBS7666Addresses" should {
     "remove BS7666Address" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
+      val reports =
+        ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "BS7666Address") should not be None
 
       RemoveBS7666Addresses.apply(reports)
 
-      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "BS7666Address") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "BS7666Address") should be(None)
     }
   }
 
   "RemovePropertyGridCoords" should {
     "remove PropertyGridCoords" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
+      val reports =
+        ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should not be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "PropertyGridCoords") should not be None
 
       RemovePropertyGridCoords.apply(reports)
 
-      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find (_.getName.getLocalPart == "PropertyGridCoords") should be(None)
+      EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
 }

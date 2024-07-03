@@ -36,18 +36,18 @@ class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwa
 
   "EbarsClientV2" should {
     "start with only proxy and voa-ebars service configuration" in {
-      val configuration = Configuration(
-        "proxy.enabled" -> true,
-        "proxy.host" -> "localhost",
-        "proxy.port" -> 9999,
-        "proxy.username" -> "foo",
-        "proxy.password" -> "bar",
-        "microservice.services.voa-ebars.host" -> "localhost",
-        "microservice.services.voa-ebars.port" -> 123456,
+      val configuration  = Configuration(
+        "proxy.enabled"                            -> true,
+        "proxy.host"                               -> "localhost",
+        "proxy.port"                               -> 9999,
+        "proxy.username"                           -> "foo",
+        "proxy.password"                           -> "bar",
+        "microservice.services.voa-ebars.host"     -> "localhost",
+        "microservice.services.voa-ebars.port"     -> 123456,
         "microservice.services.voa-ebars.protocol" -> "http"
       )
       val servicesConfig = new ServicesConfig(configuration)
-      val ebarsClient = new EbarsClientV2(servicesConfig, configuration)
+      val ebarsClient    = new EbarsClientV2(servicesConfig, configuration)
 
       val thrown = intercept[ConnectException] {
         await(ebarsClient.uploadXMl("", "", "<xml/>", 1))

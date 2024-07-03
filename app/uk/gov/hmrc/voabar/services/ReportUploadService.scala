@@ -39,30 +39,33 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
-                          validationService: ValidationService,
-                          voaEbarsConnector: VoaEbarsConnector,
-                          emailConnector: EmailConnector,
-                          upscanConnector: UpscanConnector,
-                          audit: VoaBarAuditConnector)(implicit executionContext: ExecutionContext) extends Logging {
+class ReportUploadService @Inject() (
+  statusRepository: SubmissionStatusRepository,
+  validationService: ValidationService,
+  voaEbarsConnector: VoaEbarsConnector,
+  emailConnector: EmailConnector,
+  upscanConnector: UpscanConnector,
+  audit: VoaBarAuditConnector
+)(implicit executionContext: ExecutionContext
+) extends Logging {
 
-  val ebarsValidator = new EbarsValidator
+  val ebarsValidator  = new EbarsValidator
   val voaBarValidator = new XmlValidator
 
-  def upload(baLogin: LoginDetails, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
+  def upload(baLogin: LoginDetails, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier): Future[String] = {
 
     val processingResult = for {
       submissions <- downloadAndFixXml(xmlUrl)
-      _ <- EitherT.fromEither[Future](validationService.validate(submissions, baLogin)) //Business validation
-      _ <- EitherT.fromEither[Future](voaBarValidator.validateAsDomAgainstSchema(submissions)) //XML Schema validation
-      status <- EitherT.right[BarError](upload(baLogin, submissions, uploadReference))
+      _           <- EitherT.fromEither[Future](validationService.validate(submissions, baLogin)) // Business validation
+      _           <- EitherT.fromEither[Future](voaBarValidator.validateAsDomAgainstSchema(submissions)) // XML Schema validation
+      status      <- EitherT.right[BarError](upload(baLogin, submissions, uploadReference))
     } yield status
 
     handleUploadResult(processingResult.value, baLogin, uploadReference)
 
   }
 
-  def upload(baLogin: LoginDetails, baReports: BAreports, uploadReference: String)(implicit headerCarrier: HeaderCarrier):Future[String] = {
+  def upload(baLogin: LoginDetails, baReports: BAreports, uploadReference: String)(implicit headerCarrier: HeaderCarrier): Future[String] = {
     val processingResult = for {
       _ <- EitherT(ebarsUpload(baReports, baLogin, uploadReference))
       _  = audit.successfulReportUploaded(baLogin.username, baReports.getBApropertyReport.size())
@@ -73,8 +76,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     handleUploadResult(processingResult.value, baLogin, uploadReference)
   }
 
-  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String)
-                        (implicit headerCarrier: HeaderCarrier):Future[String] = {
+  def handleUploadResult(result: Future[Either[BarError, String]], login: LoginDetails, uploadReference: String)(implicit headerCarrier: HeaderCarrier)
+    : Future[String] =
     result
       .recover {
         case exception: Exception =>
@@ -87,25 +90,21 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         res
       }
       .flatMap {
-        case Right(v) => Future.successful(v)
+        case Right(v)       => Future.successful(v)
         case Left(barError) =>
           audit.reportUploadFailed(login.username, barError)
           handleError(uploadReference, barError, login)
             .map(_ => "failed")
       }
-  }
 
-
-  def downloadAndFixXml(url: String)(implicit hc:HeaderCarrier): EitherT[Future, BarError, BAreports] = {
+  def downloadAndFixXml(url: String)(implicit hc: HeaderCarrier): EitherT[Future, BarError, BAreports] = {
     val correctionEngine = new RulesCorrectionEngine
 
-    def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] = {
+    def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] =
       for {
-        _ <- voaBarValidator.validateInputXmlForXEE(CorrectionInputStream(new ByteArrayInputStream(rawXml)))
+        _         <- voaBarValidator.validateInputXmlForXEE(CorrectionInputStream(new ByteArrayInputStream(rawXml)))
         baReports <- unmarshal(rawXml)
       } yield baReports
-
-    }
 
     def unmarshal(rawXml: Array[Byte]): Either[BarError, BAreports] = Try {
       val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(rawXml)))
@@ -115,7 +114,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       BarXmlError(Option(e.getMessage).getOrElse("Unable to read XML"))
     }
 
-    def fixXml(submission: BAreports):Either[BarError, BAreports] = Try {
+    def fixXml(submission: BAreports): Either[BarError, BAreports] = Try {
 
       val allReports = ebarsValidator.split(submission)
 
@@ -138,17 +137,17 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     }
 
     for {
-      rawXml <- EitherT(upscanConnector.downloadReport(url))
+      rawXml     <- EitherT(upscanConnector.downloadReport(url))
       submission <- EitherT.fromEither[Future](parseXml(rawXml))
-      xml <- EitherT.fromEither[Future](fixXml(submission))
+      xml        <- EitherT.fromEither[Future](fixXml(submission))
     } yield xml
 
   }
 
   private def sendConfirmationEmail(
-                                   reportStatus: ReportStatus,
-                                   login: LoginDetails
-                                   ): Future[Either[BarEmailError, Unit]] = {
+    reportStatus: ReportStatus,
+    login: LoginDetails
+  ): Future[Either[BarEmailError, Unit]] =
     emailConnector.sendEmail(
       reportStatus.baCode,
       Purpose.CT, // Note: This will need to be dynamic when NDR processing is added to the service
@@ -157,27 +156,28 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       login.password,
       reportStatus.filename.getOrElse("filename unavailable"),
       reportStatus.createdAt.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME),
-      reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
+      reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n")
+    )
       .map(_ => Right(()))
-      .recover{
+      .recover {
         case ex: Throwable =>
           val errorMsg = "Error while sending confirmation message"
           logger.error(errorMsg, ex)
           Left(BarEmailError(ex.getMessage))
       }
-  }
+
   private def sendConfirmationEmail(
-                                     baRef: String,
-                                     login: LoginDetails): Future[Either[BarError, Unit]] = {
+    baRef: String,
+    login: LoginDetails
+  ): Future[Either[BarError, Unit]] =
     statusRepository.getByReference(baRef).flatMap(_.fold(
-        e => {
-          val errorMsg = "Error while retrieving report to be send via email"
-          logger.error(errorMsg)
-          Future.successful(Right(()))
-        },
-        reportStatus => sendConfirmationEmail(reportStatus, login)
-      ))
-  }
+      e => {
+        val errorMsg = "Error while retrieving report to be send via email"
+        logger.error(errorMsg)
+        Future.successful(Right(()))
+      },
+      reportStatus => sendConfirmationEmail(reportStatus, login)
+    ))
 
   private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Future[_] = {
     logger.warn(s"handling error, submissionID: $submissionId, Error: $barError")
@@ -203,9 +203,13 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarSubmissionValidationError(errors) =>
         statusRepository.saveOrUpdate(
           ReportStatus(
-            id = submissionId, createdAt = Instant.now, baCode = login.username,
-            reportErrors = errors, status = Some(Failed.value)
-          ), upsert = true
+            id = submissionId,
+            createdAt = Instant.now,
+            baCode = login.username,
+            reportErrors = errors,
+            status = Some(Failed.value)
+          ),
+          upsert = true
         )
 
       case BarEbarError(ebarError) =>
@@ -231,19 +235,17 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     }
   }
 
-
-  private def ebarsUpload(baReports: BAreports, login: LoginDetails, submissionId: String)
-                         (implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
+  private def ebarsUpload(baReports: BAreports, login: LoginDetails, submissionId: String)(implicit headerCarrier: HeaderCarrier)
+    : Future[Either[BarError, Boolean]] = {
 
     val riskyConversion: Either[BarError, String] = Try {
       ebarsValidator.toJson(baReports)
     } match {
       case Success(jsonString) => Right(jsonString)
-      case Failure(exception) => Left(BarEbarError(exception.getMessage))
+      case Failure(exception)  => Left(BarEbarError(exception.getMessage))
     }
 
-
-    def internalUpload(jsonString: String):Future[Either[BarError, Boolean]] = {
+    def internalUpload(jsonString: String): Future[Either[BarError, Boolean]] = {
       val req = BAReportRequest(submissionId, jsonString, login.username, login.password)
       voaEbarsConnector.sendBAReport(req).map(_ => Right(true)).recover {
         case ex: Exception => Left(BarEbarError(ex.getMessage))
@@ -252,7 +254,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     val result = for {
       jsonString <- EitherT.fromEither[Future](riskyConversion)
-      res <- EitherT(internalUpload(jsonString))
+      res        <- EitherT(internalUpload(jsonString))
     } yield res
 
     result.value

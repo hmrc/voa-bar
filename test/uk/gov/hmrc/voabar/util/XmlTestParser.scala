@@ -32,11 +32,8 @@ object XmlTestParser {
     docBuilder.parse(ReaderInputStream.builder()
       .setReader(new StringReader(xml))
       .setCharset(UTF_8)
-      .get()
-    )
-
+      .get())
 
   }
-
 
 }

@@ -29,7 +29,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 @Singleton
-class V1ValidationService @Inject()(validationService: ValidationService) {
+class V1ValidationService @Inject() (validationService: ValidationService) {
 
   val log = Logger(getClass)
 
@@ -39,8 +39,7 @@ class V1ValidationService @Inject()(validationService: ValidationService) {
 
   val xmlValidator = new EbarsValidator
 
-  def fixAndValidateAsV2(xml: Array[Byte], baLogin: String, requestId: String, v1Status: String): Boolean = {
-
+  def fixAndValidateAsV2(xml: Array[Byte], baLogin: String, requestId: String, v1Status: String): Boolean =
     Try {
       val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(xml)))
 
@@ -61,25 +60,19 @@ class V1ValidationService @Inject()(validationService: ValidationService) {
       validateAsV2(submission, baLogin, requestId, v1Status)
 
     }.recover {
-      case e: Exception => {
+      case e: Exception =>
         log.warn("Unable to validate XML from V1", e)
         false
-      }
     }.getOrElse(false)
 
-  }
-
-  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1Status: String): Boolean = {
+  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1Status: String): Boolean =
     validationService.validate(correctedXml, LoginDetails(baLogin, "")) match {
-      case Left(errors) => {
-        log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, v1Status: ${v1Status}, errors: ${errors}")
+      case Left(errors) =>
+        log.info(s"Validation of fixed XML, baLogin: $baLogin, requestId: $requestId, v1Status: $v1Status, errors: $errors")
         false
-      }
-      case Right(_) => {
-        log.info(s"Validation of fixed XML successful, baLogin: ${baLogin} requestId: ${requestId}, v1Status: ${v1Status}")
+      case Right(_)     =>
+        log.info(s"Validation of fixed XML successful, baLogin: $baLogin requestId: $requestId, v1Status: $v1Status")
         true
-      }
     }
-  }
 
 }

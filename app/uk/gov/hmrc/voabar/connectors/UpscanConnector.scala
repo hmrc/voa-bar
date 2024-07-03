@@ -41,13 +41,12 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: Execu
     httpClient.url(url)
       .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID)): _*)
       .get().map { wsResponse =>
-      //Right(wsResponse.body[Array[Byte]])
-      Right(wsResponse.bodyAsBytes.toArrayUnsafe())
-    }.recover {
-      case e: Exception => {
-        logger.warn("Unable to download file from upscan", e)
-        Left(UnknownError("Unable to download file, please try later"))
+        // Right(wsResponse.body[Array[Byte]])
+        Right(wsResponse.bodyAsBytes.toArrayUnsafe())
+      }.recover {
+        case e: Exception =>
+          logger.warn("Unable to download file from upscan", e)
+          Left(UnknownError("Unable to download file, please try later"))
       }
-    }
   }
 }

@@ -26,17 +26,32 @@ import uk.gov.hmrc.voabar.models.{AddProperty, Address, CaravanRemoved, ContactD
 import uk.gov.hmrc.voabar.models.Cr01Cr03Submission.format
 
 class WebBarsServiceSpec extends PlaySpec with EitherValues {
+
   val legacyCr03Submission = {
-    val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
+    val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr01Cr03Submission(None, None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
-      true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
+    Cr01Cr03Submission(
+      None,
+      None,
+      None,
+      "baReport",
+      "baRef",
+      Option("112541"),
+      address,
+      contactDetails,
+      true,
+      None,
+      LocalDate.now(),
+      true,
+      Some("22212"),
+      None,
+      Option("comment")
     )
   }
 
   val legacyCr03Report =
     Json.obj(
-      "type" -> "Cr03Submission",
+      "type"       -> "Cr03Submission",
       "submission" -> format.writes(legacyCr03Submission)
     )
 
@@ -47,16 +62,30 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
   )
 
   val newCr03Submission = {
-    val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
+    val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr01Cr03Submission(Some(AddProperty), None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
-      true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
+    Cr01Cr03Submission(
+      Some(AddProperty),
+      None,
+      None,
+      "baReport",
+      "baRef",
+      Option("112541"),
+      address,
+      contactDetails,
+      true,
+      None,
+      LocalDate.now(),
+      true,
+      Some("22212"),
+      None,
+      Option("comment")
     )
   }
 
   val newCr03Report =
     Json.obj(
-      "type" -> "Cr01Cr03Submission",
+      "type"       -> "Cr01Cr03Submission",
       "submission" -> format.writes(newCr03Submission)
     )
 
@@ -67,16 +96,30 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
   )
 
   val cr01Submission = {
-    val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
+    val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr01Cr03Submission(Some(RemoveProperty), Some(CaravanRemoved), None,"baReport", "baRef", Option("112541"), address, contactDetails,
-      true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
+    Cr01Cr03Submission(
+      Some(RemoveProperty),
+      Some(CaravanRemoved),
+      None,
+      "baReport",
+      "baRef",
+      Option("112541"),
+      address,
+      contactDetails,
+      true,
+      None,
+      LocalDate.now(),
+      true,
+      Some("22212"),
+      None,
+      Option("comment")
     )
   }
 
   val cr01Report =
     Json.obj(
-      "type" -> "Cr01Cr03Submission",
+      "type"       -> "Cr01Cr03Submission",
       "submission" -> format.writes(cr01Submission)
     )
 
@@ -85,7 +128,6 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     baCode = "BA1010",
     report = Some(cr01Report)
   )
-
 
   "DefaultWebBarsService" must {
     "readReport for legacy cr03" in {

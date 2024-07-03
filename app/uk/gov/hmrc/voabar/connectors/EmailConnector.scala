@@ -30,19 +30,18 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultEmailConnector @Inject() (val http: HttpClient,
-                                       val configuration: Configuration,
-                                       utils: Utils)(implicit ec: ExecutionContext)
+class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: Configuration, utils: Utils)(implicit ec: ExecutionContext)
   extends EmailConnector {
 
   private val emailConfigPrefix = "microservice.services.email"
   if (!configuration.has(emailConfigPrefix)) throw new ConfigException.Missing(emailConfigPrefix)
-  private val protocol = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
-  private val host = configuration.get[String](s"$emailConfigPrefix.host")
-  private val port = configuration.get[String](s"$emailConfigPrefix.port")
-  private val emailUrl = s"$protocol://$host:$port"
-  private val needsToSendEmail = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
-  private val email = configuration.getOptional[String]("email")
+  private val protocol          = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
+  private val host              = configuration.get[String](s"$emailConfigPrefix.host")
+  private val port              = configuration.get[String](s"$emailConfigPrefix.port")
+  private val emailUrl          = s"$protocol://$host:$port"
+  private val needsToSendEmail  = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
+
+  private val email             = configuration.getOptional[String]("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
 
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
@@ -50,32 +49,32 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
   }
 
   def sendEmail(
-                 baRefNumber: String,
-                 purpose: Purpose,
-                 transactionId: String,
-                 username: String,
-                 password: String,
-                 fileName: String,
-                 dateSubmitted: String,
-                 errorList: String): Future[Unit] = {
+    baRefNumber: String,
+    purpose: Purpose,
+    transactionId: String,
+    username: String,
+    password: String,
+    fileName: String,
+    dateSubmitted: String,
+    errorList: String
+  ): Future[Unit] = {
     implicit val authHc = utils.generateHeader(LoginDetails(username, password))
     if (needsToSendEmail) {
       val json = Json.obj(
-        "to" -> JsArray(Seq(JsString(email))),
+        "to"         -> JsArray(Seq(JsString(email))),
         "templateId" -> JsString("bars_alert_transaction"),
         "parameters" -> JsObject(Seq(
-          "baRefNumber" -> JsString(s"""BA : $baRefNumber Type: $purpose"""),
+          "baRefNumber"   -> JsString(s"""BA : $baRefNumber Type: $purpose"""),
           "transactionId" -> JsString(s"""Transaction id : $transactionId"""),
-          "fileName" -> JsString(s"""File name : $fileName"""),
+          "fileName"      -> JsString(s"""File name : $fileName"""),
           "dateSubmitted" -> JsString(s"""Date Submitted : $dateSubmitted"""),
-          "errorList" -> JsString(s"""Errors $errorList""")
+          "errorList"     -> JsString(s"""Errors $errorList""")
         )),
-        "force" -> JsBoolean(false)
+        "force"      -> JsBoolean(false)
       )
 
       http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json, Seq.empty)
-    }
-    else {
+    } else {
       Future.unit
     }
   }
@@ -83,13 +82,15 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
 
 @ImplementedBy(classOf[DefaultEmailConnector])
 trait EmailConnector {
+
   def sendEmail(
-                 baRefNumber: String,
-                 purpose: Purpose,
-                 transactionId: String,
-                 username: String,
-                 password: String,
-                 fileName: String,
-                 dateSubmitted: String,
-                 errorList: String): Future[Unit]
+    baRefNumber: String,
+    purpose: Purpose,
+    transactionId: String,
+    username: String,
+    password: String,
+    fileName: String,
+    dateSubmitted: String,
+    errorList: String
+  ): Future[Unit]
 }

@@ -22,52 +22,52 @@ import java.time.OffsetDateTime
 
 object UpScanRequests {
 
-  implicit val initiateRequest: OFormat[InitiateRequest] = Json.format[InitiateRequest]
-  implicit val uploadRequests: OFormat[UploadRequest] = Json.format[UploadRequest]
-  implicit val initialResponse: OFormat[InitiateResponse] = Json.format[InitiateResponse]
-  implicit val uploadDetails: OFormat[UploadDetails] = Json.format[UploadDetails]
-  implicit val uploadConfirmation: OFormat[UploadConfirmation] = Json.format[UploadConfirmation]
-  implicit val failureDetails: OFormat[FailureDetails] = Json.format[FailureDetails]
+  implicit val initiateRequest: OFormat[InitiateRequest]                 = Json.format[InitiateRequest]
+  implicit val uploadRequests: OFormat[UploadRequest]                    = Json.format[UploadRequest]
+  implicit val initialResponse: OFormat[InitiateResponse]                = Json.format[InitiateResponse]
+  implicit val uploadDetails: OFormat[UploadDetails]                     = Json.format[UploadDetails]
+  implicit val uploadConfirmation: OFormat[UploadConfirmation]           = Json.format[UploadConfirmation]
+  implicit val failureDetails: OFormat[FailureDetails]                   = Json.format[FailureDetails]
   implicit val uploadConfirmationError: OFormat[UploadConfirmationError] = Json.format[UploadConfirmationError]
 
   case class InitiateRequest(
-                              callbackUrl: String,
-                              maxFileSize: Int
-                            )
+    callbackUrl: String,
+    maxFileSize: Int
+  )
 
   case class InitiateResponse(
-                               reference: String,
-                               uploadRequest: UploadRequest
-                             )
+    reference: String,
+    uploadRequest: UploadRequest
+  )
 
   case class UploadRequest(
-                            href: String,
-                            fields: Map[String, String]
-                          )
+    href: String,
+    fields: Map[String, String]
+  )
 
   case class UploadConfirmation(
-                                 reference: String,
-                                 downloadUrl: String,
-                                 fileStatus: String,
-                                 uploadDetails: UploadDetails
-                               )
+    reference: String,
+    downloadUrl: String,
+    fileStatus: String,
+    uploadDetails: UploadDetails
+  )
 
   case class FailureDetails(
-                             failureReason: String,
-                             message: String
-                           )
+    failureReason: String,
+    message: String
+  )
 
   case class UploadConfirmationError(
-                                      reference: String,
-                                      fileStatus: String,
-                                      failureDetails: FailureDetails
-                                    )
+    reference: String,
+    fileStatus: String,
+    failureDetails: FailureDetails
+  )
 
   case class UploadDetails(
-                            uploadTimestamp: OffsetDateTime,
-                            checksum: String,
-                            fileMimeType: String,
-                            fileName: String
-                          )
+    uploadTimestamp: OffsetDateTime,
+    checksum: String,
+    fileMimeType: String,
+    fileName: String
+  )
 
 }
