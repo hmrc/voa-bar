@@ -16,7 +16,7 @@ lazy val microservice = Project(appName, file("."))
       ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*GuiceInjector;.*WebBarsService;.*BillingAuthorities;",
     ScoverageKeys.coverageMinimumStmtTotal := 71.5,
     ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true,
+    ScoverageKeys.coverageHighlighting := true
   )
   .settings(
     PlayKeys.playDefaultPort := 8447,
@@ -31,3 +31,12 @@ lazy val it = (project in file("it"))
   .dependsOn(microservice)
   .settings(itSettings())
   .settings(libraryDependencies ++= AppDependencies.itDependencies)
+  .settings(
+    scalafmtFailOnErrors := true,
+    semanticdbEnabled := true,
+    wartremoverExcluded ++= (Compile / routes).value,
+    wartremoverWarnings ++= Warts.allBut(Wart.Equals),
+    wartremoverErrors ++= Warts.allBut(Wart.Equals)
+  )
+
+addCommandAlias("scalastyle", ";scalafmtAll;scalafmtSbt;it/test:scalafmt;scalafixAll")
