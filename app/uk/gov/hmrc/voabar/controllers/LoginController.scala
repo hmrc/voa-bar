@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import javax.inject.{Inject, Singleton}
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.connectors.{VoaBarAuditConnector, VoaEbarsConnector}
+import uk.gov.hmrc.voabar.models.LoginDetails
 
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 @Singleton
@@ -48,7 +47,7 @@ class LoginController @Inject() (
         model match {
           case JsSuccess(loginDetails, _) =>
             Right(loginDetails.copy(password = crypto.decrypt(Crypted(loginDetails.password)).value))
-          case JsError(_)                 => Left("Unable to parse " + value)
+          case JsError(_)                 => Left(s"Unable to parse $value")
         }
       case None        => Left("No Json available")
     }

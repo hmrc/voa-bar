@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import org.apache.commons.io.IOUtils
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-
 import org.mongodb.scala.SingleObservableFuture
-
-import org.apache.commons.io.IOUtils
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status.OK
@@ -39,7 +37,7 @@ import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 
-import java.net.URL
+import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.{Inject, Singleton}
@@ -120,5 +118,5 @@ class UploadControllerIntSpec
 class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector {
 
   override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
-    Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
+    Future(Right(IOUtils.toByteArray(new URI(url).toURL.openStream())))
 }

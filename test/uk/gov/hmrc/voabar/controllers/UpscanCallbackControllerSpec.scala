@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.mongodb.scala.SingleObservableFuture
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.SpanSugar
 import org.scalatest.{EitherValues, OptionValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status
@@ -40,10 +39,10 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
 import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
-import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 import uk.gov.hmrc.voabar.util.ErrorCode.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 
-import java.net.URL
+import java.net.URI
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
@@ -217,7 +216,7 @@ object StubUpscanConnector extends UpscanConnector {
 
   override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future.successful(Right(
-      Using.resource(new URL(url).openStream()) {
+      Using.resource(new URI(url).toURL.openStream()) {
         _.readAllBytes()
       }
     ))

@@ -17,25 +17,24 @@
 package uk.gov.hmrc.voabar.util
 
 import ebars.xml.BAreports
+import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen
 import org.scalacheck.Gen.frequency
-import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.EitherValues
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.{Comparison, ComparisonResult, DifferenceEvaluator}
-import uk.gov.hmrc.voabar.models._
+import uk.gov.hmrc.voabar.models.*
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
 
 import java.io.StringWriter
 import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
-import jakarta.xml.bind.{JAXBContext, Marshaller}
-
 import scala.annotation.nowarn
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
 
@@ -48,7 +47,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
-  def otherChar = Gen.oneOf(""" ~!"@#$%+&;'()*,-./:;<=>?[\]_{}^£€""".toSeq)
+  def otherChar = Gen.oneOf(""" ~!"@#$%+&;'()*,-./:;<=>?[\]_{}^£€""")
 
   def restrictedChar = frequency((1, otherChar), (5, Gen.alphaNumChar))
 

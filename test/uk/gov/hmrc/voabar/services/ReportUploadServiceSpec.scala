@@ -16,30 +16,29 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.net.URL
-import java.nio.file.Paths
 import ebars.xml.BAreports
+import jakarta.xml.bind.JAXBContext
 import models.Purpose.Purpose
+import org.apache.commons.io.IOUtils
 import org.mockito.ArgumentMatchers.{any, same}
 import org.mockito.Mockito.{times, verify, verifyNoInteractions, when}
-import jakarta.xml.bind.JAXBContext
-import org.apache.commons.io.IOUtils
 import org.scalatest.OptionValues
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.WsScalaTestClient
-import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
-
-import scala.concurrent.{ExecutionContext, Future}
 import org.scalatest.matchers.must
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.WsScalaTestClient
 import play.api.http.Status.OK
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.voabar.connectors.{EmailConnector, UpscanConnector, VoaBarAuditConnector, VoaEbarsConnector}
-import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.*
+import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util.ErrorCode.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
+import java.net.{URI, URL}
+import java.nio.file.Paths
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.Matchers with OptionValues with WsScalaTestClient {
@@ -278,7 +277,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     new UpscanConnector {
 
       override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
-        Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
+        Future(Right(IOUtils.toByteArray(new URI(url).toURL.openStream())))
     }
 
   def aAuditConnector() = {

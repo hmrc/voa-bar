@@ -27,7 +27,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.sax.SAXResult
 import scala.util.{Failure, Success, Try}
-import scala.xml._
+import scala.xml.*
 import scala.xml.parsing.NoBindingFactoryAdapter
 
 class XmlParserSpec extends PlaySpec with EitherValues with Logging {
@@ -213,21 +213,21 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
       val nonEmptyHeaders: Seq[NodeSeq] = result.map(_ \ "BAreportHeader")
 
       nonEmptyHeaders.size mustBe 4
-      nonEmptyHeaders.forall(_.size == 1) mustBe true
+      nonEmptyHeaders.forall(_.sizeIs == 1) mustBe true
     }
 
     "each batch should contain a single (non-empty) trailer node" in {
       val nonEmptyTrailers: Seq[NodeSeq] = result.map(_ \ "BAreportTrailer")
 
       nonEmptyTrailers.size mustBe 4
-      nonEmptyTrailers.forall(_.size == 1) mustBe true
+      nonEmptyTrailers.forall(_.sizeIs == 1) mustBe true
     }
 
     "each batch should contain a single (non-empty) property report" in {
       val nonEmptyPropertyReports: Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
 
       nonEmptyPropertyReports.size mustBe 4
-      nonEmptyPropertyReports.forall(_.size == 1) mustBe true
+      nonEmptyPropertyReports.forall(_.sizeIs == 1) mustBe true
     }
   }
 

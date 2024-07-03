@@ -17,8 +17,8 @@
 package uk.gov.hmrc.voabar.repositories
 
 import com.google.inject.ImplementedBy
-import org.mongodb.scala.{ReadPreference, SingleObservableFuture}
 import org.mongodb.scala.model.*
+import org.mongodb.scala.{ReadPreference, SingleObservableFuture}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -37,7 +37,7 @@ object UserReportUpload {
   import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.*
 
   implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
-  final val collectionName                       = classOf[UserReportUpload].getSimpleName.toLowerCase
+  val collectionName                             = "userreportupload"
 }
 
 @Singleton
