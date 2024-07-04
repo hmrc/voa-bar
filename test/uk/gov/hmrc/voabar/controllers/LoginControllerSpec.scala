@@ -43,11 +43,12 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
   }
 
   val mockVoaEbarsConnector = mock[VoaEbarsConnector]
-  when(mockVoaEbarsConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(OK))
+  when(mockVoaEbarsConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])).thenReturn(Future.successful(Success(OK)))
 
   val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
-  when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
+  when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])).thenReturn(
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
+  )
 
   val mockAudit = mock[VoaBarAuditConnector]
 

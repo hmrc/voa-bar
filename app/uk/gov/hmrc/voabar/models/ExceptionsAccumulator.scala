@@ -28,7 +28,7 @@ sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
 
   def get: Seq[ReportErrorDetail]
 
-  def map(f: B => Option[A]): ExceptionsAccumulator[A, B]
+  infix def map(f: B => Option[A]): ExceptionsAccumulator[A, B]
 
   def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B]
 }
@@ -46,7 +46,7 @@ final case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors
 
   override def get: Seq[ReportErrorDetail] = errors
 
-  override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] =
+  override infix def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] =
     f(report) match {
       case Some(newErrors) => copy(errors = errors :+ newErrors)
       case _               => this

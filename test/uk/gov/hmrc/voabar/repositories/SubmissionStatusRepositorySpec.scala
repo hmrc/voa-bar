@@ -47,7 +47,7 @@ class SubmissionStatusRepositorySpec
   with MockitoSugar {
 
   implicit class NormalizedInstant(instant: Instant) {
-    def normalize: Instant = Instant ofEpochMilli instant.toEpochMilli
+    def normalize: Instant = Instant.ofEpochMilli(instant.toEpochMilli)
   }
 
   override def fakeApplication() = new GuiceApplicationBuilder()

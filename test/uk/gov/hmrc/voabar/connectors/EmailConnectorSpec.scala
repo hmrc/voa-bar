@@ -65,7 +65,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
         any[HttpReads[HttpResponse]],
         any[HeaderCarrier],
         any[ExecutionContext]
-      )) thenReturn Future.successful(HttpResponse(OK, ""))
+      )).thenReturn(Future.successful(HttpResponse(OK, "")))
 
       val connector = new DefaultEmailConnector(httpMock, getConfiguration(), utils)
 

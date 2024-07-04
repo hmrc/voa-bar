@@ -52,7 +52,7 @@ class UserReportUploadsRepositorySpec
     "save to mongo" in {
 
       val id  = UUID.randomUUID().toString
-      val now = Instant ofEpochMilli Instant.now.toEpochMilli
+      val now = Instant.ofEpochMilli(Instant.now.toEpochMilli)
 
       val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
 
