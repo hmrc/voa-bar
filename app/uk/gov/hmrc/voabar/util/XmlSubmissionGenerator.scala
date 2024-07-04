@@ -48,7 +48,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def generateBody(): BAreportBodyStructure = {
-    val bodyElements: ListBuffer[JAXBElement[_]] = ListBuffer(
+    val bodyElements: ListBuffer[JAXBElement[?]] = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
       OF.createBAreportBodyStructureTransactionIdentityBA(submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)), // TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),

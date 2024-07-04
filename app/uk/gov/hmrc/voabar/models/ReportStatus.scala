@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import scala.annotation.nowarn
 sealed trait ReportStatusType {
 
   val value: String = {
-    val a: Class[_ <: ReportStatusType] = getClass.asSubclass(getClass)
+    val a: Class[? <: ReportStatusType] = getClass.asSubclass(getClass)
     val u: String                       = a.getSimpleName.replace("$", "")
     u
   }

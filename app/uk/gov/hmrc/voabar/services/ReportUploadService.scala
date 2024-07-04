@@ -179,7 +179,7 @@ class ReportUploadService @Inject() (
       reportStatus => sendConfirmationEmail(reportStatus, login)
     ))
 
-  private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Future[_] = {
+  private def handleError(submissionId: String, barError: BarError, login: LoginDetails): Future[?] = {
     logger.warn(s"handling error, submissionID: $submissionId, Error: $barError")
 
     def handleValidationErrors(errors: List[Error]) =

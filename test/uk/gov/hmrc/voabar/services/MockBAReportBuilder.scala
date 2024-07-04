@@ -63,7 +63,7 @@ class MockBAReportBuilder {
 
     def addNode(root: Node, children: NodeSeq) = (root: @unchecked) match {
       case Elem(prefix, label, attributes, scope, child @ _*) =>
-        Elem(prefix, label, attributes, scope, false, child ++ children: _*)
+        Elem(prefix, label, attributes, scope, false, child ++ children*)
     }
     addNode(root, newChilds)
   }

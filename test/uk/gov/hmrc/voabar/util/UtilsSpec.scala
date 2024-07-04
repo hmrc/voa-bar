@@ -35,7 +35,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
   "Utils" must {
     "have decryptPassword method that"   must {
       "Decrypt the  encrypted password and return it in plain text" in {
-        val cryptoMock        = mock[Encrypter with Decrypter]
+        val cryptoMock        = mock[Encrypter & Decrypter]
         when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
         val utils             = new Utils(cryptoMock)
         val decryptedPassword = utils.decryptPassword(password)
@@ -45,7 +45,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
     "have generateHeaderCarrier method " must {
 
       "include some basic authorization in the header" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
+        val cryptoMock = mock[Encrypter & Decrypter]
         val utils      = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
@@ -61,7 +61,7 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
       }
 
       "include some basic authorization in the header for existing header carrier" in {
-        val cryptoMock    = mock[Encrypter with Decrypter]
+        val cryptoMock    = mock[Encrypter & Decrypter]
         val utils         = new Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 

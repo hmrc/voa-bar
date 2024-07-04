@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class Utils @Inject() (crypto: Encrypter with Decrypter) {
+class Utils @Inject() (crypto: Encrypter & Decrypter) {
   def decryptPassword(password: String): String = crypto.decrypt(Crypted(password)).value
 
   def generateHeader(loginDetails: LoginDetails): HeaderCarrier = {

@@ -39,7 +39,7 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: Execu
     import uk.gov.hmrc.http.HeaderNames._
 
     httpClient.url(url)
-      .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID)): _*)
+      .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID))*)
       .get().map { wsResponse =>
         // Right(wsResponse.body[Array[Byte]])
         Right(wsResponse.bodyAsBytes.toArrayUnsafe())

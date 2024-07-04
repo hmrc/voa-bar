@@ -254,17 +254,17 @@ object EbarsXmlCutter {
   private def findEntriesIdx(name: String)(bAreports: BAreports): Seq[Int] =
     content(bAreports).asScala.zipWithIndex.filter(e => e._1.getName.getLocalPart == name).map(e => e._2).toSeq
 
-  def findTypeOfTaxIdx = findEntriesIdx("TypeOfTax") _
+  def findTypeOfTaxIdx = findEntriesIdx("TypeOfTax")
 
-  def findRemarksIdx = findEntriesIdx("Remarks") _
+  def findRemarksIdx = findEntriesIdx("Remarks")
 
-  def findPropertyPlanReferenceNumberIdx = findEntriesIdx("PropertyPlanReferenceNumber") _
+  def findPropertyPlanReferenceNumberIdx = findEntriesIdx("PropertyPlanReferenceNumber")
 
   def findLastTypeOfTaxIdx(bAreports: BAreports) = findTypeOfTaxIdx(bAreports).reverse.headOption
 
-  def findExistingEntriesIdx = findEntriesIdx("ExistingEntries") _
+  def findExistingEntriesIdx = findEntriesIdx("ExistingEntries")
 
-  def findProposedEntriesIdx = findEntriesIdx("ProposedEntries") _
+  def findProposedEntriesIdx = findEntriesIdx("ProposedEntries")
 
   def findFirstExistingEntriesIdx(bAreports: BAreports) = findExistingEntriesIdx(bAreports).headOption
 

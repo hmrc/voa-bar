@@ -88,7 +88,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
       equal("baCode", baCode)
     ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
-    val finder = and(filters: _*)
+    val finder = and(filters*)
 
     collection.withReadPreference(ReadPreference.primary())
       .find(finder).sort(descending("createdAt")).toFuture()
@@ -123,7 +123,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
       }
 
   def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
-    val modifier = pushEach("errors", errors: _*)
+    val modifier = pushEach("errors", errors*)
 
     addErrorsByModifier(submissionId, modifier)
   }
@@ -219,7 +219,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
   private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit]] = {
     val updateSeq = if upsert then modifierSeq :+ setOnInsert(_id, id) else modifierSeq
 
-    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
+    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
       .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
