@@ -39,19 +39,18 @@ class DataMonitor @Inject() (
 
   Future.sequence(Seq(submissionStatusRepository, userReportUploadsRepository)
     .map { repo =>
-      for {
+      for
         count                 <- repo.collection.countDocuments().toFuture()
         countWithoutCreatedAt <- repo.collection.countDocuments(not(exists("createdAt"))).toFuture()
         countWithoutBACode    <- repo.collection.countDocuments(not(exists("baCode"))).toFuture()
         countWithoutStatus    <- repo.collection.countDocuments(not(exists("status"))).toFuture()
-      } yield {
+      yield
         val withoutCreatedAtStr = Option.when(countWithoutCreatedAt > 0)(countWithoutCreatedAt).fold("")(cnt => s" ($cnt - without `.createdAt`)")
         val withoutBACodeStr    = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode)
           .fold("")(cnt => s" ($cnt - without `.baCode`)")
         val withoutStatusStr    = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus)
           .fold("")(cnt => s" ($cnt - without `.status`)")
         s"collection '${repo.collectionName}': $count$withoutCreatedAtStr$withoutBACodeStr$withoutStatusStr"
-      }
     }).map(messages => logger.warn(messages.mkString(" \n")))
 
   private def isSubmissionsRepo(repo: PlayMongoRepository[?]): Boolean =

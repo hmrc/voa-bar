@@ -6,7 +6,7 @@ object AppDependencies {
   private val bootstrapVersion          = "9.0.0"
   private val hmrcMongoVersion          = "2.1.0"
   private val autoBarsXsdVersion        = "9.14.0"
-  private val jacksonModuleScalaVersion = "2.17.0"
+  private val jacksonModuleScalaVersion = "2.17.1"
   private val guiceUtilsVersion         = "6.0.0"
   private val catsEffectVersion         = "3.5.2"
   private val jerichoHtmlVersion        = "3.4"

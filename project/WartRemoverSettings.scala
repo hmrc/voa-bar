@@ -51,8 +51,6 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.JavaNetURLConstructors,
       Wart.ImplicitParameter,
       Wart.DefaultArguments,
-      Wart.Var,
-      Wart.Any,
       Wart.Nothing,
       Wart.Null,
       Wart.Overloading,
@@ -76,7 +74,8 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.Nothing,
       Wart.Overloading,
       Wart.FinalCaseClass,
-      Wart.SeqApply
+      Wart.SeqApply,
+      Wart.PlatformDefault
     )
 
   override lazy val projectSettings: Seq[Setting[?]] = Seq(
@@ -85,11 +84,7 @@ object WartRemoverSettings extends AutoPlugin {
     Compile / compile / wartremoverErrors ++= compileErrorOn,
     Compile / compile / wartremoverWarnings ++= compileWarnOn,
     // Test and it/Test sources
-    Test / compile / wartremoverErrors ++= testErrorOn,
-    Test / test / wartremoverErrors ++= testErrorOn,
     Test / wartremoverErrors ++= testErrorOn,
-    Test / compile / wartremoverWarnings ++= testWarnOn,
-    Test / test / wartremoverWarnings ++= testWarnOn,
     Test / wartremoverWarnings ++= testWarnOn
   )
 

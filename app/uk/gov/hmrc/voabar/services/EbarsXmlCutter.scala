@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +222,7 @@ object EbarsXmlCutter {
    * @param bAreports the XML report
    * @return Option of String
    */
-  def getRemarks(bAreports: BAreports) =
+  def getRemarks(bAreports: BAreports): Option[String] =
     EbarsXmlCutter.findRemarksIdx(bAreports).headOption map { idx =>
       val content = bAreports.getBApropertyReport.get(0).getContent
       val remarks = content.get(idx)
@@ -235,7 +235,7 @@ object EbarsXmlCutter {
    * @param bAreports the XML report
    * @return Option of String
    */
-  def getPropertyPlanReferenceNumber(bAreports: BAreports) =
+  def getPropertyPlanReferenceNumber(bAreports: BAreports): Seq[String] =
     EbarsXmlCutter.findPropertyPlanReferenceNumberIdx(bAreports) map { idx =>
       val content = bAreports.getBApropertyReport.get(0).getContent
       val remarks = content.get(idx)
@@ -331,9 +331,7 @@ object EbarsXmlCutter {
            * So baReferences(i) should always be there. Nevertheless, the initially submitted
            * XML may be invalid in the sense that <BAreference> is missing, hence the check.
            */
-          if (baReferences.isDefinedAt(i)) {
-            copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
-          }
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
         }
       }
 
@@ -377,9 +375,7 @@ object EbarsXmlCutter {
           textAddressStructureCopy.setPostcode(proposedTextAddressStructure.getPostcode)
 
           copyPropertyIdentity.getContent.add(createTextAddress(textAddressStructureCopy))
-          if (baReferences.isDefinedAt(i)) {
-            copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
-          }
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
         }
       }
 
@@ -456,9 +452,7 @@ object EbarsXmlCutter {
           textAddressStructureCopy.setPostcode(proposedTextAddressStructure.getPostcode)
 
           copyPropertyIdentity.getContent.add(createTextAddress(textAddressStructureCopy))
-          if (baReferences.isDefinedAt(i)) {
-            copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
-          }
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
         }
       }
     }

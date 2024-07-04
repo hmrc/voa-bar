@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr01AndCr02MissingExistingEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr01AndCr02MissingExistingEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr01AndCr02MissingExistingEntryValidation)
     }
   }
 
@@ -46,7 +46,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr03AndCr04MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr03AndCr04MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr03AndCr04MissingProposedEntryValidation)
     }
   }
 
@@ -57,7 +57,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr05AndCr12MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
     }
 
     "report missing existing entry" in {
@@ -66,7 +66,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr05AndCr12MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
     }
   }
 
@@ -77,7 +77,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
     }
 
     "report missing existing entry - CR14" in {
@@ -86,7 +86,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
     }
   }
 
@@ -97,7 +97,7 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Cr08InvalidCodeValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Cr08InvalidCodeValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Cr08InvalidCodeValidation)
     }
   }
 }

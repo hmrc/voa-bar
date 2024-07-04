@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,11 +63,10 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
       OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
     )
 
-    if (submission.planningRef.isDefined) {
+    if submission.planningRef.isDefined then
       bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
-    }
 
-    if (submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined) {
+    if submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined then
       val reasonForRemoval = submission.removalReason.map {
         case OtherReason => submission.otherReason.getOrElse("Unknown reason") // TODO some validation
         case rr          => rr.xmlValue
@@ -80,7 +79,6 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
           submission.comments
         ).flatten.mkString(" ")
       )
-    }
 
     body.getContent.addAll(bodyElements.asJavaCollection)
     body
@@ -104,51 +102,50 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     person.setPersonFamilyName(submission.propertyContactDetails.lastName)
     val contact = new OccupierContactStructure()
     contact.setOccupierName(person)
-    if (!submission.sameContactAddress) {
+    if !submission.sameContactAddress then
       val address        = submission.contactAddress.get
       val contactAddress = new UKPostalAddressStructure()
       contactAddress.getLine.add(address.line1)
       contactAddress.getLine.add(address.line2)
-      if (address.line3.isDefined) {
+      if address.line3.isDefined then
         contactAddress.getLine.add(address.line3.get)
-      }
-      if (address.line4.isDefined) {
+
+      if address.line4.isDefined then
         contactAddress.getLine.add(address.line4.get)
-      }
+
       contactAddress.setPostCode(address.postcode)
       contact.setContactAddress(contactAddress)
-    }
-    if (submission.propertyContactDetails.email.isDefined || submission.propertyContactDetails.phoneNumber.isDefined) {
+
+    if submission.propertyContactDetails.email.isDefined || submission.propertyContactDetails.phoneNumber.isDefined then
       val nos = new ContactDetailsStructure()
-      if (submission.propertyContactDetails.email.isDefined) {
+      if submission.propertyContactDetails.email.isDefined then
         val email = new EmailStructure
         email.setEmailAddress(submission.propertyContactDetails.email.get)
         nos.getEmail.add(email)
-      }
-      if (submission.propertyContactDetails.phoneNumber.isDefined) {
+
+      if submission.propertyContactDetails.phoneNumber.isDefined then
         val tel = new TelephoneStructure()
         tel.setTelNationalNumber(submission.propertyContactDetails.phoneNumber.get)
         nos.getTelephone.add(tel)
-      }
+
       contact.setOccupierContactNos(nos)
-    }
 
     contact
   }
 
   def propertyIdentification(): BApropertyIdentificationStructure = {
-    val uprn            = submission.uprn.map { uprn =>
+    val uprn        = submission.uprn.map { uprn =>
       OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }
-    val textAddress     = new TextAddressStructure()
+    val textAddress = new TextAddressStructure()
     textAddress.getAddressLine.add(submission.address.line1)
     textAddress.getAddressLine.add(submission.address.line2)
-    if (submission.address.line3.isDefined) {
+    if submission.address.line3.isDefined then
       textAddress.getAddressLine.add(submission.address.line3.get)
-    }
-    if (submission.address.line4.isDefined) {
+
+    if submission.address.line4.isDefined then
       textAddress.getAddressLine.add(submission.address.line4.get)
-    }
+
     textAddress.setPostcode(submission.address.postcode)
     val jaxbTextAddress = OF.createBApropertyIdentificationStructureTextAddress(textAddress)
 

@@ -56,7 +56,7 @@ class MockBAReportBuilder {
     val newNode = concat(NodeSeq.Empty, existingEntries, proposedEntries)
 
     val newChilds: NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
-      if (elem.label == "TypeOfTax") acc ++ elem ++ newNode else acc ++ elem
+      if elem.label == "TypeOfTax" then acc ++ elem ++ newNode else acc ++ elem
     )
 
     val root = <BApropertyReport></BApropertyReport>
@@ -70,11 +70,7 @@ class MockBAReportBuilder {
 
   @tailrec
   private def concat(node: NodeSeq, existing: Int, proposed: Int): NodeSeq = existing match {
-    case 0 => if (proposed == 0) {
-        node
-      } else {
-        concat(node ++ proposedEntries, 0, proposed - 1)
-      }
+    case 0 => if proposed == 0 then node else concat(node ++ proposedEntries, 0, proposed - 1)
     case _ => concat(node ++ existingEntries, existing - 1, proposed)
   }
 

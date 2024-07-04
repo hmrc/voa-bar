@@ -36,21 +36,15 @@ class ValidationService {
 
     log.warn(s"submissions in XML : ${submissions.getBApropertyReport.size()}, isEmpty ${submissions.getBApropertyReport.isEmpty}")
 
-    if (submissions.getBApropertyReport.isEmpty) {
+    if submissions.getBApropertyReport.isEmpty then
       Left(BarXmlError("No submission found."))
-    } else {
+    else
       val headerErros = validateHeaderTrailer(submissions, baLogin)
-      if (headerErros.isEmpty) {
+      if headerErros.isEmpty then
         val bodyErrros = validateBody(submissions)
-        if (bodyErrros.isEmpty) {
-          Right(())
-        } else {
-          Left(BarSubmissionValidationError(bodyErrros))
-        }
-      } else {
+        if bodyErrros.isEmpty then Right(()) else Left(BarSubmissionValidationError(bodyErrros))
+      else
         Left(BarValidationError(headerErros))
-      }
-    }
   }
 
   def validateBody(submissions: BAreports): List[ReportError] =

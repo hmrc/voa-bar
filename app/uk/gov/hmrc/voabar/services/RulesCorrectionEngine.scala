@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,17 +92,16 @@ case object FixHeader extends Rule {
 
   override def apply(baReports: BAreports): Unit = {
     val header = baReports.getBAreportHeader
-    if (header.getEntryDateTime == null) {
+    if header.getEntryDateTime == null then
       val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
       header.setEntryDateTime(xmlNow)
-    }
-    if (header.getProcessDate == null) {
+
+    if header.getProcessDate == null then
       val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance()
         .newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
       header.setProcessDate(xmlNow)
-    }
   }
 }
 
@@ -118,11 +117,10 @@ case object FixCTaxTrailer extends Rule {
     trailer.setTotalCtaxReportCount(BigInteger.valueOf(baReports.getBApropertyReport.size()))
     // NDR REPORTS are not supported
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
-    if (trailer.getEntryDateTime == null) {
+    if trailer.getEntryDateTime == null then
       val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
       trailer.setEntryDateTime(xmlNow)
-    }
   }
 }
 

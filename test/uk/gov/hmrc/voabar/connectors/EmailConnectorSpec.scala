@@ -60,9 +60,9 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   "EmailConnector" must {
     "verify that the email service gets called when email needs to be sent" in {
       val httpMock = mock[HttpClient]
-      when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(
+      when(httpMock.POST[JsValue, HttpResponse](anyString, any[JsValue], any[Seq[(String, String)]])(
         any[Writes[JsValue]],
-        any[HttpReads[Any]],
+        any[HttpReads[HttpResponse]],
         any[HeaderCarrier],
         any[ExecutionContext]
       )) thenReturn Future.successful(HttpResponse(OK, ""))

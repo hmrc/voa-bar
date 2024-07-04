@@ -38,11 +38,10 @@ class XmlErrorHandler extends ErrorHandler {
 
   private def addError(exception: SAXParseException): Unit = {
     val split = exception.getMessage.split(":", 2) map (_.trim)
-    if (split.length == 1) {
+    if split.length == 1 then
       errors.put(-1, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(0)}")))
-    } else {
+    else
       errors.put(exception.getLineNumber, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(1)}")))
-    }
   }
 
   override def warning(exception: SAXParseException): Unit =
@@ -77,11 +76,7 @@ class XmlValidator {
       validator.validate(source)
     } match {
       case Success(_)         =>
-        if (errorHandler.errors.isEmpty) {
-          Right(true)
-        } else {
-          Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
-        }
+        if errorHandler.errors.isEmpty then Right(true) else Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
       case Failure(exception) => Left(BarXmlError("XML Schema validation error"))
     }
   }
@@ -122,11 +117,7 @@ class XmlValidator {
 
     maybeInvalid match {
       case Success(_)         =>
-        if (errorHandler.errors.isEmpty) {
-          Right(true)
-        } else {
-          Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
-        }
+        if errorHandler.errors.isEmpty then Right(true) else Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
       case Failure(exception) =>
         log.warn("XML read error, invalid XML document", exception)
         Left(BarXmlError(s"XML read error, invalid XML document, ${exception.getMessage}"))

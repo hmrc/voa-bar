@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply(reports)
 
-      result.get.errorCode mustBe (ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
       // result.get.value must be("The proposed property address is missing from this report.") //no messages
     }
   }
@@ -47,7 +47,7 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply(reports)
 
-      result.get.errorCode must be(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
       // result.get.value must be("The existing property address is missing from this report.") no messages
     }
   }

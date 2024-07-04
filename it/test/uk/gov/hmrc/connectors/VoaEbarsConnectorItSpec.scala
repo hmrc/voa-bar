@@ -113,8 +113,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
       wireMockServer.verify(getRequestedFor(urlEqualTo(path)))
     }
 
-  private def testEbarsPostCall(path: String, ebarsCall: VoaEbarsConnector => Future[?], requestContentType: String, responseStatus: Int, responseBody: String)
-    : Unit =
+  private def testSendBAReport(path: String, baReport: BAReportRequest, requestContentType: String, responseStatus: Int, responseBody: String): Unit =
     withWiremockServer { wireMockServer =>
       wireMockServer.stubFor(
         post(urlEqualTo(path))
@@ -124,7 +123,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
           )
       )
     } { (port: Int, wireMockServer: WireMockServer) =>
-      val result = ebarsCall(voaEbarsConnector(port))
+      val result = voaEbarsConnector(port).sendBAReport(baReport)
 
       val httpResult = Await.result(result, timeout)
       httpResult mustBe responseStatus
@@ -135,14 +134,14 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
   "VoaEbarsConnector" must {
     "send reports as application/x-www-form-urlencoded content" in {
-      testEbarsPostCall(uploadXmlPath, _.sendBAReport(report), uploadContentType, OK, <root><result>success</result></root>.toString)
+      testSendBAReport(uploadXmlPath, report, uploadContentType, OK, <root><result>success</result></root>.toString)
     }
 
     "handle 401 Unauthorised response from eBars" in {
       val thrown = intercept[UnauthorizedException] {
-        testEbarsPostCall(
+        testSendBAReport(
           uploadXmlPath,
-          _.sendBAReport(report),
+          report,
           uploadContentType,
           UNAUTHORIZED,
           <x>
@@ -155,9 +154,9 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
     "handle 500 eBars server response" in {
       val thrown = intercept[RuntimeException] {
-        testEbarsPostCall(
+        testSendBAReport(
           uploadXmlPath,
-          _.sendBAReport(report),
+          report,
           uploadContentType,
           INTERNAL_SERVER_ERROR,
           <x>

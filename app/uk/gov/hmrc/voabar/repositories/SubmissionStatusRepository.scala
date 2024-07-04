@@ -168,15 +168,12 @@ class SubmissionStatusRepositoryImpl @Inject() (
   }
 
   private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] =
-    if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
+    if report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value) then
       Future.successful(report)
-    } else {
-      if (report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0) {
-        markSubmissionFailed(report)
-      } else {
-        Future.successful(report)
-      }
-    }
+    else if report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0 then
+      markSubmissionFailed(report)
+    else
+      Future.successful(report)
 
   private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
     val update = Updates.combine(
@@ -220,11 +217,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
       }
 
   private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit]] = {
-    val updateSeq = if (upsert) {
-      modifierSeq :+ setOnInsert(_id, id)
-    } else {
-      modifierSeq
-    }
+    val updateSeq = if upsert then modifierSeq :+ setOnInsert(_id, id) else modifierSeq
 
     collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
       .map(_ => Right(()))

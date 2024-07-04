@@ -208,17 +208,15 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     )
 
   def validateXml(xml: String): Unit = {
-    val file       = Files.createTempFile("test-xml", ".xml")
+    val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
-    val dom        = parser.parse(file.toUri.toURL).toOption.get
-    val validation = validator.validate(dom)
 
-    if (validation.isLeft) {
-      Console.println(s"\n\n\n${validation.left}\n\n$xml")
-    }
+    val validation = parser.parse(file.toUri.toURL)
+      .flatMap(validator.validate)
 
-    validation.value mustBe true
+    if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
+    validation mustBe Right(true)
   }
 
 }

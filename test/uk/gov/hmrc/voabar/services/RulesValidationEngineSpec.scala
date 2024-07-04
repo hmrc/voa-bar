@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = TextAddressPostcodeValidation.apply(reports)
 
-      result.head.errorCode must be(ErrorCode.TextAddressPostcodeValidation)
-
+      result.map(_.errorCode) mustBe Some(ErrorCode.TextAddressPostcodeValidation)
     }
   }
 
@@ -96,7 +95,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = OccupierContactAddressesPostcodeValidation.apply(reports)
 
-      result.head.errorCode must be(ErrorCode.OccupierContactAddressesPostcodeValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.OccupierContactAddressesPostcodeValidation)
       // result.get.value must be("Postcode CropCrop in this report is invalid.") //We don't have messages in place
     }
   }
@@ -118,7 +117,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = RemarksValidation.apply(reports)
 
-      result.head.errorCode must be(ErrorCode.RemarksValidationTooLong)
+      result.map(_.errorCode) mustBe Some(ErrorCode.RemarksValidationTooLong)
     }
 
     "invalid remarks - too short" in {
@@ -128,7 +127,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = RemarksValidation.apply(reports)
 
-      result.head.errorCode must be(ErrorCode.RemarksValidationNotEmpty)
+      result.map(_.errorCode) mustBe Some(ErrorCode.RemarksValidationNotEmpty)
     }
   }
 
@@ -149,7 +148,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = PropertyPlanReferenceNumberValidation.apply(reports)
 
-      result.head.errorCode must be(ErrorCode.PropertyPlanReferenceNumberValidation)
+      result.map(_.errorCode) mustBe Some(ErrorCode.PropertyPlanReferenceNumberValidation)
 
     }
   }

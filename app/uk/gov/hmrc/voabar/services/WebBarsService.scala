@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,8 @@ class DefaultWebBarsService @Inject() (
   val log = Logger(this.getClass)
 
   def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit =
-    if (reportStatus.report.isDefined) {
+    if reportStatus.report.isDefined then
       processReport(reportStatus, username, password)
-    }
 
   def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
     val submission = DefaultWebBarsService.readReport(reportStatus)

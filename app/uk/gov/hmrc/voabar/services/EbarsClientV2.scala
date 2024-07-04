@@ -93,9 +93,9 @@ class EbarsClientV2 @Inject() (
 
   private def parseOkResponse(response: WSResponse, attempt: Int): Try[Int] = {
     val body = response.body
-    if (body.contains("401 Unauthorized")) {
+    if body.contains("401 Unauthorized") then
       Failure(new UnauthorizedException("UNAUTHORIZED"))
-    } else {
+    else
       Try {
         val responseXML = XML.loadString(body)
         val status      = (responseXML \ "result").text
@@ -110,7 +110,6 @@ class EbarsClientV2 @Inject() (
         logger.warn(s"Parsing eBars response failed. Body:\n$body")
         Failure(EbarsApiError(OK, s"Parsing eBars response failed. attempt: $attempt"))
       }
-    }
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -364,7 +364,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       val reports =
         ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.getRemarks(reports).head should be("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
+      EbarsXmlCutter.getRemarks(reports) shouldBe Some("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT")
     }
   }
 
@@ -373,7 +373,7 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       val reports =
         ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CARDIFF_EDITED_CRCD_RMRKS_BOTH_PROPERTIES.xml")))
 
-      EbarsXmlCutter.getPropertyPlanReferenceNumber(reports).head should be("43242432432")
+      EbarsXmlCutter.getPropertyPlanReferenceNumber(reports).headOption shouldBe Some("43242432432")
     }
   }
 

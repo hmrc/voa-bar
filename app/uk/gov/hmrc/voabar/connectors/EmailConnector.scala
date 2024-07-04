@@ -34,7 +34,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
   extends EmailConnector {
 
   private val emailConfigPrefix = "microservice.services.email"
-  if (!configuration.has(emailConfigPrefix)) throw new ConfigException.Missing(emailConfigPrefix)
+  if !configuration.has(emailConfigPrefix) then throw new ConfigException.Missing(emailConfigPrefix)
   private val protocol          = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
   private val host              = configuration.get[String](s"$emailConfigPrefix.host")
   private val port              = configuration.get[String](s"$emailConfigPrefix.port")
@@ -42,7 +42,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
   private val needsToSendEmail  = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
 
   private val email = configuration.getOptional[String]("email")
-    .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
+    .getOrElse(if needsToSendEmail then throw new ConfigException.Missing("email") else "")
 
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
     override def read(method: String, url: String, response: HttpResponse): Unit = ()
@@ -59,7 +59,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
     errorList: String
   ): Future[Unit] = {
     implicit val authHc = utils.generateHeader(LoginDetails(username, password))
-    if (needsToSendEmail) {
+    if needsToSendEmail then
       val json = Json.obj(
         "to"         -> JsArray(Seq(JsString(email))),
         "templateId" -> JsString("bars_alert_transaction"),
@@ -74,9 +74,8 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
       )
 
       http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json, Seq.empty)
-    } else {
+    else
       Future.unit
-    }
   }
 }
 
