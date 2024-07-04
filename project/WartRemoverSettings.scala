@@ -48,7 +48,6 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.Equals,
       Wart.ToString,
       Wart.GlobalExecutionContext,
-      Wart.JavaNetURLConstructors,
       Wart.ImplicitParameter,
       Wart.DefaultArguments,
       Wart.Nothing,
