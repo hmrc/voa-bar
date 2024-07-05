@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+
 import org.apache.pekko.stream.testkit.NoMaterializer
 import org.apache.pekko.stream.Materializer
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
-import play.api.test.Helpers.{status, _}
+import play.api.test.Helpers.*
 import uk.gov.hmrc.voabar.models.{BarMongoError, UserReportUploadRest}
 import play.api.test.Helpers.stubControllerComponents
 
@@ -35,25 +38,27 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
   implicit val materializer: Materializer = NoMaterializer
 
   val error = BarMongoError("error")
-  val id = "id"
+  val id    = "id"
+
   val userReportUploadRest = UserReportUploadRest(
     id = id,
     userId = "userId",
     userPassword = "pass"
   )
+
   val userReportUpload = UserReportUpload(
     _id = id,
     userId = "userId",
     userPassword = "pass"
   )
-  val json = Json.toJson(userReportUploadRest)
-  val fakeRequest = FakeRequest("", "").withBody(json)
+  val json             = Json.toJson(userReportUploadRest)
+  val fakeRequest      = FakeRequest("", "").withBody(json)
 
   "UserReportUploadsController" should {
     "save a user report upload successfully" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
-      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Right(()))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
+      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])).thenReturn(Future.successful(Right(())))
+      val userReportUploadsController     = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.save()(fakeRequest)
 
@@ -61,8 +66,8 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     }
     "return an error status when saving fails" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
-      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Left(error))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
+      when(userReportUploadsRepositoryMock.save(any[UserReportUpload])).thenReturn(Future.successful(Left(error)))
+      val userReportUploadsController     = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.save()(fakeRequest)
 
@@ -70,8 +75,8 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     }
     "get by id returns user data correctly" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
-      when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Right(Some(userReportUpload)))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
+      when(userReportUploadsRepositoryMock.getById(any[String])).thenReturn(Future.successful(Right(Some(userReportUpload))))
+      val userReportUploadsController     = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.getById(id)(fakeRequest)
 
@@ -80,8 +85,8 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     }
     "return bad status if an error occurs" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
-      when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Left(error))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
+      when(userReportUploadsRepositoryMock.getById(any[String])).thenReturn(Future.successful(Left(error)))
+      val userReportUploadsController     = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.getById(id)(fakeRequest)
 

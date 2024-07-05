@@ -22,7 +22,7 @@ import org.scalatestplus.play.PlaySpec
 
 import scala.xml._
 
-class MockBAReportBuilderSpec extends PlaySpec{
+class MockBAReportBuilderSpec extends PlaySpec {
 
   val reportBuilder = new MockBAReportBuilder
 
@@ -45,8 +45,8 @@ class MockBAReportBuilderSpec extends PlaySpec{
 
     "contain the number of existing entries and proposed entries specified" in {
       val baPropertyReport: NodeSeq = reportBuilder("CR03", 1000, 3, 0)
-      val existingEntries = baPropertyReport \\ "ExistingEntries"
-      val proposedEntries = baPropertyReport \\ "ProposedEntries"
+      val existingEntries           = baPropertyReport \\ "ExistingEntries"
+      val proposedEntries           = baPropertyReport \\ "ProposedEntries"
       existingEntries.size mustBe 3
       proposedEntries.size mustBe 0
     }
@@ -67,8 +67,8 @@ class MockBAReportBuilderSpec extends PlaySpec{
       }
 
       "modify a given report in multiple ways at once" in {
-        val result = reportBuilder.invalidateBatch(batchSubmission,Map("SOME VALID COUNCIL" -> "INVALID COUNCIL",
-          "5090" -> "XXXX", "RecordCount" -> "InvalidElement"))
+        val result =
+          reportBuilder.invalidateBatch(batchSubmission, Map("SOME VALID COUNCIL" -> "INVALID COUNCIL", "5090" -> "XXXX", "RecordCount" -> "InvalidElement"))
         (result \\ "BillingAuthority").text mustBe "INVALID COUNCIL"
         (result \\ "BillingAuthorityIdentityCode").text mustBe "XXXX"
         (result \\ "InvalidElement").size mustBe 1

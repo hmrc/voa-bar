@@ -21,12 +21,12 @@ import java.io.{InputStream, Reader}
 import org.w3c.dom.ls.LSInput
 
 class Input extends LSInput {
-  private var systemId, baseURI, publicId: String = _
+  private var systemId, baseURI, publicId: String = scala.compiletime.uninitialized
 
-  private var reader: Reader = _
-  private var byteStream: InputStream = _
-  private var certifiedText: Boolean = _
-  private var encoding, stringData: String = _
+  private var reader: Reader               = scala.compiletime.uninitialized
+  private var byteStream: InputStream      = scala.compiletime.uninitialized
+  private var certifiedText: Boolean       = scala.compiletime.uninitialized
+  private var encoding, stringData: String = scala.compiletime.uninitialized
 
   override def getBaseURI: String = baseURI
 

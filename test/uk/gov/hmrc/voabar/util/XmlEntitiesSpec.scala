@@ -36,22 +36,20 @@ class XmlEntitiesSpec extends PlaySpec {
           |<root>this is&nbsp;text</root>
           |""".stripMargin.getBytes("UTF-8")
 
-
       val documentBuilderFactory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", null)
       documentBuilderFactory.setNamespaceAware(true)
       documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
       documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
       documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-      documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities",false)
-      documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
-
+      documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+      documentBuilderFactory.setExpandEntityReferences(false) // XXE vulnerable fix
 
       val docBuilder = documentBuilderFactory.newDocumentBuilder()
 
-      val doc = docBuilder.parse( new ReplacingInputStream(new ByteArrayInputStream(xml), "&nbsp;", " "))
+      val doc = docBuilder.parse(new ReplacingInputStream(new ByteArrayInputStream(xml), "&nbsp;", " "))
 
       doc.getDocumentElement must not be null
-      doc.getFirstChild.getFirstChild.getNodeValue mustBe("this is text")
+      doc.getFirstChild.getFirstChild.getNodeValue mustBe "this is text"
 
     }
   }

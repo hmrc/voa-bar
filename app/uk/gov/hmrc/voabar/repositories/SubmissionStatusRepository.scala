@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package uk.gov.hmrc.voabar.repositories
 
 import com.google.inject.ImplementedBy
-import org.mongodb.scala.ReadPreference
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.*
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.Updates.{push, pushEach, set, setOnInsert}
-import org.mongodb.scala.model._
+import org.mongodb.scala.{ObservableFuture, ReadPreference, SingleObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logging}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -30,26 +30,24 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, Pending, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository.submissionsCollectionName
-import uk.gov.hmrc.voabar.util.PlayMongoUtil._
-import uk.gov.hmrc.voabar.util.TIMEOUT_ERROR
+import uk.gov.hmrc.voabar.util.ErrorCode.TIMEOUT_ERROR
+import uk.gov.hmrc.voabar.util.PlayMongoUtil.*
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
 object SubmissionStatusRepository {
   val submissionsCollectionName = "submissions"
 }
 
 @Singleton
-class SubmissionStatusRepositoryImpl @Inject()(
-                                                mongo: MongoComponent,
-                                                config: Configuration
-                                              )
-                                              (implicit executionContext: ExecutionContext)
-  extends PlayMongoRepository[ReportStatus](
+class SubmissionStatusRepositoryImpl @Inject() (
+  mongo: MongoComponent,
+  config: Configuration
+)(implicit executionContext: ExecutionContext
+) extends PlayMongoRepository[ReportStatus](
     collectionName = submissionsCollectionName,
     mongoComponent = mongo,
     domainFormat = ReportStatus.format,
@@ -61,7 +59,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
       Codecs.playFormatCodec(Error.format),
       Codecs.playFormatCodec(MongoJavatimeFormats.instantFormat)
     )
-  ) with SubmissionStatusRepository with Logging {
+  )
+  with SubmissionStatusRepository
+  with Logging {
 
   val timeoutMinutes = 120
 
@@ -88,7 +88,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       equal("baCode", baCode)
     ) ++ filterStatus.fold(Seq.empty[Bson])(status => Seq(equal("status", status)))
 
-    val finder = and(filters: _*)
+    val finder = and(filters*)
 
     collection.withReadPreference(ReadPreference.primary())
       .find(finder).sort(descending("createdAt")).toFuture()
@@ -100,18 +100,19 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] = {
+  override def getByReference(reference: String): Future[Either[BarError, ReportStatus]] =
     collection.withReadPreference(ReadPreference.primary())
       .find(byId(reference)).sort(descending("createdAt")).toFuture()
-      .flatMap { res =>
-        checkAndUpdateSubmissionStatus(res.head).map(Right(_))
+      .flatMap {
+        _.headOption.fold(Future.failed(Exception("Submission not found"))) {
+          report => checkAndUpdateSubmissionStatus(report).map(Right(_))
+        }
       }
       .recover {
         case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports for reference $reference", ex, logger)
       }
-  }
 
-  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
+  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] =
     collection.withReadPreference(ReadPreference.primary())
       .find().sort(descending("createdAt")).toFuture()
       .flatMap { res =>
@@ -120,10 +121,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
       .recover {
         case ex: Throwable => handleMongoWarn("Couldn't retrieve all BA reports", ex, logger)
       }
-  }
 
   def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
-    val modifier = pushEach("errors", errors: _*)
+    val modifier = pushEach("errors", errors*)
 
     addErrorsByModifier(submissionId, modifier)
   }
@@ -158,7 +158,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.deleteOne(deleteSelector).toFutureOption()
       .map { deleteResult =>
         val deletedCount = deleteResult.map(_.getDeletedCount).getOrElse(0L)
-        val response = Json.obj("n" -> deletedCount)
+        val response     = Json.obj("n" -> deletedCount)
         logger.warn(s"Deletion on $collectionName done, returning response : $response")
         Right(response)
       }
@@ -167,17 +167,13 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
-  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
-    if (report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
+  private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] =
+    if report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value) then
       Future.successful(report)
-    } else {
-      if (report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0) {
-        markSubmissionFailed(report)
-      } else {
-        Future.successful(report)
-      }
-    }
-  }
+    else if report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0 then
+      markSubmissionFailed(report)
+    else
+      Future.successful(report)
 
   private def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
     val update = Updates.combine(
@@ -186,12 +182,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
     )
 
     collection
-      .findOneAndUpdate(byId(report.id), update,
-        FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER))
+      .findOneAndUpdate(byId(report.id), update, FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER))
       .toFutureOption()
       .flatMap {
         case Some(reportStatus) => Future.successful(reportStatus)
-        case _ => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
+        case _                  => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
       }
   }
 
@@ -199,7 +194,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
-        case _ =>
+        case _                                                        =>
           val errorMsg = s"Report status wasn't updated for $submissionId"
           logger.error(errorMsg)
           Left(BarMongoError(errorMsg))
@@ -212,7 +207,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     collection.updateOne(byId(submissionId), modifier).toFutureOption()
       .map {
         case Some(updateResult) if updateResult.getModifiedCount == 1 => Right(true)
-        case _ =>
+        case _                                                        =>
           val errorMsg = s"Error message wasn't recorded for $submissionId"
           logger.error(errorMsg)
           Left(BarMongoError(errorMsg))
@@ -222,13 +217,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
 
   private def atomicSaveOrUpdate(id: String, modifierSeq: Seq[Bson], upsert: Boolean): Future[Either[BarMongoError, Unit]] = {
-    val updateSeq = if (upsert) {
-      modifierSeq :+ setOnInsert(_id, id)
-    } else {
-      modifierSeq
-    }
+    val updateSeq = if upsert then modifierSeq :+ setOnInsert(_id, id) else modifierSeq
 
-    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq: _*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
+    collection.findOneAndUpdate(byId(id), Updates.combine(updateSeq*), FindOneAndUpdateOptions().upsert(upsert)).toFutureOption()
       .map(_ => Right(()))
       .recover {
         case ex: Throwable => handleMongoError("Error while saving submission", ex, logger)
@@ -248,11 +239,11 @@ trait SubmissionStatusRepository {
 
   def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]]
 
-  def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
+  def getByUser(userId: String, filter: Option[String] = None): Future[Either[BarError, Seq[ReportStatus]]]
 
-  def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
+  def getByReference(reference: String): Future[Either[BarError, ReportStatus]]
 
-  def deleteByReference(reference: String, user: String) : Future[Either[BarError, JsValue]]
+  def deleteByReference(reference: String, user: String): Future[Either[BarError, JsValue]]
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 

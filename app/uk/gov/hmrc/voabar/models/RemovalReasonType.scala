@@ -25,6 +25,7 @@ sealed trait RemovalReasonType {
 case object Demolition extends RemovalReasonType {
   override def xmlValue: String = "Property demolished."
 }
+
 case object Disrepair extends RemovalReasonType {
   override def xmlValue: String = "Property in disrepair."
 }
@@ -58,25 +59,24 @@ case object CaravanRemoved extends RemovalReasonType {
 case object Duplicate extends RemovalReasonType {
   override def xmlValue: String = "Duplicate property."
 }
+
 case object OtherReason extends RemovalReasonType {
   override def xmlValue: String = "Other reason"
 }
 
-
-
 object RemovalReasonType {
 
   val removalReasonMap: Map[String, RemovalReasonType] = Map(
-    "Demolition" -> Demolition,
-    "Disrepair" -> Disrepair,
-    "Derelict" -> Derelict,
-    "Renovating" -> Renovating,
-    "NotComplete" -> NotComplete,
-    "BandedTooSoon" -> BandedTooSoon,
+    "Demolition"                 -> Demolition,
+    "Disrepair"                  -> Disrepair,
+    "Derelict"                   -> Derelict,
+    "Renovating"                 -> Renovating,
+    "NotComplete"                -> NotComplete,
+    "BandedTooSoon"              -> BandedTooSoon,
     "BandedTooSoonOrNotComplete" -> BandedTooSoonOrNotComplete,
-    "CaravanRemoved" -> CaravanRemoved,
-    "Duplicate" -> Duplicate,
-    "OtherReason" -> OtherReason
+    "CaravanRemoved"             -> CaravanRemoved,
+    "Duplicate"                  -> Duplicate,
+    "OtherReason"                -> OtherReason
   )
 
   val removalReasonMapByType: Map[RemovalReasonType, String] = removalReasonMap.map(_.swap)
@@ -84,11 +84,11 @@ object RemovalReasonType {
   implicit val format: Format[RemovalReasonType] = new Format[RemovalReasonType] {
 
     override def reads(json: JsValue): JsResult[RemovalReasonType] =
-      json match  {
+      json match {
         case JsString(removalReason) =>
           removalReasonMap.get(removalReason)
             .fold[JsResult[RemovalReasonType]](JsError(s"Unknown Reason: $removalReason"))(JsSuccess(_))
-        case error => JsError(s"Unable to deserialize RemovalReasonType $error")
+        case error                   => JsError(s"Unable to deserialize RemovalReasonType $error")
       }
 
     override def writes(rrt: RemovalReasonType): JsValue =

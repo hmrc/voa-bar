@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import org.mockito.scalatest.MockitoSugar
+import org.mongodb.scala.SingleObservableFuture
+
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -27,9 +29,15 @@ import uk.gov.hmrc.mongo.MongoComponent
 import java.time.Instant
 import java.util.UUID
 
-
-class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll with OptionValues
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits  with GuiceOneAppPerSuite with MockitoSugar  {
+class UserReportUploadsRepositorySpec
+  extends PlaySpec
+  with BeforeAndAfterAll
+  with OptionValues
+  with EitherValues
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar {
 
   override def fakeApplication() = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
@@ -43,8 +51,8 @@ class UserReportUploadsRepositorySpec extends PlaySpec with BeforeAndAfterAll wi
 
     "save to mongo" in {
 
-      val id = UUID.randomUUID().toString
-      val now = Instant ofEpochMilli Instant.now.toEpochMilli
+      val id  = UUID.randomUUID().toString
+      val now = Instant.ofEpochMilli(Instant.now.toEpochMilli)
 
       val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
 

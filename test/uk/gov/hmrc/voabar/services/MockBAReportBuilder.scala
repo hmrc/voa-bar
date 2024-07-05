@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
-import scala.xml._
+import scala.annotation.tailrec
+import scala.xml.*
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 class MockBAReportBuilder {
 
-  private val baReportCodes:Map[String,String] = Map(
+  private val baReportCodes: Map[String, String] = Map(
     "CR03" -> "New",
     "CR04" -> "Change to domestic use",
     "CR05" -> "Reconstituted Property",
@@ -34,10 +35,9 @@ class MockBAReportBuilder {
     "CR99" -> "NOT A VOA CODE - USED FOR TEST PURPOSES"
   )
 
-  def apply(reasonCode:String, baCode:Int, existingEntries:Int, proposedEntries:Int):NodeSeq = {
+  def apply(reasonCode: String, baCode: Int, existingEntries: Int, proposedEntries: Int): NodeSeq = {
 
     val node =
-
       <BApropertyReport>
         <DateSent>2017-03-18</DateSent>
         <TransactionIdentityBA>16286449061000</TransactionIdentityBA>
@@ -53,54 +53,53 @@ class MockBAReportBuilder {
         <Remarks>Some remarks that help to describe this property report submission</Remarks>
       </BApropertyReport>
 
-    val newNode = concat(NodeSeq.Empty,existingEntries, proposedEntries)
+    val newNode = concat(NodeSeq.Empty, existingEntries, proposedEntries)
 
-    val newChilds:NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
-      if(elem.label == "TypeOfTax") acc ++ elem ++ newNode else acc ++ elem)
+    val newChilds: NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
+      if elem.label == "TypeOfTax" then acc ++ elem ++ newNode else acc ++ elem
+    )
 
     val root = <BApropertyReport></BApropertyReport>
 
-     def addNode(root:Node,children:NodeSeq) = (root: @unchecked) match {
-      case Elem(prefix,label,attributes,scope,child@_*) =>
-        Elem(prefix,label,attributes,scope,false,child ++ children: _*)
+    def addNode(root: Node, children: NodeSeq) = (root: @unchecked) match {
+      case Elem(prefix, label, attributes, scope, child @ _*) =>
+        Elem(prefix, label, attributes, scope, false, child ++ children*)
     }
-    addNode(root,newChilds)
+    addNode(root, newChilds)
   }
 
-  private def concat(node:NodeSeq, existing:Int, proposed:Int):NodeSeq = existing match {
-    case 0 => if (proposed == 0) {
-      node
-    } else {
-      concat(node ++ proposedEntries, 0, proposed -1)
-    }
-    case _ => concat(node ++ existingEntries, existing -1, proposed)
+  @tailrec
+  private def concat(node: NodeSeq, existing: Int, proposed: Int): NodeSeq = existing match {
+    case 0 => if proposed == 0 then node else concat(node ++ proposedEntries, 0, proposed - 1)
+    case _ => concat(node ++ existingEntries, existing - 1, proposed)
   }
 
-  private def invalidate(existingVal:String,newValue:String) = new RewriteRule {
-    override def transform(node:Node): Node = node match {
-      case e:Elem if e.label == existingVal  => e.copy(label = newValue)
-      case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
-      case other => other
+  private def invalidate(existingVal: String, newValue: String) = new RewriteRule {
+
+    override def transform(node: Node): Node = node match {
+      case e: Elem if e.label == existingVal => e.copy(label = newValue)
+      case e: Elem if e.text == existingVal  => e.copy(child = Text(newValue))
+      case other                             => other
     }
   }
 
-  private def invalidator(rule:RewriteRule,node:Node):Seq[Node] = {
+  private def invalidator(rule: RewriteRule, node: Node): Seq[Node] = {
     val transformer = new RuleTransformer(rule)
     transformer.transform(node)
   }
 
-  private def invalidate(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
+  private def invalidate(node: Node, key: String, newValue: String): Seq[Node] = invalidator(invalidate(key, newValue), node)
 
-  def invalidateBatch(node:Node, rules:Map[String,String]):NodeSeq = {
-    def inval(keys:List[String],n:NodeSeq):NodeSeq = keys match {
-      case Nil => n
-      case hd :: tl => inval(tl,invalidate(n.head,hd,rules(hd)))
+  def invalidateBatch(node: Node, rules: Map[String, String]): NodeSeq = {
+    @tailrec
+    def inval(keys: List[String], n: NodeSeq): NodeSeq = keys match {
+      case Nil      => n
+      case hd :: tl => inval(tl, invalidate(n.head, hd, rules(hd)))
     }
-    inval(rules.keySet.toList,node.theSeq)
+    inval(rules.keySet.toList, node.theSeq)
   }
 
-  private val existingEntries:NodeSeq =
-
+  private val existingEntries: NodeSeq =
     <ExistingEntries>
     <AssessmentProperties>
       <PropertyIdentity>
@@ -149,8 +148,7 @@ class MockBAReportBuilder {
     </AssessmentProperties>
   </ExistingEntries>
 
-  private val proposedEntries:NodeSeq =
-
+  private val proposedEntries: NodeSeq =
     <ProposedEntries>
       <AssessmentProperties>
         <PropertyIdentity>

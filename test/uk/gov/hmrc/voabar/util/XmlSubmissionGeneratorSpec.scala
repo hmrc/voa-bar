@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,12 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  val parser = new XmlParser()
+  val parser    = new XmlParser()
   val validator = new XmlValidator()
 
-  val jaxb = JAXBContext.newInstance(classOf[BAreports])
+  val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
-
 
   "submission generator" should "generate CR05 XML" in {
     val submission = aCr05Submission
@@ -60,26 +59,24 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     val xPath = new JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
-      "ba" -> "http://www.govtalk.gov.uk/LG/Valuebill",
+      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
       "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd" -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2" -> "http://www.govtalk.gov.uk/people/PersonDescriptives",
+      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
     ).asJava)
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source) mustBe("ex1 line 1")
+    xPath.evaluate(
+      "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+      source
+    ) mustBe "ex1 line 1"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode",
-      source) mustBe("CR05")
+    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR05"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)",
-      source) mustBe("2")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "2"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)",
-      source) mustBe("2")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "2"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber",
-      source) mustBe("1234")
+    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber", source) mustBe "1234"
 
   }
 
@@ -98,27 +95,26 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     val xPath = new JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
-      "ba" -> "http://www.govtalk.gov.uk/LG/Valuebill",
+      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
       "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd" -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2" -> "http://www.govtalk.gov.uk/people/PersonDescriptives",
+      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
     ).asJava)
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source) mustBe("line 1")
+    xPath.evaluate(
+      "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+      source
+    ) mustBe "line 1"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode",
-      source) mustBe("CR01")
+    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR01"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)",
-      source) mustBe("1")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "1"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)",
-      source) mustBe("0")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "0"
 
   }
 
- it should "generate CR03 XML" in {
+  it should "generate CR03 XML" in {
     val submission = aCr03Submission
 
     val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
@@ -133,81 +129,94 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     val xPath = new JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
-      "ba" -> "http://www.govtalk.gov.uk/LG/Valuebill",
+      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
       "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd" -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2" -> "http://www.govtalk.gov.uk/people/PersonDescriptives",
+      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
     ).asJava)
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source) mustBe("line 1")
+    xPath.evaluate(
+      "/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+      source
+    ) mustBe "line 1"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode",
-      source) mustBe("CR03")
+    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR03"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)",
-      source) mustBe("1")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "1"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)",
-      source) mustBe("0")
+    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "0"
 
   }
 
-  def aCr03Submission: Cr01Cr03Submission = {
-    Cr01Cr03Submission( baReport = "baReport", baRef = "baRef",
-      effectiveDate = LocalDate.of(2020,2,2),
-      reasonReport = Option(AddProperty), removalReason = None,
-      otherReason = None, uprn = Option("123123"), address = Address("line 1", "line 2", None, None, "BN12 4AX"),
+  def aCr03Submission: Cr01Cr03Submission =
+    Cr01Cr03Submission(
+      baReport = "baReport",
+      baRef = "baRef",
+      effectiveDate = LocalDate.of(2020, 2, 2),
+      reasonReport = Option(AddProperty),
+      removalReason = None,
+      otherReason = None,
+      uprn = Option("123123"),
+      address = Address("line 1", "line 2", None, None, "BN12 4AX"),
       propertyContactDetails = ContactDetails("firstName", "lastName", Option("john@example.com"), Option("0125458545")),
-      sameContactAddress = true, contactAddress = None, havePlaningReference = true, planningRef = Option("planning ref"),
-      noPlanningReference = None, comments = Option("comment")
+      sameContactAddress = true,
+      contactAddress = None,
+      havePlaningReference = true,
+      planningRef = Option("planning ref"),
+      noPlanningReference = None,
+      comments = Option("comment")
     )
-  }
 
-  def aCr01Submission: Cr01Cr03Submission = {
-    Cr01Cr03Submission( baReport = "baReport", baRef = "baRef",
-      effectiveDate = LocalDate.of(2020,2,2),
-      reasonReport = Option(RemoveProperty), removalReason = Option(Demolition),
-      otherReason = None, uprn = Option("123123"), address = Address("line 1", "line 2", None, None, "BN12 4AX"),
+  def aCr01Submission: Cr01Cr03Submission =
+    Cr01Cr03Submission(
+      baReport = "baReport",
+      baRef = "baRef",
+      effectiveDate = LocalDate.of(2020, 2, 2),
+      reasonReport = Option(RemoveProperty),
+      removalReason = Option(Demolition),
+      otherReason = None,
+      uprn = Option("123123"),
+      address = Address("line 1", "line 2", None, None, "BN12 4AX"),
       propertyContactDetails = ContactDetails("firstName", "lastName", Option("john@example.com"), Option("0125458545")),
-      sameContactAddress = true, contactAddress = None, havePlaningReference = true, planningRef = Option("planning ref"),
-      noPlanningReference = None, comments = Option("comment")
+      sameContactAddress = true,
+      contactAddress = None,
+      havePlaningReference = true,
+      planningRef = Option("planning ref"),
+      noPlanningReference = None,
+      comments = Option("comment")
     )
-  }
 
-
-  def aCr05Submission: Cr05Submission = {
-    Cr05Submission( baReport = "baReport", baRef = "baRef",
-      effectiveDate = LocalDate.of(2020,2,2),
+  def aCr05Submission: Cr05Submission =
+    Cr05Submission(
+      baReport = "baReport",
+      baRef = "baRef",
+      effectiveDate = LocalDate.of(2020, 2, 2),
       proposedProperties = Seq(aProperty("prop1"), aProperty("prop2")),
       existingPropertis = Seq(aProperty("ex1"), aProperty("ex2")),
-      planningRef = Option("1234"), None,
+      planningRef = Option("1234"),
+      None,
       comments = Option("comments")
     )
-  }
 
-  def aProperty(prefix: String): Cr05AddProperty = {
-    Cr05AddProperty(uprn = Option("112331"),
-      address = Address(s"${prefix} line 1", s"${prefix} line 2", None, None, "BN12 4AX"),
-      propertyContactDetails = ContactDetails(s"${prefix} firstName", s"${prefix} lastName", Option("john@example.com"), Option("0125458545")),
+  def aProperty(prefix: String): Cr05AddProperty =
+    Cr05AddProperty(
+      uprn = Option("112331"),
+      address = Address(s"$prefix line 1", s"$prefix line 2", None, None, "BN12 4AX"),
+      propertyContactDetails = ContactDetails(s"$prefix firstName", s"$prefix lastName", Option("john@example.com"), Option("0125458545")),
       sameContactAddress = false,
-      contactAddress = Some(Address(s"${prefix} line 1", s"${prefix} line 2", None, None, "BN12 4AX"))
+      contactAddress = Some(Address(s"$prefix line 1", s"$prefix line 2", None, None, "BN12 4AX"))
     )
-  }
 
   def validateXml(xml: String): Unit = {
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
-    val dom = parser.parse(file.toUri.toURL).toOption.get
-    val validation = validator.validate(dom)
 
-    if(validation.isLeft) {
-      Console.println(s"\n\n\n${validation.left}\n\n${xml}")
-    }
+    val validation = parser.parse(file.toUri.toURL)
+      .flatMap(validator.validate)
 
-    validation.value mustBe true
+    if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
+    validation mustBe Right(true)
   }
-
 
 }

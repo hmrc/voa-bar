@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,26 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BarXmlError, BarXmlValidationError, Error}
-import uk.gov.hmrc.voabar.util.{INVALID_XML_XSD, XmlTestParser}
+import uk.gov.hmrc.voabar.util.XmlTestParser
+import uk.gov.hmrc.voabar.util.ErrorCode.INVALID_XML_XSD
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML
 
 class XmlValidatorSpec extends PlaySpec with EitherValues {
 
-  val validator = new XmlValidator
+  val validator     = new XmlValidator
   val reportBuilder = new MockBAReportBuilder
-  val xmlParser = new XmlParser()
+  val xmlParser     = new XmlParser()
 
-  val valid1 = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
-  def valid1AsStream = getClass.getResourceAsStream("/xml/CTValid1.xml")
-  val valid2 = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
-  val invalid1 = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
-  val invalid2 = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
-  def withXXE = getClass.getResourceAsStream("/xml/WithXXE.xml")
-  def wellFormatted = getClass.getResourceAsStream("/xml/WellFormatted.xml")
+  val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
+  def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
+  val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
+  val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
+  val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
+  def withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
+  def wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
   def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
-
 
   "A valid ba batch submission xml file (valid1)" must {
     "validate successfully" in {
@@ -50,7 +50,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   "An invalid ba batch submission xml file (invalid1)" must {
     "not validate successfully" in {
       validator.validate(invalid1) mustBe Symbol("left")
-      //errors.size mustBe 4
+      // errors.size mustBe 4
     }
   }
 
@@ -63,8 +63,8 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   "An invalid ba batch submission xml file (invalid2)" must {
     "not validate successfully and contain a CouncilTaxBand related error" in {
       validator.validate(invalid2) mustBe Symbol("left")
-      //errors.size mustBe 18
-      //assert(errors.toString.contains("CouncilTaxBand"))
+      // errors.size mustBe 18
+      // assert(errors.toString.contains("CouncilTaxBand"))
     }
   }
 
@@ -113,7 +113,9 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
     "reject xml with XXE" in {
       val result = validator.validateInputXmlForXEE(withXXE)
       result mustBe Symbol("left")
-      result.left.value mustBe BarXmlError("""XML read error, invalid XML document, DOCTYPE is disallowed when the feature "http://apache.org/xml/features/disallow-doctype-decl" set to true.""")
+      result.left.value mustBe BarXmlError(
+        """XML read error, invalid XML document, DOCTYPE is disallowed when the feature "http://apache.org/xml/features/disallow-doctype-decl" set to true."""
+      )
     }
 
     "validate well formatted xml" in {
@@ -124,9 +126,7 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       validator.validateInputXmlForXEE(wellFormatted) mustBe Symbol("right")
     }
 
-
   }
-
 
 //TODO - we are getting only one error. Should we validate with original file?
   "another test" should {
@@ -141,8 +141,8 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
       validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (
-        Error(INVALID_XML_XSD,List("Error on line -1: The value '0£' of element 'TotalNNDRreportCount' is not valid."))
-        )
+        Error(INVALID_XML_XSD, List("Error on line -1: The value '0£' of element 'TotalNNDRreportCount' is not valid."))
+      )
     }
 
   }

@@ -17,10 +17,12 @@
 package uk.gov.hmrc.voabar.models
 
 object EbarsRequests {
+
   case class BAReportRequest(
-                              uuid: String,
-                              propertyReport: String,
-                              username: String,
-                              password: String,
-                              attempt: Int = 1)
+    uuid: String,
+    propertyReport: String,
+    username: String,
+    password: String,
+    attempt: Int = 1
+  )
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.util
 
+import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.model.Filters.{exists, not}
 import play.api.Logging
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -29,24 +30,27 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Yuriy Tumakha
  */
 @Singleton
-class DataMonitor @Inject()()(
+class DataMonitor @Inject() (
+)(
   submissionStatusRepository: SubmissionStatusRepositoryImpl,
   userReportUploadsRepository: DefaultUserReportUploadsRepository
-)(implicit ec: ExecutionContext) extends Logging {
+)(implicit ec: ExecutionContext
+) extends Logging {
 
   Future.sequence(Seq(submissionStatusRepository, userReportUploadsRepository)
     .map { repo =>
-      for {
-        count <- repo.collection.countDocuments().toFuture()
+      for
+        count                 <- repo.collection.countDocuments().toFuture()
         countWithoutCreatedAt <- repo.collection.countDocuments(not(exists("createdAt"))).toFuture()
-        countWithoutBACode <- repo.collection.countDocuments(not(exists("baCode"))).toFuture()
-        countWithoutStatus <- repo.collection.countDocuments(not(exists("status"))).toFuture()
-      } yield {
+        countWithoutBACode    <- repo.collection.countDocuments(not(exists("baCode"))).toFuture()
+        countWithoutStatus    <- repo.collection.countDocuments(not(exists("status"))).toFuture()
+      yield
         val withoutCreatedAtStr = Option.when(countWithoutCreatedAt > 0)(countWithoutCreatedAt).fold("")(cnt => s" ($cnt - without `.createdAt`)")
-        val withoutBACodeStr = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode).fold("")(cnt => s" ($cnt - without `.baCode`)")
-        val withoutStatusStr = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus).fold("")(cnt => s" ($cnt - without `.status`)")
+        val withoutBACodeStr    = Option.when(countWithoutBACode > 0 && isSubmissionsRepo(repo))(countWithoutBACode)
+          .fold("")(cnt => s" ($cnt - without `.baCode`)")
+        val withoutStatusStr    = Option.when(countWithoutStatus > 0 && isSubmissionsRepo(repo))(countWithoutStatus)
+          .fold("")(cnt => s" ($cnt - without `.status`)")
         s"collection '${repo.collectionName}': $count$withoutCreatedAtStr$withoutBACodeStr$withoutStatusStr"
-      }
     }).map(messages => logger.warn(messages.mkString(" \n")))
 
   private def isSubmissionsRepo(repo: PlayMongoRepository[?]): Boolean =

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,10 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoFormats.mongoEntity
 import scala.annotation.nowarn
 
 sealed trait ReportStatusType {
+
   val value: String = {
-    val a: Class[_ <: ReportStatusType] = getClass.asSubclass(getClass)
-    val u: String = a.getSimpleName.replace("$", "")
+    val a: Class[? <: ReportStatusType] = getClass.asSubclass(getClass)
+    val u: String                       = a.getSimpleName.replace("$", "")
     u
   }
 }
@@ -38,24 +39,22 @@ case object Submitted extends ReportStatusType
 case object Cancelled extends ReportStatusType
 case object Done extends ReportStatusType
 
-
 final case class ReportStatus(
-                               id: String,
-                               createdAt: Instant = Instant.now,
-                               url: Option[String] = None,
-                               checksum: Option[String] = None,
-                               errors: Seq[Error] = Seq(),
-                               reportErrors: Seq[ReportError] = Seq(),
-                               baCode: String,
-                               status: Option[String] = Some(Pending.value), // TODO status: String = Pending.value after release VOA-3532
-                               filename: Option[String] = None,
-                               totalReports: Option[Int] = None,
-                               report: Option[JsObject] = None
-                             ) {
+  id: String,
+  createdAt: Instant = Instant.now,
+  url: Option[String] = None,
+  checksum: Option[String] = None,
+  errors: Seq[Error] = Seq(),
+  reportErrors: Seq[ReportError] = Seq(),
+  baCode: String,
+  status: Option[String] = Some(Pending.value), // TODO status: String = Pending.value after release VOA-3532
+  filename: Option[String] = None,
+  totalReports: Option[Int] = None,
+  report: Option[JsObject] = None
+) {
 
-  def redacted: ReportStatus = {
+  def redacted: ReportStatus =
     this.copy(url = this.url.map(_ => "***redacted***"))
-  }
 
 }
 

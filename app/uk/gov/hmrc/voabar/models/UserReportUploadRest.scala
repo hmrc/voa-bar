@@ -22,9 +22,7 @@ import uk.gov.hmrc.voabar.repositories.UserReportUpload
 /**
  * @author Yuriy Tumakha
  */
-case class UserReportUploadRest(id: String,
-                                userId: String,
-                                userPassword: String) {
+case class UserReportUploadRest(id: String, userId: String, userPassword: String) {
 
   def toMongoEntity: UserReportUpload = UserReportUpload(id, userId, userPassword)
 

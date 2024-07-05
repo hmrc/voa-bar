@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.SpanSugar
 import org.scalatest.{EitherValues, OptionValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status
@@ -37,28 +39,39 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
 import uk.gov.hmrc.voabar.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
+import uk.gov.hmrc.voabar.util.ErrorCode.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
-import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
-import java.net.URL
+import java.net.URI
 import java.nio.file.Paths
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.Using
 
 /**
  * @author Yuriy Tumakha
  */
-class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with EitherValues with Eventually with SpanSugar
-  with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite with MockitoSugar with Status with Injecting {
+class UpscanCallbackControllerSpec
+  extends PlaySpec
+  with OptionValues
+  with EitherValues
+  with Eventually
+  with SpanSugar
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar
+  with Status
+  with Injecting {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
   override def fakeApplication(): Application = {
     val voaEbarsConnector = mock[VoaEbarsConnector]
 
     when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
-      .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
+      .thenAnswer(_ => Future.successful(OK))
 
     new GuiceApplicationBuilder()
       .bindings(
@@ -70,23 +83,26 @@ class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with Eithe
 
   private val controller = inject[UpscanCallbackController]
 
-  private val submissionRepository = inject[SubmissionStatusRepositoryImpl]
+  private val submissionRepository        = inject[SubmissionStatusRepositoryImpl]
   private val userReportUploadsRepository = inject[DefaultUserReportUploadsRepository]
-  private val configuration = inject[Configuration]
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val configuration               = inject[Configuration]
+  private val crypto                      = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  private val xmlUrl = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
-  private val reference = "111-777"
+  private val xmlUrl     = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
+  private val reference  = "111-777"
   private val reference2 = "222-777"
   private val reference3 = "333-777"
   private val reference4 = "444-777"
   private val reference5 = "555-777"
-  private val username = "BA5090"
-  private val password = crypto.encrypt(PlainText(username)).value
+  private val username   = "BA5090"
+  private val password   = crypto.encrypt(PlainText(username)).value
 
   private def buildUploadConfirmation(submissionReference: String): FakeRequest[JsValue] =
     buildUpscanRequest(
-      UploadConfirmation(submissionReference, xmlUrl, "READY",
+      UploadConfirmation(
+        submissionReference,
+        xmlUrl,
+        "READY",
         UploadDetails(OffsetDateTime.now, "396f101dd52e938510ce46e7a5c7a4e775100", "application/xml", "CTValid1.xml")
       )
     )
@@ -99,10 +115,7 @@ class UpscanCallbackControllerSpec extends PlaySpec with OptionValues with Eithe
       .withHeaders("Content-Type" -> "application/json")
       .withBody(Json.toJson(upscanRequestObj))
 
-  private def verifySubmissionReport(submissionReference: String,
-                                     expectedBaCode: String,
-                                     expectedStatus: ReportStatusType,
-                                     expectedErrors: Seq[Error]) = {
+  private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) = {
     eventually {
       await(submissionRepository.getByReference(submissionReference)).value.status.value must not be Submitted.value
     }
@@ -203,7 +216,7 @@ object StubUpscanConnector extends UpscanConnector {
 
   override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future.successful(Right(
-      Using.resource(new URL(url).openStream()) {
+      Using.resource(new URI(url).toURL.openStream()) {
         _.readAllBytes()
       }
     ))

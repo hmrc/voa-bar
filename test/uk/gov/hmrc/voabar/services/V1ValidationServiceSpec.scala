@@ -25,9 +25,9 @@ import play.api.inject.guice.GuiceInjectorBuilder
 
 class V1ValidationServiceSpec extends PlaySpec with TableDrivenPropertyChecks {
 
-  val batchWith1Report = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid1.xml"))
+  val batchWith1Report     = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid1.xml"))
   val batchWithMoreReports = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid2.xml"))
-  val wrongHeaderTrailer = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
+  val wrongHeaderTrailer   = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
 
   val injector = new GuiceInjectorBuilder()
     .configure("key" -> "value")
@@ -37,35 +37,34 @@ class V1ValidationServiceSpec extends PlaySpec with TableDrivenPropertyChecks {
 
   def submissionProcessingService = injector.instanceOf[V1ValidationService]
 
-
   "SubmissionProcessingService" should {
     "Process and fix already valid XML" ignore {
-      submissionProcessingService.fixAndValidateAsV2(batchWith1Report, "BA5090", UUID.randomUUID().toString.toLowerCase, v1Status) mustBe(true)
+      submissionProcessingService.fixAndValidateAsV2(batchWith1Report, "BA5090", UUID.randomUUID().toString.toLowerCase, v1Status) mustBe true
     }
 
     "Process2 and fix already valid XML" ignore {
-      submissionProcessingService.fixAndValidateAsV2(batchWithMoreReports, "BA5090", UUID.randomUUID().toString.toLowerCase, v1Status) mustBe(true)
+      submissionProcessingService.fixAndValidateAsV2(batchWithMoreReports, "BA5090", UUID.randomUUID().toString.toLowerCase, v1Status) mustBe true
     }
 
     "Process and fix XML with wrong header and trailer" ignore {
-      submissionProcessingService.fixAndValidateAsV2(wrongHeaderTrailer, "BA5090", UUID.randomUUID().toString.toLowerCase(), v1Status) mustBe(true)
+      submissionProcessingService.fixAndValidateAsV2(wrongHeaderTrailer, "BA5090", UUID.randomUUID().toString.toLowerCase(), v1Status) mustBe true
     }
 
     "Correct all invalid XML and validate them successfully as V2 " ignore {
 
-      val xml = Table(("Invalid XML to be fixed","Ba Login"),
-      ("/xml/RulesCorrectionEngine/CR05_BOTH_PROPERTIES.xml", "BA6950"),
-      ("/xml/RulesCorrectionEngine/CR12_BOTH_PROPERTIES.xml", "BA6950"),
-      ("/xml/RulesCorrectionEngine/CR14_BOTH_PROPERTIES.xml", "BA6950"),
-      ("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml", "BA5120")
+      val xml = Table(
+        ("Invalid XML to be fixed", "Ba Login"),
+        ("/xml/RulesCorrectionEngine/CR05_BOTH_PROPERTIES.xml", "BA6950"),
+        ("/xml/RulesCorrectionEngine/CR12_BOTH_PROPERTIES.xml", "BA6950"),
+        ("/xml/RulesCorrectionEngine/CR14_BOTH_PROPERTIES.xml", "BA6950"),
+        ("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml", "BA5120")
       )
 
-      forAll(xml) { case  (xmlFile, baLogin) =>
+      forAll(xml) { case (xmlFile, baLogin) =>
         val brokenXml = IOUtils.toByteArray(getClass.getResourceAsStream(xmlFile))
-        submissionProcessingService.fixAndValidateAsV2(brokenXml, baLogin, UUID.randomUUID().toString.toLowerCase, v1Status) mustBe(true)
+        submissionProcessingService.fixAndValidateAsV2(brokenXml, baLogin, UUID.randomUUID().toString.toLowerCase, v1Status) mustBe true
       }
     }
   }
-
 
 }

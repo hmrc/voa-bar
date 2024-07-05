@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,13 @@ import org.apache.poi.util.ReplacingInputStream
 import scala.util.{Success, Try}
 
 /**
-  * Created by rgallet on 12/02/16.
-  */
+ * Created by rgallet on 12/02/16.
+ */
 class RulesCorrectionEngine {
 
   val ctRules = Seq(
-    RemoveBS7666Addresses, RemovePropertyGridCoords,
+    RemoveBS7666Addresses,
+    RemovePropertyGridCoords,
     CtRules.Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry,
     CtRules.Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries,
     CtRules.Cr03AndCr04BothProposedAndExistingEntries,
@@ -55,7 +56,8 @@ class RulesCorrectionEngine {
   )
 
   val ndrRules = Seq(
-    RemoveBS7666Addresses, RemovePropertyGridCoords,
+    RemoveBS7666Addresses,
+    RemovePropertyGridCoords,
     NdrRules.Rt01AndRt02AndRt03AndRt04MissingProposedEntry,
     NdrRules.Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry,
     NdrRules.Rt01AndRt02AndRt03AndRt04RemoveExistingEntries,
@@ -67,9 +69,9 @@ class RulesCorrectionEngine {
 
   def applyRules(baReports: BAreports): Unit =
     baReports.purpose match {
-      case Purpose.CT => ctRules foreach (_.apply(baReports))
+      case Purpose.CT  => ctRules foreach (_.apply(baReports))
       case Purpose.NDR => ndrRules foreach (_.apply(baReports))
-      case _ => ()
+      case _           => ()
     }
 }
 
@@ -79,10 +81,9 @@ sealed trait Rule {
 
 object CorrectionInputStream {
 
-  def apply(input: InputStream): FilterInputStream = {
-    //In future we can add mode replacement. We want to replace on byte level to prevent problem with different XML charset.
+  def apply(input: InputStream): FilterInputStream =
+    // In future we can add mode replacement. We want to replace on byte level to prevent problem with different XML charset.
     new ReplacingInputStream(input, "&nbsp;", " ")
-  }
 
 }
 
@@ -91,17 +92,16 @@ case object FixHeader extends Rule {
 
   override def apply(baReports: BAreports): Unit = {
     val header = baReports.getBAreportHeader
-    if (header.getEntryDateTime == null) {
-      val now = ZonedDateTime.now(zoneId)
+    if header.getEntryDateTime == null then
+      val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
       header.setEntryDateTime(xmlNow)
-    }
-    if (header.getProcessDate == null) {
-      val now = ZonedDateTime.now(zoneId)
+
+    if header.getProcessDate == null then
+      val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance()
         .newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
       header.setProcessDate(xmlNow)
-    }
   }
 }
 
@@ -111,45 +111,44 @@ case object FixCTaxTrailer extends Rule {
 
   override def apply(baReports: BAreports): Unit = {
     val trailer = baReports.getBAreportTrailer
-    //Always set properly number of records
+    // Always set properly number of records
     trailer.setRecordCount(BigInteger.valueOf(baReports.getBApropertyReport.size()))
-    //Always set properly number of CT reports, we support only CT at the moment
+    // Always set properly number of CT reports, we support only CT at the moment
     trailer.setTotalCtaxReportCount(BigInteger.valueOf(baReports.getBApropertyReport.size()))
-    //NDR REPORTS are not supported
+    // NDR REPORTS are not supported
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
-    if (trailer.getEntryDateTime == null) {
-      val now = ZonedDateTime.now(zoneId)
+    if trailer.getEntryDateTime == null then
+      val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
       trailer.setEntryDateTime(xmlNow)
-    }
   }
 }
-
 
 /**
  * Strip whitespace characters in remarks element.
  */
 case object RemarksTrimmer extends Rule {
 
-  val firstStageRegex = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r  //First replace all obscure space and newline with space
+  val firstStageRegex  = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r // First replace all obscure space and newline with space
   val secondStageRegex = """\s{2,}""".r
 
   override def apply(baReports: BAreports): Unit = {
-    assert(baReports.getBApropertyReport.size() == 1,
-      s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)")
+    assert(
+      baReports.getBApropertyReport.size() == 1,
+      s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)"
+    )
 
     val content = baReports.getBApropertyReport.get(0).getContent
 
     EbarsXmlCutter.findRemarksIdx(baReports) foreach { idx =>
       val remarks = content.get(idx).asInstanceOf[JAXBElement[String]]
       remarks.getValue match {
-        case null | "" => //nothing
-        case value => {
-          val firstStageResult = firstStageRegex.replaceAllIn(value, " ")
+        case null | "" => // nothing
+        case value     =>
+          val firstStageResult  = firstStageRegex.replaceAllIn(value, " ")
           val secondStageResult = secondStageRegex.replaceAllIn(firstStageResult, " ")
-          val newRemarksValue = StringUtils.strip(secondStageResult)
+          val newRemarksValue   = StringUtils.strip(secondStageResult)
           remarks.setValue(newRemarksValue)
-        }
       }
     }
   }
@@ -157,10 +156,11 @@ case object RemarksTrimmer extends Rule {
 }
 
 case object RemarksFillDefault extends Rule {
+
   override def apply(baReports: BAreports): Unit = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "Remarks")
+    val qName      = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "Remarks")
     val newRemarks = new JAXBElement(qName, classOf[String], classOf[BAreportBodyStructure], "NO REMARKS")
-    val content = baReports.getBApropertyReport.get(0).getContent
+    val content    = baReports.getBApropertyReport.get(0).getContent
 
     EbarsXmlCutter.findRemarksIdx(baReports) foreach { idx =>
       val remarks = content.get(idx)
@@ -169,46 +169,45 @@ case object RemarksFillDefault extends Rule {
         case null | "" =>
           content.remove(idx)
           content.add(idx, newRemarks)
-        case _ => //nothing
+        case _         => // nothing
       }
     }
 
     EbarsXmlCutter.findRemarksIdx(baReports).isEmpty match {
       case true => content.add(newRemarks)
-      case _ => //nothing
+      case _    => // nothing
     }
   }
 }
 
 case object RemoveBS7666Addresses extends Rule {
-  override def apply(baReports: BAreports): Unit = {
+
+  override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removeBS7666Address(baReports)
-  }
 }
 
 case object RemovePropertyGridCoords extends Rule {
-  override def apply(baReports: BAreports): Unit = {
+
+  override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removePropertyGridCoords(baReports)
-  }
 }
 
 case object RemovingInvalidTaxBand extends Rule {
-  override def apply(baReports: BAreports): Unit = {
+
+  override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removeNullCurrentTax(baReports)
-  }
 }
 
 case object PropertyDescriptionTextRemoval extends Rule {
-  override def apply(baReports: BAreports): Unit = {
+
+  override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.getAssessmentProperties(baReports)
       .filter(_.getPropertyDescription != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText.length <= 1) foreach {
       _.setPropertyDescription(null)
     }
-  }
 }
-
 
 case object NdrRules {
 
@@ -222,7 +221,7 @@ case object NdrRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                     => // nothing to do
       }
     }
   }
@@ -237,7 +236,7 @@ case object NdrRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                     => // nothing to do
       }
     }
   }
@@ -252,7 +251,7 @@ case object NdrRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                      => // nothing to do
       }
     }
   }
@@ -267,7 +266,7 @@ case object NdrRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                      => // nothing to do
       }
     }
   }
@@ -285,7 +284,7 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                     => // nothing to do
       }
     }
   }
@@ -300,7 +299,7 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                      => // nothing to do
       }
     }
   }
@@ -315,7 +314,7 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                      => // nothing to do
       }
     }
   }
@@ -330,7 +329,7 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
-        case _ => //nothing to do
+        case _                                                                     => // nothing to do
       }
     }
   }
@@ -346,25 +345,24 @@ case object CtRules {
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.copyExistingEntriesToProposed(baReports)
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.copyProposedEntriesToExisting(baReports)
-        case _ => //nothing to do
+        case _                                                                     => // nothing to do
       }
     }
   }
 
   /**
-    * CR05 reports need to have 1+ ProposedEntries and 1+ ExistingEntries to validate the XSD schema.
-    *
-    * However, there is a bug with CR05 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
-    * hence rendering the submission pointless. However, the data in <ProposedEntries>/<OccupierContact> does come across. ;-)
-    *
-    * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>. In other words,
-    * both <ProposedEntries>/<AssessmentProperties>/<TextAddress> end up in <ExistingEntries>/<AssessmentProperties>+ with a prefix value of [PROPOSED]
-    * for <ProposedEntries>/<AssessmentProperties>/<TextAddress>/<AddressLine>
-    *
-    * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
-    * This avoids duplication of <OccupierContact> elements in CDB.
-    *
-    */
+   * CR05 reports need to have 1+ ProposedEntries and 1+ ExistingEntries to validate the XSD schema.
+   *
+   * However, there is a bug with CR05 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
+   * hence rendering the submission pointless. However, the data in <ProposedEntries>/<OccupierContact> does come across. ;-)
+   *
+   * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>. In other words,
+   * both <ProposedEntries>/<AssessmentProperties>/<TextAddress> end up in <ExistingEntries>/<AssessmentProperties>+ with a prefix value of [PROPOSED]
+   * for <ProposedEntries>/<AssessmentProperties>/<TextAddress>/<AddressLine>
+   *
+   * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
+   * This avoids duplication of <OccupierContact> elements in CDB.
+   */
   case object Cr05CopyProposedEntriesToExistingEntries extends Rule {
     val codes = Seq(CR_05)
 
@@ -375,21 +373,20 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && existing.nonEmpty && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToExisting(baReports)
-        case _ => //nothing to do
+        case _                                                                      => // nothing to do
       }
     }
   }
 
   /**
-    * CR12 reports need to have 1 ProposedEntries and 1 ExistingEntries to validate the XSD schema.
-    *
-    * However, there is a bug with CR12 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
-    * hence rendering the submission pointless. However, the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across. ;-)
-    *
-    * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <BApropertyReport>/<Remarks> with a prefix value of [PROPOSED]
-    * for <ProposedEntries>/<TextAddress>/<AddressLine>
-    *
-    */
+   * CR12 reports need to have 1 ProposedEntries and 1 ExistingEntries to validate the XSD schema.
+   *
+   * However, there is a bug with CR12 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
+   * hence rendering the submission pointless. However, the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across. ;-)
+   *
+   * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <BApropertyReport>/<Remarks> with a prefix value of [PROPOSED]
+   * for <ProposedEntries>/<TextAddress>/<AddressLine>
+   */
   case object Cr12CopyProposedEntriesToRemarks extends Rule {
     val codes = Seq(CR_12)
 
@@ -399,36 +396,36 @@ case object CtRules {
 
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(v) if codes.contains(v) && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToRemarks(baReports)
-        case _ => //nothing to do
+        case _                                                 => // nothing to do
       }
     }
   }
 }
 
 case object PostcodesToUppercase extends Rule {
+
   override def apply(baReports: BAreports): Unit = {
 
-    def sanitising(postcode: String) = {
+    def sanitising(postcode: String) =
       Try {
-        val trimmed = postcode.toUpperCase.trim.replaceAll("\\s", "")       //TODO - implement as webBars
+        val trimmed = postcode.toUpperCase.trim.replaceAll("\\s", "") // TODO - implement as webBars
         trimmed.substring(0, trimmed.length - 3) + " " + trimmed.substring(trimmed.length - 3) // and validate, if not valid keep original postcode
       } match {
         case Success(v) => v
-        case _ => postcode
+        case _          => postcode
       }
-    }
 
     EbarsXmlCutter.getTextAddressStructures(baReports) foreach { textAddressStructure =>
       textAddressStructure.getPostcode match {
-        case null => //nothing
-        case v => textAddressStructure.setPostcode(sanitising(v.toUpperCase))
+        case null => // nothing
+        case v    => textAddressStructure.setPostcode(sanitising(v.toUpperCase))
       }
     }
 
     EbarsXmlCutter.getOccupierContactAddresses(baReports) foreach { occupierContactAddress =>
       occupierContactAddress.getPostCode match {
-        case null => //nothing
-        case v => occupierContactAddress.setPostCode(sanitising(v.toUpperCase))
+        case null => // nothing
+        case v    => occupierContactAddress.setPostCode(sanitising(v.toUpperCase))
       }
     }
   }

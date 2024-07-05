@@ -37,11 +37,10 @@ class ValidateControllerSpec extends PlaySpec with Results {
   "Validate controller" should {
     "validate correct xml" in {
       val controller = new ValidateController(Helpers.stubControllerComponents(), aSubmissionProcessingService())
-      val response = controller.validate(BA_LOGIN).apply(aSucessfullRequest())
-      status(response) mustBe(OK)
+      val response   = controller.validate(BA_LOGIN).apply(aSucessfullRequest())
+      status(response) mustBe OK
     }
   }
-
 
   def aSucessfullRequest() = {
 
@@ -57,14 +56,11 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
   }
 
-
-  def aSubmissionProcessingService() = {
+  def aSubmissionProcessingService() =
     new V1ValidationService(aValidationService())
-  }
 
-  def aValidationService() = {
+  def aValidationService() =
     new ValidationService()
-  }
 
   def xmlValidator() = new XmlValidator()
 

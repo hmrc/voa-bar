@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,19 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 
 import javax.inject.{Inject, Singleton}
 
-
 @Singleton
-class Utils @Inject() (crypto: Encrypter with Decrypter) {
-  def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
+class Utils @Inject() (crypto: Encrypter & Decrypter) {
+  def decryptPassword(password: String): String = crypto.decrypt(Crypted(password)).value
 
   def generateHeader(loginDetails: LoginDetails): HeaderCarrier = {
-    val decryptedPassword = loginDetails.password //TODO - should be encrypted. In next version.
-    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${decryptedPassword}".getBytes("UTF-8"))
+    val decryptedPassword = loginDetails.password // TODO - should be encrypted. In next version.
+    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:$decryptedPassword".getBytes("UTF-8"))
     HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
   }
 
   def generateHeader(loginDetails: LoginDetails, headerCarrier: HeaderCarrier): HeaderCarrier = {
-    val decryptedPassword = loginDetails.password //TODO - should be encrypted. In next version.
-    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${decryptedPassword}".getBytes("UTF-8"))
+    val decryptedPassword = loginDetails.password // TODO - should be encrypted. In next version.
+    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:$decryptedPassword".getBytes("UTF-8"))
     headerCarrier.copy(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
   }
 

@@ -34,16 +34,15 @@ import scala.language.postfixOps
 import scala.util.Try
 
 // TODO: use uk.gov.hmrc.http.HttpClient with WSProxy. Move login() to EbarsClientV2
-class EbarsClient(username: String, password: String, servicesConfig: ServicesConfig, configuration: Configuration)
-  extends AutoCloseable with Logging {
+class EbarsClient(username: String, password: String, servicesConfig: ServicesConfig, configuration: Configuration) extends AutoCloseable with Logging {
 
   private val voaEbarsBaseUrl = servicesConfig.baseUrl("voa-ebars")
-  private val loginUrl = s"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/Welcome.do"
-  private val timeout = 120 seconds
+  private val loginUrl        = s"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/Welcome.do"
+  private val timeout         = 120 seconds
 
   private val httpClient: CloseableHttpClient = {
     val cookieStore = new BasicCookieStore
-    val userAgent = VersionInfo.getUserAgent("Ebars-Apache-HttpClient", "org.apache.http.client", getClass)
+    val userAgent   = VersionInfo.getUserAgent("Ebars-Apache-HttpClient", "org.apache.http.client", getClass)
     HttpClients.custom()
       .setDefaultRequestConfig(config)
       .setDefaultCookieStore(cookieStore)
@@ -53,8 +52,8 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
   }
 
   private def proxyHttpHost = {
-    val proxyHost = configuration.get[String]("proxy.host")
-    val proxyPort = configuration.get[Int]("proxy.port")
+    val proxyHost     = configuration.get[String]("proxy.host")
+    val proxyPort     = configuration.get[Int]("proxy.port")
     val proxyProtocol = configuration.get[String]("proxy.protocol")
     new HttpHost(proxyHost, proxyPort, proxyProtocol)
   }
@@ -68,7 +67,7 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
         val proxyPassword = configuration.get[String]("proxy.password")
 
         bcp.setCredentials(new AuthScope(proxyHttpHost), new UsernamePasswordCredentials(proxyUsername, proxyPassword))
-      case _ =>
+      case _       =>
     }
 
     bcp.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password))
@@ -85,26 +84,29 @@ class EbarsClient(username: String, password: String, servicesConfig: ServicesCo
   private def proxy: Option[HttpHost] = configuration.getOptional[Boolean]("proxy.enabled").filter(identity).map(_ => proxyHttpHost)
 
   def login: Try[Int] = Try {
-    httpClient.execute(new HttpGet(loginUrl), (response: HttpResponse) => {
-      val html = EntityUtils.toString(response.getEntity)
-      val errors = extractErrors(html)
+    httpClient.execute(
+      new HttpGet(loginUrl),
+      (response: HttpResponse) => {
+        val html   = EntityUtils.toString(response.getEntity)
+        val errors = extractErrors(html)
 
-      response.getStatusLine.getStatusCode match {
-        case SC_UNAUTHORIZED | SC_FORBIDDEN =>
-          logger.warn(s"Response ${response.getStatusLine.getStatusCode}:\n$html")
-          throw new UnauthorizedException("Invalid credentials")
-        case SC_OK if errors.nonEmpty =>
-          logger.warn(s"Login errors: $errors\n$html")
-          throw EbarsApiError(SC_OK, errors.toString)
-        case SC_OK if isSessionExpired(html) =>
-          logger.warn(s"Session expired\n$html")
-          throw EbarsApiError(SC_OK, "Session expired")
-        case SC_OK if errors.isEmpty => SC_OK
-        case status =>
-          logger.warn(s"Couldn't login. status: $status\n$html")
-          throw EbarsApiError(status, "Could not login")
+        response.getStatusLine.getStatusCode match {
+          case SC_UNAUTHORIZED | SC_FORBIDDEN  =>
+            logger.warn(s"Response ${response.getStatusLine.getStatusCode}:\n$html")
+            throw new UnauthorizedException("Invalid credentials")
+          case SC_OK if errors.nonEmpty        =>
+            logger.warn(s"Login errors: $errors\n$html")
+            throw EbarsApiError(SC_OK, errors.toString)
+          case SC_OK if isSessionExpired(html) =>
+            logger.warn(s"Session expired\n$html")
+            throw EbarsApiError(SC_OK, "Session expired")
+          case SC_OK if errors.isEmpty         => SC_OK
+          case status                          =>
+            logger.warn(s"Couldn't login. status: $status\n$html")
+            throw EbarsApiError(status, "Could not login")
+        }
       }
-    })
+    )
   }
 
   private def isSessionExpired(htmlContent: String) = htmlContent.contains("Your session has expired, you will need to login again")

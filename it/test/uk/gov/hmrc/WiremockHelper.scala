@@ -21,28 +21,26 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 trait WiremockHelper {
 
-  def withWiremock[T](stubbing: WireMockServer => Unit)(block: Int => T):T = {
+  def withWiremock[T](stubbing: WireMockServer => Unit)(block: Int => T): T = {
 
     val wireMockServer = new WireMockServer(WireMockConfiguration
       .options()
-      .dynamicPort()
-    )
+      .dynamicPort())
     wireMockServer.start()
     stubbing(wireMockServer)
-    val result = block(wireMockServer.port())
+    val result         = block(wireMockServer.port())
     wireMockServer.stop()
     result
   }
 
-  def withWiremockServer[T](stubbing: WireMockServer => Unit)(block: (Int, WireMockServer) => T):T = {
+  def withWiremockServer[T](stubbing: WireMockServer => Unit)(block: (Int, WireMockServer) => T): T = {
 
     val wireMockServer = new WireMockServer(WireMockConfiguration
       .options()
-      .dynamicPort()
-    )
+      .dynamicPort())
     wireMockServer.start()
     stubbing(wireMockServer)
-    val result = block(wireMockServer.port(), wireMockServer)
+    val result         = block(wireMockServer.port(), wireMockServer)
     wireMockServer.stop()
     result
   }

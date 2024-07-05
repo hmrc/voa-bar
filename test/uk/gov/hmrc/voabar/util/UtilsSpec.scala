@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,28 @@
 
 package uk.gov.hmrc.voabar.util
 
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.crypto.{Crypted, Decrypter, Encrypter, PlainText}
 import uk.gov.hmrc.voabar.models.LoginDetails
 import org.apache.commons.codec.binary.Base64
+import org.mockito.Mockito.when
 import uk.gov.hmrc.http.HeaderCarrier
+
+import org.mockito.ArgumentMatchers.any
 
 class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
-  private val username = "ba0121"
-  private val password = "wibble"
+  private val username  = "ba0121"
+  private val password  = "wibble"
   private val goodLogin = LoginDetails(username, password)
   "Utils" must {
-    "have decryptPassword method that" must {
+    "have decryptPassword method that"   must {
       "Decrypt the  encrypted password and return it in plain text" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
+        val cryptoMock        = mock[Encrypter & Decrypter]
         when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
-        val utils = new Utils(cryptoMock)
+        val utils             = new Utils(cryptoMock)
         val decryptedPassword = utils.decryptPassword(password)
         decryptedPassword mustBe password
       }
@@ -42,33 +45,35 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
     "have generateHeaderCarrier method " must {
 
       "include some basic authorization in the header" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
-        val utils = new Utils(cryptoMock)
+        val cryptoMock = mock[Encrypter & Decrypter]
+        val utils      = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
 
-        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
+        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
         hc.authorization match {
-          case Some(s) => hc.authorization.isDefined mustBe true
-            s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
-          case _ => assert(false)
+          case Some(s) =>
+            hc.authorization.isDefined mustBe true
+            s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
+          case _       => assert(false)
         }
       }
 
       "include some basic authorization in the header for existing header carrier" in {
-        val cryptoMock = mock[Encrypter with Decrypter]
-        val utils = new Utils(cryptoMock)
+        val cryptoMock    = mock[Encrypter & Decrypter]
+        val utils         = new Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 
         val hc = utils.generateHeader(goodLogin, headerCarrier)
 
-        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
+        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
         hc.authorization match {
-          case Some(s) => hc.authorization.isDefined mustBe true
-            s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
-          case _ => assert(false)
+          case Some(s) =>
+            hc.authorization.isDefined mustBe true
+            s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
+          case _       => assert(false)
         }
       }
     }

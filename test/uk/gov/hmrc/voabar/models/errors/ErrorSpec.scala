@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.voabar.models.errors
 
-import org.scalatestplus.play.PlaySpec
 import org.mongodb.scala.bson.BsonString
+import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.Error
-import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, CHARACTER, ErrorCode, UNKNOWN_ERROR, UNSUPPORTED_TAX_TYPE}
+import uk.gov.hmrc.voabar.util.ErrorCode
+import uk.gov.hmrc.voabar.util.ErrorCode.*
 
 class ErrorSpec extends PlaySpec {
 
-  val code = CHARACTER
+  val code       = CHARACTER
   val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)

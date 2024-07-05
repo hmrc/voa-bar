@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package uk.gov.hmrc.voabar.controllers
 
 import org.apache.commons.io.IOUtils
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status.OK
@@ -35,33 +37,39 @@ import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.PlayMongoUtil.byId
 
-import java.net.URL
+import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
-class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with OptionValues
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits with GuiceOneAppPerSuite  with MockitoSugar {
+class UploadControllerIntSpec
+  extends PlaySpec
+  with BeforeAndAfterAll
+  with OptionValues
+  with EitherValues
+  with DefaultAwaitTimeout
+  with FutureAwaits
+  with GuiceOneAppPerSuite
+  with MockitoSugar {
 
   val voaEbarsConnector = mock[VoaEbarsConnector]
 
   when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
-    .thenAnswer[InvocationOnMock](_ => Future.successful(OK))
+    .thenAnswer(_ => Future.successful(OK))
 
   override def fakeApplication() = new GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
+    .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
     .bindings(
       bind[VoaEbarsConnector].to(voaEbarsConnector),
       bind[UpscanConnector].to[UploadControllerIntSpecUpscanConnector]
     )
     .build()
 
-  lazy val controller = app.injector.instanceOf[UploadController]
-  lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
+  lazy val controller           = app.injector.instanceOf[UploadController]
+  lazy val mongoComponent       = app.injector.instanceOf[MongoComponent]
   lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
-  lazy val configuration = app.injector.instanceOf[play.api.Configuration]
+  lazy val configuration        = app.injector.instanceOf[play.api.Configuration]
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -71,12 +79,11 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
     FakeRequest("POST", "/voa-bar/upload")
       .withHeaders(
-        "BA-Code" -> "BA5090",
+        "BA-Code"  -> "BA5090",
         "password" -> crypto.encrypt(PlainText("BA5090")).value
       )
       .withBody(UploadDetails("1234", xmlURL))
   }
-
 
   "Upload controller " must {
 
@@ -102,16 +109,14 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   }
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll(): Unit =
     mongoComponent.client.close()
-  }
 
 }
 
 @Singleton
 class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector {
 
-  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
-    Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
-  }
+  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
+    Future(Right(IOUtils.toByteArray(new URI(url).toURL.openStream())))
 }

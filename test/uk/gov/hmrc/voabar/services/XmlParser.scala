@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,44 +32,40 @@ class XmlParser {
   documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
   documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
   documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-  documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities",false)
-  documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
-
+  documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+  documentBuilderFactory.setExpandEntityReferences(false) // XXE vulnerable fix
 
   def parse(xml: URL): Either[BarError, Document] = {
     import scala.concurrent.blocking
 
     Try {
       val docBuilder = documentBuilderFactory.newDocumentBuilder()
-      blocking { //downloading and parsing XML is blocking operation, maybe we can buffer it to byte[] and then parse to avoid blocking IO
+      blocking { // downloading and parsing XML is blocking operation, maybe we can buffer it to byte[] and then parse to avoid blocking IO
         docBuilder.parse(xml.openStream())
       }
     } match {
       case Success(value) => Right(value)
-      case Failure(x) => Left(BarXmlError(x.getMessage))
+      case Failure(x)     => Left(BarXmlError(x.getMessage))
     }
   }
 
-  def parse(xml: Array[Byte]): Either[BarError, Document] = {
-
+  def parse(xml: Array[Byte]): Either[BarError, Document] =
     Try {
       val docBuilder = documentBuilderFactory.newDocumentBuilder()
       docBuilder.parse(new ByteArrayInputStream(xml))
     } match {
       case Success(value) => Right(value)
-      case Failure(x) => Left(BarXmlError(x.getMessage))
+      case Failure(x)     => Left(BarXmlError(x.getMessage))
     }
+
+  private def addChild(node: Node, newNode: NodeSeq): Node = (node: @unchecked) match {
+    case Elem(prefix, label, attrs, ns, child @ _*) => Elem(prefix, label, attrs, ns, false, newNode*)
   }
 
-
-  private def addChild(node:Node,newNode:NodeSeq): Node = (node: @unchecked) match {
-    case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
-  }
-
-  def oneReportPerBatch(node:Node):Seq[Node] = {
-    val batchHeader = node \ "BAreportHeader"
+  def oneReportPerBatch(node: Node): Seq[Node] = {
+    val batchHeader  = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
-    (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}
+    (node \ "BApropertyReport") map { report => addChild(node, batchHeader ++ report ++ batchTrailer) }
   }
 
 }

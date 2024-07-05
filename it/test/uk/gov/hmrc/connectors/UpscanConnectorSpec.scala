@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,53 +17,50 @@
 package uk.gov.hmrc.connectors
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatestplus.play.PlaySpec
+import play.api.http.Status.OK
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits, WsTestClient}
+import uk.gov.hmrc.WiremockHelper
 import uk.gov.hmrc.http.{HeaderCarrier, RequestId}
 import uk.gov.hmrc.voabar.connectors.DefaultUpscanConnector
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTimeout with EitherValues with BeforeAndAfterEach {
+class UpscanConnectorSpec extends PlaySpec with WiremockHelper with FutureAwaits with DefaultAwaitTimeout with EitherValues with BeforeAndAfterEach {
 
-  var wireMockServer: WireMockServer = _
+  val upScanPath = "/upscan/submission.xml"
+
+  def url(port: Int): String = s"http://localhost:$port$upScanPath"
 
   "upscan connector" should {
     "Include requestId" in {
-      WsTestClient.withClient { client =>
-        implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
 
-        val connector = new DefaultUpscanConnector(client)
-        val response = await(connector.downloadReport(url))
-        response mustBe Symbol("right")
-        wireMockServer.verify(
-          getRequestedFor(urlEqualTo("/upscan/submission.xml"))
-            .withHeader(uk.gov.hmrc.http.HeaderNames.xRequestId, equalTo("this-is-request-id"))
+      withWiremockServer { wireMockServer =>
+        wireMockServer.stubFor(
+          get(urlEqualTo(upScanPath))
+            .willReturn(
+              aResponse().withStatus(OK)
+                .withBody("""<root>test</root>""")
+            )
         )
+      } { (port: Int, wireMockServer: WireMockServer) =>
+        WsTestClient.withClient { client =>
+          implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
+
+          val connector = new DefaultUpscanConnector(client)
+          val response  = await(connector.downloadReport(url(port)))
+          response mustBe Symbol("right")
+
+          wireMockServer.verify(
+            getRequestedFor(urlEqualTo(upScanPath))
+              .withHeader(uk.gov.hmrc.http.HeaderNames.xRequestId, equalTo("this-is-request-id"))
+          )
+        }
       }
+
     }
   }
 
-  private def url: String = {
-    s"http://localhost:${wireMockServer.port()}/upscan/submission.xml"
-  }
-
-  override protected def beforeEach(): Unit = {
-    wireMockServer = new WireMockServer(options().dynamicPort())
-    wireMockServer.start()
-    wireMockServer.stubFor(
-      get(urlEqualTo("/upscan/submission.xml"))
-        .willReturn(
-          aResponse().withStatus(200)
-            .withBody("""<root>test</root>""")
-        )
-    )
-  }
-
-  override protected def afterEach(): Unit = {
-    wireMockServer.stop()
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ import javax.xml.datatype.DatatypeFactory
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
-class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: String, submissionId: String)  {
+class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: String, submissionId: String) {
 
-  val OF = new ebars.xml.ObjectFactory()
+  val OF                        = new ebars.xml.ObjectFactory()
   val transactionIdentityLength = 25
 
   implicit val dataFactory: DatatypeFactory = DatatypeFactory.newInstance()
@@ -48,9 +48,9 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def generateBody(): BAreportBodyStructure = {
-    val bodyElements: ListBuffer[JAXBElement[_]] = ListBuffer(
+    val bodyElements: ListBuffer[JAXBElement[?]] = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
-      OF.createBAreportBodyStructureTransactionIdentityBA(submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)), //TODO submissionID
+      OF.createBAreportBodyStructureTransactionIdentityBA(submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)), // TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax
@@ -61,32 +61,27 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
         bodyElements += cr01Cr03PropertyEntries()
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
-        if (submission.planningRef.isDefined) {
+        if submission.planningRef.isDefined then
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
-        }
 
-        if (submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined) {
+        if submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined then
           bodyElements += OF.createBAreportBodyStructureRemarks(
-            List(reasonForRemoval(submission),
-              submission.noPlanningReference.map(_.xmlValue),
-              submission.comments).flatten.mkString(" ")
+            List(reasonForRemoval(submission), submission.noPlanningReference.map(_.xmlValue), submission.comments).flatten.mkString(" ")
           )
-        }
+
       case submission: Cr05Submission =>
         bodyElements += OF.createBAreportBodyStructureExistingEntries(createProperties(submission.existingPropertis))
         bodyElements += OF.createBAreportBodyStructureProposedEntries(createProperties(submission.proposedProperties))
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
-        if (submission.planningRef.isDefined) {
+        if submission.planningRef.isDefined then
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
-        }
 
-        if (submission.comments.isDefined || submission.noPlanningReference.isDefined) {
+        if submission.comments.isDefined || submission.noPlanningReference.isDefined then
           bodyElements += OF.createBAreportBodyStructureRemarks(
-            List(submission.noPlanningReference.map(_.xmlValue),
-              submission.comments).flatten.mkString(" ")
+            List(submission.noPlanningReference.map(_.xmlValue), submission.comments).flatten.mkString(" ")
           )
-        }
+
     }
 
     val body = new BAreportBodyStructure()
@@ -97,7 +92,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   private def reasonForRemoval(submission: Cr01Cr03Submission) =
     submission.removalReason.map {
       case OtherReason => submission.otherReason.getOrElse("Unknown reason") // TODO some validation
-      case rr => rr.xmlValue
+      case rr          => rr.xmlValue
     }
 
   def createProperties(properties: Seq[Cr05AddProperty]) = {
@@ -114,28 +109,26 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     entries
   }
 
-
-  def cr01Cr03PropertyEntries()= {
+  def cr01Cr03PropertyEntries() = {
     val sub = submission.asInstanceOf[Cr01Cr03Submission]
 
     val assessmentProperties = new AssessmentProperties()
     assessmentProperties.setPropertyIdentity(propertyIdentification(sub.uprn, sub.address))
     assessmentProperties.setOccupierContact(occupierContact(sub.propertyContactDetails, sub.propertyContactDetails, sub.contactAddress))
 
-
     val entries = new BApropertySplitMergeStructure()
     entries.getAssessmentProperties.add(assessmentProperties)
 
     sub.reasonReport match {
-      case Some(AddProperty) => OF.createBAreportBodyStructureProposedEntries(entries)
+      case Some(AddProperty)    => OF.createBAreportBodyStructureProposedEntries(entries)
       case Some(RemoveProperty) => OF.createBAreportBodyStructureExistingEntries(entries)
-      case x => throw new RuntimeException(s"Unknown CR01 or CR03 reason type ${x}")
+      case x                    => throw new RuntimeException(s"Unknown CR01 or CR03 reason type $x")
     }
 
   }
 
   def occupierContact(contactDetail: ContactDetails, propertyContactDetails: ContactDetails, maybeContactAddress: Option[Address]): OccupierContactStructure = {
-    val person = new PersonNameStructure()
+    val person  = new PersonNameStructure()
     person.getPersonGivenName.add(contactDetail.firstName)
     person.setPersonFamilyName(contactDetail.lastName)
     val contact = new OccupierContactStructure()
@@ -145,47 +138,46 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
       val contactAddress = new UKPostalAddressStructure()
       contactAddress.getLine.add(address.line1)
       contactAddress.getLine.add(address.line2)
-      if(address.line3.isDefined) {
+      if address.line3.isDefined then
         contactAddress.getLine.add(address.line3.get)
-      }
-      if(address.line4.isDefined) {
+
+      if address.line4.isDefined then
         contactAddress.getLine.add(address.line4.get)
-      }
+
       contactAddress.setPostCode(address.postcode)
       contact.setContactAddress(contactAddress)
     }
 
-    if(propertyContactDetails.email.isDefined || propertyContactDetails.phoneNumber.isDefined) {
+    if propertyContactDetails.email.isDefined || propertyContactDetails.phoneNumber.isDefined then
       val nos = new ContactDetailsStructure()
-      if(propertyContactDetails.email.isDefined) {
+      if propertyContactDetails.email.isDefined then
         val email = new EmailStructure
         email.setEmailAddress(propertyContactDetails.email.get)
         nos.getEmail.add(email)
-      }
-      if(propertyContactDetails.phoneNumber.isDefined) {
+
+      if propertyContactDetails.phoneNumber.isDefined then
         val tel = new TelephoneStructure()
         tel.setTelNationalNumber(propertyContactDetails.phoneNumber.get)
         nos.getTelephone.add(tel)
-      }
+
       contact.setOccupierContactNos(nos)
-    }
 
     contact
   }
 
-  def propertyIdentification(maybeUprn: Option[String], address: Address ): BApropertyIdentificationStructure = {
-    val uprn = maybeUprn.map { uprn =>
+  def propertyIdentification(maybeUprn: Option[String], address: Address): BApropertyIdentificationStructure = {
+    val uprn        = maybeUprn.map { uprn =>
       OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }
     val textAddress = new TextAddressStructure()
     textAddress.getAddressLine.add(address.line1)
     textAddress.getAddressLine.add(address.line2)
-    if(address.line3.isDefined) {
+    if address.line3.isDefined then
       textAddress.getAddressLine.add(address.line3.get)
-    }
-    if(address.line4.isDefined) {
+
+    if address.line4.isDefined then
       textAddress.getAddressLine.add(address.line4.get)
-    }
+
     textAddress.setPostcode(address.postcode)
     val jaxbTextAddress = OF.createBApropertyIdentificationStructureTextAddress(textAddress)
 
@@ -197,16 +189,14 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
   }
 
   def typeOfTax = {
-    val reasonForReportCode = new  CtaxReasonForReportCodeStructure()
+    val reasonForReportCode                                = new CtaxReasonForReportCodeStructure()
     val (reasonForReportValue, reasonForReportDescription) = submission match {
-      case submission: Cr01Cr03Submission => {
+      case submission: Cr01Cr03Submission =>
         submission.reasonReport.fold(
-          (ebars.xml.CtaxReasonForReportCodeContentType.CR_03,
-            AddProperty.reasonForCodeDescription))(rr => (rr.xmlValue,rr.reasonForCodeDescription))
-      }
-      case _: Cr05Submission => {
+          (ebars.xml.CtaxReasonForReportCodeContentType.CR_03, AddProperty.reasonForCodeDescription)
+        )(rr => (rr.xmlValue, rr.reasonForCodeDescription))
+      case _: Cr05Submission              =>
         (ebars.xml.CtaxReasonForReportCodeContentType.CR_05, "Split properties")
-      }
     }
     reasonForReportCode.setValue(reasonForReportValue)
 
@@ -229,7 +219,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     header
   }
 
-  def generateReportTrailer():ReportTrailerStructure = {
+  def generateReportTrailer(): ReportTrailerStructure = {
     val trailer = new ReportTrailerStructure()
     trailer.setRecordCount(BigInteger.ONE)
     trailer.setTotalCtaxReportCount(BigInteger.ONE)
@@ -238,6 +228,5 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
 
     trailer
   }
-
 
 }

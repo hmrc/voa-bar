@@ -25,32 +25,34 @@ sealed trait ReasonReportType {
 }
 
 case object AddProperty extends ReasonReportType {
+
   override def xmlValue: CtaxReasonForReportCodeContentType =
     CtaxReasonForReportCodeContentType.CR_03
-  def reasonForCodeDescription: String = "New"
+  def reasonForCodeDescription: String                      = "New"
 }
+
 case object RemoveProperty extends ReasonReportType {
+
   override def xmlValue: CtaxReasonForReportCodeContentType =
     CtaxReasonForReportCodeContentType.CR_01
-  def reasonForCodeDescription: String = "Demolished"
+  def reasonForCodeDescription: String                      = "Demolished"
 }
 
-
 object ReasonReportType {
-  implicit val format: Format[ReasonReportType] = new Format[ReasonReportType] {
-    override def reads(json: JsValue): JsResult[ReasonReportType] = {
-      json match  {
-        case JsString("AddProperty") => JsSuccess(AddProperty)
-        case JsString("RemoveProperty") => JsSuccess(RemoveProperty)
-        case x => JsError(s"Unable to deserialize ReasonReportType ${x}")
-      }
-    }
 
-    override def writes(o: ReasonReportType): JsValue = {
-      o match  {
-        case AddProperty       => JsString("AddProperty")
+  implicit val format: Format[ReasonReportType] = new Format[ReasonReportType] {
+
+    override def reads(json: JsValue): JsResult[ReasonReportType] =
+      json match {
+        case JsString("AddProperty")    => JsSuccess(AddProperty)
+        case JsString("RemoveProperty") => JsSuccess(RemoveProperty)
+        case x                          => JsError(s"Unable to deserialize ReasonReportType $x")
+      }
+
+    override def writes(o: ReasonReportType): JsValue =
+      o match {
+        case AddProperty    => JsString("AddProperty")
         case RemoveProperty => JsString("RemoveProperty")
       }
-    }
   }
 }

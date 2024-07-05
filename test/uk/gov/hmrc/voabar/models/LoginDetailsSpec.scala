@@ -30,5 +30,3 @@ class LoginDetailsSpec extends PlaySpec {
 //    result.password mustBe password
 //  }
 }
-
-

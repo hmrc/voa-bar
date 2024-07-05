@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,8 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
   private val timeout = 1 seconds
 
-  val loginPath = "/ebars_dmz_pres_ApplicationWeb/Welcome.do"
-  val uploadXmlPath = "/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
+  val loginPath         = "/ebars_dmz_pres_ApplicationWeb/Welcome.do"
+  val uploadXmlPath     = "/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
   val uploadContentType = "application/x-www-form-urlencoded"
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -72,7 +72,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
   private val loginDetails = LoginDetails("BA5090", "BA5090")
 
   def aBaReport: BAreports = {
-    val ctx = JAXBContext.newInstance("ebars.xml")
+    val ctx          = JAXBContext.newInstance("ebars.xml")
     val unmarshaller = ctx.createUnmarshaller()
     val streamSource = new StreamSource("test/resources/xml/CTValid2.xml")
     unmarshaller.unmarshal(streamSource, classOf[BAreports]).getValue
@@ -88,9 +88,14 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     1
   )
 
-  private def testEbarsGetCall(path: String, ebarsCall: VoaEbarsConnector => Future[Try[?]], expectedResult: Try[Int],
-                               responseStatus: Int, responseBody: String): Unit =
-    withWiremockServer { wireMockServer: WireMockServer =>
+  private def testEbarsGetCall(
+    path: String,
+    ebarsCall: VoaEbarsConnector => Future[Try[?]],
+    expectedResult: Try[Int],
+    responseStatus: Int,
+    responseBody: String
+  ): Unit =
+    withWiremockServer { wireMockServer =>
       wireMockServer.stubFor(
         get(urlEqualTo(path))
           .willReturn(
@@ -108,9 +113,8 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
       wireMockServer.verify(getRequestedFor(urlEqualTo(path)))
     }
 
-  private def testEbarsPostCall(path: String, ebarsCall: VoaEbarsConnector => Future[?],
-                            requestContentType: String, responseStatus: Int, responseBody: String): Unit =
-    withWiremockServer { wireMockServer: WireMockServer =>
+  private def testSendBAReport(path: String, baReport: BAReportRequest, requestContentType: String, responseStatus: Int, responseBody: String): Unit =
+    withWiremockServer { wireMockServer =>
       wireMockServer.stubFor(
         post(urlEqualTo(path))
           .willReturn(
@@ -119,7 +123,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
           )
       )
     } { (port: Int, wireMockServer: WireMockServer) =>
-      val result = ebarsCall(voaEbarsConnector(port))
+      val result = voaEbarsConnector(port).sendBAReport(baReport)
 
       val httpResult = Await.result(result, timeout)
       httpResult mustBe responseStatus
@@ -130,43 +134,55 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
 
   "VoaEbarsConnector" must {
     "send reports as application/x-www-form-urlencoded content" in {
-      testEbarsPostCall(uploadXmlPath, _.sendBAReport(report), uploadContentType,
-        OK, <root><result>success</result></root>.toString)
+      testSendBAReport(uploadXmlPath, report, uploadContentType, OK, <root><result>success</result></root>.toString)
     }
 
     "handle 401 Unauthorised response from eBars" in {
       val thrown = intercept[UnauthorizedException] {
-        testEbarsPostCall(uploadXmlPath, _.sendBAReport(report), uploadContentType,
-          UNAUTHORIZED, <x>
+        testSendBAReport(
+          uploadXmlPath,
+          report,
+          uploadContentType,
+          UNAUTHORIZED,
+          <x>
             <result>error</result> <message>401 Unauthorized</message>
-          </x>.toString)
+          </x>.toString
+        )
       }
       thrown.getMessage mustBe "UNAUTHORIZED"
     }
 
     "handle 500 eBars server response" in {
       val thrown = intercept[RuntimeException] {
-        testEbarsPostCall(uploadXmlPath, _.sendBAReport(report), uploadContentType,
-          INTERNAL_SERVER_ERROR, <x>
+        testSendBAReport(
+          uploadXmlPath,
+          report,
+          uploadContentType,
+          INTERNAL_SERVER_ERROR,
+          <x>
             <result>error</result> <message>Internal server error</message>
-          </x>.toString)
+          </x>.toString
+        )
       }
       thrown.getMessage mustBe "eBars INTERNAL_SERVER_ERROR"
     }
 
     "do login" in {
-      testEbarsGetCall(loginPath, _.validate(loginDetails), Success(OK),
-        OK, "login successful")
+      testEbarsGetCall(loginPath, _.validate(loginDetails), Success(OK), OK, "login successful")
     }
 
     "handle 401 Unauthorised response on login" in {
-      testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(new UnauthorizedException("Invalid credentials")),
-        UNAUTHORIZED, "unauthorized")
+      testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(new UnauthorizedException("Invalid credentials")), UNAUTHORIZED, "unauthorized")
     }
 
     "handle 500 response on login" in {
-      testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "Could not login")),
-        INTERNAL_SERVER_ERROR, "eBars server error")
+      testEbarsGetCall(
+        loginPath,
+        _.validate(loginDetails),
+        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "Could not login")),
+        INTERNAL_SERVER_ERROR,
+        "eBars server error"
+      )
     }
   }
 

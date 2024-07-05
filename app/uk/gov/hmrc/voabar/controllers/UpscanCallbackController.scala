@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,24 +23,26 @@ import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.voabar.exception.VoaBarException
-import uk.gov.hmrc.voabar.models.UpScanRequests._
+import uk.gov.hmrc.voabar.models.UpScanRequests.*
 import uk.gov.hmrc.voabar.models.{Error, Failed, LoginDetails, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, UserReportUploadsRepository}
 import uk.gov.hmrc.voabar.services.{ReportUploadService, WebBarsService}
-import uk.gov.hmrc.voabar.util.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
+import uk.gov.hmrc.voabar.util.ErrorCode.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-class UpscanCallbackController @Inject()(configuration: Configuration,
-                                         reportUploadService: ReportUploadService,
-                                         userReportUploadsRepository: UserReportUploadsRepository,
-                                         submissionStatusRepository: SubmissionStatusRepository,
-                                         webBarsService: WebBarsService,
-                                         controllerComponents: MessagesControllerComponents)
-                                        (implicit val ec: ExecutionContext)
-  extends BackendController(controllerComponents) with FunctionalRun {
+class UpscanCallbackController @Inject() (
+  configuration: Configuration,
+  reportUploadService: ReportUploadService,
+  userReportUploadsRepository: UserReportUploadsRepository,
+  submissionStatusRepository: SubmissionStatusRepository,
+  webBarsService: WebBarsService,
+  controllerComponents: MessagesControllerComponents
+)(implicit val ec: ExecutionContext
+) extends BackendController(controllerComponents)
+  with FunctionalRun {
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -62,21 +64,22 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
   private def getLoginDetails(id: String): F[LoginDetails] =
     for {
       userReportUploadOpt <- fromFuture(userReportUploadsRepository.findById(id))
-      userData <- F.fromOption(userReportUploadOpt, VoaBarException(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $id"))))
-      decryptedPassword <- F.fromTry(Try(crypto.decrypt(Crypted(userData.userPassword)).value))
+      userData            <- F.fromOption(userReportUploadOpt, VoaBarException(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $id"))))
+      decryptedPassword   <- F.fromTry(Try(crypto.decrypt(Crypted(userData.userPassword)).value))
     } yield LoginDetails(userData.userId, decryptedPassword)
 
   private def sendContent(
-                           login: LoginDetails,
-                           xmlUrl: String,
-                           uploadConfirmation: UploadConfirmation
-                         )(implicit hc: HeaderCarrier): F[String] =
+    login: LoginDetails,
+    xmlUrl: String,
+    uploadConfirmation: UploadConfirmation
+  )(implicit hc: HeaderCarrier
+  ): F[String] =
     fromFuture(
       reportUploadService.upload(login, xmlUrl, uploadConfirmation.reference)
-        .map(uploadResult => {
+        .map { uploadResult =>
           logger.info(s"uploadResult: $uploadResult reference: ${uploadConfirmation.reference}")
           uploadResult
-        })
+        }
     )
 
   private def saveSubmission(login: LoginDetails, reportStatus: ReportStatus): F[Unit] =
@@ -85,11 +88,11 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     } yield webBarsService.newSubmission(reportStatus, login.username, login.password)
 
   private def saveReportStatus(
-                                login: LoginDetails,
-                                uploadConfirmation: UploadConfirmation,
-                                errors: Seq[Error] = Seq(),
-                                status: ReportStatusType
-                              ): F[Unit] = {
+    login: LoginDetails,
+    uploadConfirmation: UploadConfirmation,
+    errors: Seq[Error] = Seq(),
+    status: ReportStatusType
+  ): F[Unit] = {
     val reportStatus = ReportStatus(
       uploadConfirmation.reference,
       baCode = login.username,
@@ -103,11 +106,11 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
   }
 
   private def saveReportStatus(
-                                login: LoginDetails,
-                                reference: String,
-                                errors: Seq[Error],
-                                status: ReportStatusType
-                              ): F[Unit] = {
+    login: LoginDetails,
+    reference: String,
+    errors: Seq[Error],
+    status: ReportStatusType
+  ): F[Unit] = {
     val reportStatus = ReportStatus(
       reference,
       baCode = login.username,
@@ -117,13 +120,12 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     saveSubmission(login, reportStatus)
   }
 
-
   private def onSuccessfulConfirmation(baLogin: String, uploadConfirmation: UploadConfirmation)(implicit request: Request[JsValue]): Future[Result] =
     run {
       (for {
         login <- getLoginDetails(uploadConfirmation.reference)
-        _ <- saveReportStatus(login, uploadConfirmation, status = Submitted)
-        _ <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
+        _     <- saveReportStatus(login, uploadConfirmation, status = Submitted)
+        _     <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
       } yield NoContent)
         .recoverWith(handleError(baLogin, uploadConfirmation.reference))
     }
@@ -134,10 +136,12 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     run {
       (for {
         login <- getLoginDetails(uploadConfirmationError.reference)
-        _ <- saveReportStatus(login,
-          uploadConfirmationError.reference,
-          Seq(Error(UPSCAN_ERROR, Seq(failureDetails.failureReason, failureDetails.message))),
-          status = Failed)
+        _     <- saveReportStatus(
+                   login,
+                   uploadConfirmationError.reference,
+                   Seq(Error(UPSCAN_ERROR, Seq(failureDetails.failureReason, failureDetails.message))),
+                   status = Failed
+                 )
       } yield NoContent)
         .recoverWith(handleError(baLogin, uploadConfirmationError.reference))
     }
@@ -147,7 +151,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     case voaBarException: VoaBarException =>
       logger.warn(s"VoaBarException: ${voaBarException.error}")
       saveError(baLogin, reference, voaBarException.error)
-    case exception =>
+    case exception                        =>
       logger.warn(s"Unknown ${exception.getClass}: ${exception.getMessage}")
       saveError(baLogin, reference, Error(UNKNOWN_ERROR, Seq(exception.getMessage)))
   }
@@ -157,7 +161,7 @@ class UpscanCallbackController @Inject()(configuration: Configuration,
     logger.error(errorMsg)
     for {
       login <- getLoginDetails(reference).recover(_ => LoginDetails(baLogin, baLogin))
-      _ <- saveReportStatus(login, reference, Seq(error), status = Failed)
+      _     <- saveReportStatus(login, reference, Seq(error), status = Failed)
     } yield InternalServerError(errorMsg)
   }
 

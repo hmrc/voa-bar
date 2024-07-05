@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.nio.file.Paths
-import java.util.UUID
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.http.Status
+import play.api.http.Status.OK
 import play.api.libs.ws.WSClient
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
+import java.nio.file.Paths
+import java.util.UUID
 
 class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with DefaultAwaitTimeout with FutureAwaits {
 
@@ -37,10 +38,9 @@ class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with
 
   def wsClient = app.injector.instanceOf[WSClient]
 
-
   "Validate controller" should {
     "validate correct xml" in {
-      val url = s"http://localhost:${port}/voa-bar/validate-upload/${BA_LOGIN}"
+      val url = s"http://localhost:$port/voa-bar/validate-upload/$BA_LOGIN"
 
       val response = await(wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)
@@ -48,11 +48,11 @@ class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with
 
       Console.println(response.body)
 
-      response.status mustBe(Status.OK)
+      response.status mustBe OK
     }
 
     "validate incorrect XML" in {
-      val url = s"http://localhost:${port}/voa-bar/validate-upload/7777"
+      val url = s"http://localhost:$port/voa-bar/validate-upload/7777"
 
       val response = await(wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)
@@ -60,12 +60,8 @@ class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with
 
       Console.println(response.body)
 
-      response.status mustBe(Status.OK)
-
-
+      response.status mustBe OK
     }
   }
-
-
 
 }
