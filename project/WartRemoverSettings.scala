@@ -1,5 +1,5 @@
 import play.sbt.routes.RoutesKeys.routes
-import sbt.Keys.{compile, test}
+import sbt.Keys.compile
 import sbt.{AutoPlugin, Compile, Setting, Test}
 import wartremover.WartRemover.autoImport.{wartremoverErrors, wartremoverExcluded, wartremoverWarnings}
 import wartremover.{Wart, Warts}
