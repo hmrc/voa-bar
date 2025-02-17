@@ -51,6 +51,7 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.DefaultArguments,
       Wart.Nothing,
       Wart.Null,
+      Wart.Any,
       Wart.Overloading,
       Wart.FinalCaseClass,
       Wart.SeqApply,
