@@ -30,10 +30,9 @@ class ResourceResolverSpec extends PlaySpec {
       result.isInstanceOf[Input] mustBe true
     }
 
-    "Throw an exception if the given file name doesn't exists in the specified path" in {
+    "Throw an exception if the given file name doesn't exists in the specified path" in
       intercept[Exception] {
         resolver.resolveResource("type", "namespace", "publicID", nonExistingFile, "publicURI")
       }
-    }
   }
 }

@@ -35,8 +35,7 @@ class UpscanConnectorSpec extends PlaySpec with WiremockHelper with FutureAwaits
   def url(port: Int): String = s"http://localhost:$port$upScanPath"
 
   "upscan connector" should {
-    "Include requestId" in {
-
+    "Include requestId" in
       withWiremockServer { wireMockServer =>
         wireMockServer.stubFor(
           get(urlEqualTo(upScanPath))
@@ -60,7 +59,6 @@ class UpscanConnectorSpec extends PlaySpec with WiremockHelper with FutureAwaits
         }
       }
 
-    }
   }
 
 }

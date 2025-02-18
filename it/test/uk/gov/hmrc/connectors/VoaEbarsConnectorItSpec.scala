@@ -133,9 +133,8 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     }
 
   "VoaEbarsConnector" must {
-    "send reports as application/x-www-form-urlencoded content" in {
+    "send reports as application/x-www-form-urlencoded content" in
       testSendBAReport(uploadXmlPath, report, uploadContentType, OK, <root><result>success</result></root>.toString)
-    }
 
     "handle 401 Unauthorised response from eBars" in {
       val thrown = intercept[UnauthorizedException] {
@@ -167,15 +166,13 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
       thrown.getMessage mustBe "eBars INTERNAL_SERVER_ERROR"
     }
 
-    "do login" in {
+    "do login" in
       testEbarsGetCall(loginPath, _.validate(loginDetails), Success(OK), OK, "login successful")
-    }
 
-    "handle 401 Unauthorised response on login" in {
+    "handle 401 Unauthorised response on login" in
       testEbarsGetCall(loginPath, _.validate(loginDetails), Failure(new UnauthorizedException("Invalid credentials")), UNAUTHORIZED, "unauthorized")
-    }
 
-    "handle 500 response on login" in {
+    "handle 500 response on login" in
       testEbarsGetCall(
         loginPath,
         _.validate(loginDetails),
@@ -183,7 +180,6 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
         INTERNAL_SERVER_ERROR,
         "eBars server error"
       )
-    }
   }
 
 }

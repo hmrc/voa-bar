@@ -54,7 +54,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val bodyElements = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
       OF.createBAreportBodyStructureTransactionIdentityBA(
-        submissionId.toString.replaceAll("-", "").substring(0, transactionIdentityLength)
+        submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)
       ), // TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),

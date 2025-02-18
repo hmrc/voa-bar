@@ -90,11 +90,10 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
     result.isLeft mustBe true
   }
 
-  "return a Failure when the backend service call fails" in {
+  "return a Failure when the backend service call fails" in
     intercept[Exception] {
       val result = controller.login()(fakeRequestWithJson(goodJson))
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
-  }
 
 }
