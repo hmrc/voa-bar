@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,7 +212,7 @@ case object TextAddressPostcodeValidation extends ValidationRule {
 
     val f = EbarsXmlCutter.getTextAddressStructures(baReports) map (_.getPostcode) flatMap {
       case v if v == null || v.isEmpty => None
-      case postcodePattern(zip)        => None
+      case postcodePattern(_)          => None
       case v                           => Some(ReportErrorDetail(ErrorCode.TextAddressPostcodeValidation, Seq(v)))
     }
 
@@ -227,7 +227,7 @@ case object OccupierContactAddressesPostcodeValidation extends ValidationRule {
 
     val f = EbarsXmlCutter.getOccupierContactAddresses(baReports) map (_.getPostCode) flatMap {
       case v if v == null || v.isEmpty => None
-      case postcodePattern(zip)        => None
+      case postcodePattern(_)          => None
       case v                           => Some(ReportErrorDetail(ErrorCode.OccupierContactAddressesPostcodeValidation, Seq(v)))
     }
 

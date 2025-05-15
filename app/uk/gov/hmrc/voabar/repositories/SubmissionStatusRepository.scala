@@ -63,7 +63,9 @@ class SubmissionStatusRepositoryImpl @Inject() (
   with SubmissionStatusRepository
   with Logging {
 
-  val timeoutMinutes = 120
+  private val timeoutMinutes = 120
+
+  private val finalStatuses: Set[String] = Set(Failed.value, Submitted.value, Done.value)
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]] =
     collection.findOneAndReplace(byId(reportStatus.id), reportStatus, FindOneAndReplaceOptions().upsert(upsert))
@@ -168,7 +170,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
   }
 
   private def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] =
-    if report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value) then
+    if finalStatuses(report.status) then
       Future.successful(report)
     else if report.createdAt.compareTo(Instant.now.minus(timeoutMinutes, ChronoUnit.MINUTES)) < 0 then
       markSubmissionFailed(report)

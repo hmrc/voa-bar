@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,14 @@ import scala.concurrent.{ExecutionContext, Future}
 class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: Configuration, utils: Utils)(implicit ec: ExecutionContext)
   extends EmailConnector {
 
-  private val emailConfigPrefix = "microservice.services.email"
+  private val emailConfigPrefix: String = "microservice.services.email"
   if !configuration.has(emailConfigPrefix) then throw new ConfigException.Missing(emailConfigPrefix)
-  private val protocol          = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
-  private val host              = configuration.get[String](s"$emailConfigPrefix.host")
-  private val port              = configuration.get[String](s"$emailConfigPrefix.port")
-  private val emailUrl          = s"$protocol://$host:$port"
-  private val needsToSendEmail  = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
+
+  private val protocol: String          = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
+  private val host: String              = configuration.get[String](s"$emailConfigPrefix.host")
+  private val port: String              = configuration.get[String](s"$emailConfigPrefix.port")
+  private val emailUrl: String          = s"$protocol://$host:$port"
+  private val needsToSendEmail: Boolean = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
 
   private val email = configuration.getOptional[String]("email")
     .getOrElse(if needsToSendEmail then throw new ConfigException.Missing("email") else "")

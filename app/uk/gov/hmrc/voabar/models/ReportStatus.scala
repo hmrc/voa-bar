@@ -47,7 +47,7 @@ final case class ReportStatus(
   errors: Seq[Error] = Seq(),
   reportErrors: Seq[ReportError] = Seq(),
   baCode: String,
-  status: Option[String] = Some(Pending.value), // TODO status: String = Pending.value after release VOA-3532
+  status: String = Pending.value,
   filename: Option[String] = None,
   totalReports: Option[Int] = None,
   report: Option[JsObject] = None

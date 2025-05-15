@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
     "verify that the email service gets called when email needs to be sent" in {
       val httpMock = mock[HttpClient]
       when(httpMock.POST[JsValue, HttpResponse](anyString, any[JsValue], any[Seq[(String, String)]])(
-        any[Writes[JsValue]],
+        using any[Writes[JsValue]],
         any[HttpReads[HttpResponse]],
         any[HeaderCarrier],
         any[ExecutionContext]
@@ -72,7 +72,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
       verify(httpMock)
-        .POST[JsObject, Unit](anyString, any[JsObject], any)(any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
+        .POST[JsObject, Unit](anyString, any[JsObject], any)(using any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
     }
     "verify that the email service doesn't get called when email needn't to be sent" in {
       val httpMock  = mock[HttpClient]
@@ -81,7 +81,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
       verify(httpMock, times(0))
-        .POST[JsObject, Unit](anyString, any[JsObject], any)(any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
+        .POST[JsObject, Unit](anyString, any[JsObject], any)(using any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
       val res                 = reportUploadService.upload(loginDetails, baReport, uploadReference)
 
       res.map { result =>
-        verify(voaEbarsConnector, times(1)).sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier])
+        verify(voaEbarsConnector, times(1)).sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier])
         result mustBe "ok"
       }
     }
@@ -188,7 +188,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     "handle eBar Error error" in {
 
       val voaEbarsConnector = mock[VoaEbarsConnector]
-      when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier])).thenReturn {
+      when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier])).thenReturn {
         Future.failed(new RuntimeException("Can't send data to ebars."))
       }
 
@@ -204,7 +204,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
 
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository   = mock[SubmissionStatusRepository]
-    val reportStatus = ReportStatus("submissionId", baCode = "BA1010", filename = Some("filename.xml"), status = Some(Pending.value))
+    val reportStatus = ReportStatus("submissionId", baCode = "BA1010", filename = Some("filename.xml"), status = Pending.value)
 
     when(repository.updateStatus(any[String], any[ReportStatusType]))
       .thenAnswer(_ => Future.successful(Right(true)))
@@ -255,10 +255,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
   def aVoaEbarsConnector(): VoaEbarsConnector = {
     val connector = mock[VoaEbarsConnector]
 
-    when(connector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
+    when(connector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer(_ => Future.successful(OK))
 
-    when(connector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier]))
+    when(connector.validate(any[LoginDetails]))
       .thenAnswer(_ => Future.successful(Try(OK)))
 
     connector

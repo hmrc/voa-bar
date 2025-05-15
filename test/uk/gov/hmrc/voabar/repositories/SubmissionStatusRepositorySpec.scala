@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ class SubmissionStatusRepositorySpec
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Some(Failed.value), createdAt = Instant.now.normalize)
+      val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Failed.value, createdAt = Instant.now.normalize)
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
 
@@ -123,7 +123,7 @@ class SubmissionStatusRepositorySpec
 
       val reportFromDb = await(repo.getByReference(report.id))
 
-      reportFromDb.value.status.value mustBe Failed.value
+      reportFromDb.value.status mustBe Failed.value
 
       reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
     }
@@ -136,13 +136,13 @@ class SubmissionStatusRepositorySpec
       val daysToSubtract = 21
 
       forAll(finalStates) { case (finalState: String, errors: Seq[Error]) =>
-        val report = aReport().copy(createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize, status = Some(finalState), errors = errors)
+        val report = aReport().copy(createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize, status = finalState, errors = errors)
 
         await(repo.collection.insertOne(report).toFutureOption())
 
         val reportFromDb = await(repo.getByReference(report.id))
 
-        reportFromDb.value.status.value mustBe finalState
+        reportFromDb.value.status mustBe finalState
 
         reportFromDb.value.errors mustBe errors
 
@@ -151,7 +151,6 @@ class SubmissionStatusRepositorySpec
     }
 
     "Save baCode when saving or updating submission" in {
-      import uk.gov.hmrc.voabar.util.*
 
       val submissionToStore = ReportStatus(
         UUID.randomUUID().toString,
@@ -159,7 +158,7 @@ class SubmissionStatusRepositorySpec
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         baCode = "BA2020",
-        status = Option(Submitted.value),
+        status = Submitted.value,
         filename = Option("filename.xml"),
         totalReports = Some(10)
       )
@@ -169,7 +168,6 @@ class SubmissionStatusRepositorySpec
     }
 
     "Not return submission older 90 days" in {
-      import uk.gov.hmrc.voabar.util.*
 
       await(repo.collection.deleteMany(Document()).toFutureOption())
 
@@ -181,7 +179,7 @@ class SubmissionStatusRepositorySpec
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         baCode = "BA2020",
-        status = Option(Submitted.value),
+        status = Submitted.value,
         filename = Option("filename.xml"),
         totalReports = Some(10),
         createdAt = Instant.now.normalize
@@ -207,7 +205,7 @@ class SubmissionStatusRepositorySpec
   }
 
   def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID().toString, baCode = "BA1010", status = Some(Pending.value))
+    ReportStatus(UUID.randomUUID().toString, baCode = "BA1010", status = Pending.value)
 
   override protected def afterAll(): Unit = {
     await(mongoComponent.database.drop().toFutureOption())

@@ -39,7 +39,11 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.Overloading,
       Wart.FinalCaseClass,
       Wart.PlatformDefault,
-      Wart.SeqApply
+      Wart.SeqApply,
+      Wart.AsInstanceOf,
+      Wart.Null,
+      Wart.Var,
+      Wart.Any
     )
 
   private val testErrorOn: Seq[Wart] =
@@ -74,7 +78,12 @@ object WartRemoverSettings extends AutoPlugin {
       Wart.Overloading,
       Wart.FinalCaseClass,
       Wart.SeqApply,
-      Wart.PlatformDefault
+      Wart.PlatformDefault,
+      Wart.IterableOps,
+      Wart.AsInstanceOf,
+      Wart.IsInstanceOf,
+      Wart.Null,
+      Wart.Any
     )
 
   override lazy val projectSettings: Seq[Setting[?]] = Seq(

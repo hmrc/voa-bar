@@ -3,23 +3,23 @@ import play.core.PlayVersion
 
 object AppDependencies {
 
-  private val bootstrapVersion          = "9.9.0"
-  private val hmrcMongoVersion          = "2.5.0"
+  private val bootstrapVersion          = "9.11.0"
+  private val hmrcMongoVersion          = "2.6.0"
   private val autoBarsXsdVersion        = "9.16.0"
-  private val jacksonModuleScalaVersion = "2.18.2"
-  private val guiceUtilsVersion         = "6.0.0"
-  private val catsEffectVersion         = "3.5.7"
+  private val jacksonModuleScalaVersion = "2.19.0"
+  private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 - 7.0.0 is not compatible with ...
+  private val catsEffectVersion         = "3.6.1"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"
   private val xercesVersion             = "2.12.2"
-  private val apachePOIVersion          = "5.4.0"
+  private val apachePOIVersion          = "5.4.1"
 
   // Test dependencies
   private val scalaTestPlusPlayVersion    = "7.0.1"
   private val scalaTestVersion            = "3.2.19"
   private val testPlusScalaCheckVersion   = "3.2.19.0"
   private val scalaTestPlusMockitoVersion = "3.2.19.0"
-  private val wiremockVersion             = "3.12.0"
+  private val wiremockVersion             = "3.13.0"
   private val xmlunitVersion              = "2.10.0"
   private val flexMarkVersion             = "0.64.8"
 
