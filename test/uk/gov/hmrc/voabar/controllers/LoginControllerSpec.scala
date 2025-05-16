@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import uk.gov.hmrc.voabar.connectors.{VoaBarAuditConnector, VoaEbarsConnector}
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.*
-import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 
@@ -43,10 +42,10 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
   }
 
   val mockVoaEbarsConnector = mock[VoaEbarsConnector]
-  when(mockVoaEbarsConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])).thenReturn(Future.successful(Success(OK)))
+  when(mockVoaEbarsConnector.validate(any[LoginDetails])).thenReturn(Future.successful(Success(OK)))
 
   val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
-  when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])).thenReturn(
+  when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])).thenReturn(
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
   )
 

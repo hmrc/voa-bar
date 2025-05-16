@@ -98,7 +98,7 @@ class UpscanCallbackController @Inject() (
       baCode = login.username,
       url = Some(uploadConfirmation.downloadUrl),
       checksum = Some(uploadConfirmation.uploadDetails.checksum),
-      status = Some(status.value),
+      status = status.value,
       filename = Some(uploadConfirmation.uploadDetails.fileName),
       errors = errors
     )
@@ -114,7 +114,7 @@ class UpscanCallbackController @Inject() (
     val reportStatus = ReportStatus(
       reference,
       baCode = login.username,
-      status = Some(status.value),
+      status = status.value,
       errors = errors
     )
     saveSubmission(login, reportStatus)

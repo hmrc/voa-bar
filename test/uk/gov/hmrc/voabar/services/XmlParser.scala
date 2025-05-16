@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class XmlParser {
     }
 
   private def addChild(node: Node, newNode: NodeSeq): Node = (node: @unchecked) match {
-    case Elem(prefix, label, attrs, ns, child @ _*) => Elem(prefix, label, attrs, ns, false, newNode*)
+    case Elem(prefix, label, attrs, ns, _ @_*) => Elem(prefix, label, attrs, ns, false, newNode*)
   }
 
   def oneReportPerBatch(node: Node): Seq[Node] = {

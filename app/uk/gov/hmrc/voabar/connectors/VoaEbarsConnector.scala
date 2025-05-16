@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class DefaultVoaEbarsConnector @Inject() (
 
   val ebarsValidator: EbarsValidator = new EbarsValidator
 
-  override def validate(loginDetails: LoginDetails)(implicit executionContext: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] =
+  override def validate(loginDetails: LoginDetails): Future[Try[Int]] =
     Future.successful {
       Using(new EbarsClient(loginDetails.username, loginDetails.password, servicesConfig, configuration)) {
         _.login match {
@@ -112,7 +112,7 @@ class DefaultVoaEbarsConnector @Inject() (
 
 @ImplementedBy(classOf[DefaultVoaEbarsConnector])
 trait VoaEbarsConnector {
-  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]]
+  def validate(loginDetails: LoginDetails): Future[Try[Int]]
 
   def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int]
 }

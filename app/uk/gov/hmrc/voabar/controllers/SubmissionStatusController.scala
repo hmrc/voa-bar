@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class SubmissionStatusController @Inject() (
 
   def getAll: Action[AnyContent] = Action.async { implicit request =>
     (for {
-      userId         <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
+      _              <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getAllReportStatuses)
     } yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)

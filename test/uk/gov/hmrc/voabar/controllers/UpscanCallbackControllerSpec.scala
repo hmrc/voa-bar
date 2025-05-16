@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ class UpscanCallbackControllerSpec
   override def fakeApplication(): Application = {
     val voaEbarsConnector = mock[VoaEbarsConnector]
 
-    when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier]))
+    when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer(_ => Future.successful(OK))
 
     new GuiceApplicationBuilder()
@@ -117,12 +117,12 @@ class UpscanCallbackControllerSpec
 
   private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) = {
     eventually {
-      await(submissionRepository.getByReference(submissionReference)).value.status.value must not be Submitted.value
+      await(submissionRepository.getByReference(submissionReference)).value.status must not be Submitted.value
     }
 
     val submissionReport = await(submissionRepository.getByReference(submissionReference))
 
-    submissionReport.value.status.value mustBe expectedStatus.value
+    submissionReport.value.status mustBe expectedStatus.value
     submissionReport.value.baCode mustBe expectedBaCode
     submissionReport.value.errors mustBe expectedErrors
   }

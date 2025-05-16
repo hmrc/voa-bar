@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ class DefaultWebBarsService @Inject() (
       reportUploadService.upload(LoginDetails(username, password), areports, reportStatus.id)
     }
   }.recover {
-    case x: Exception =>
-      log.warn(s"Unable to process webBars report : ${reportStatus.redacted}")
+    case ex: Exception =>
+      log.warn(s"Unable to process webBars report : ${reportStatus.redacted}", ex)
   }
 
   import jakarta.xml.bind.Marshaller

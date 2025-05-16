@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ class ReportUploadService @Inject() (
   ): Future[Either[BarError, Unit]] =
     statusRepository.getByReference(baRef).flatMap(_.fold(
       e => {
-        val errorMsg = "Error while retrieving report to be send via email"
+        val errorMsg = s"Error while retrieving report to be send via email. $e"
         logger.error(errorMsg)
         Future.successful(Right(()))
       },
@@ -207,7 +207,7 @@ class ReportUploadService @Inject() (
             createdAt = Instant.now,
             baCode = login.username,
             reportErrors = errors,
-            status = Some(Failed.value)
+            status = Failed.value
           ),
           upsert = true
         )
