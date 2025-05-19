@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,9 @@ class ValidationService {
     }.toList
 
   /**
-   * @param submission only one submission!!!!.
-   * @return
-   */
+    * @param submission only one submission!!!!.
+    * @return
+    */
   def validateSubmission(submission: BAreports): Option[ReportError] = {
     assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
 

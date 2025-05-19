@@ -50,8 +50,8 @@ import scala.language.postfixOps
 import scala.util.Using
 
 /**
- * @author Yuriy Tumakha
- */
+  * @author Yuriy Tumakha
+  */
 class UpscanCallbackControllerSpec
   extends PlaySpec
   with OptionValues

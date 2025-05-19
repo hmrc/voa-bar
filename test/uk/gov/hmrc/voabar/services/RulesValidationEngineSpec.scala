@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import services.EbarsValidator
 import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
 
 /**
- * Created by rgallet on 09/12/15.
- */
+  * Created by rgallet on 09/12/15.
+  */
 class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "RulesValidationEngine" must {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.voabar.repositories.UserReportUpload
 
 /**
- * @author Yuriy Tumakha
- */
+  * @author Yuriy Tumakha
+  */
 case class UserReportUploadRest(id: String, userId: String, userPassword: String) {
 
   def toMongoEntity: UserReportUpload = UserReportUpload(id, userId, userPassword)

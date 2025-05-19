@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import java.net.ConnectException
 import scala.concurrent.ExecutionContext.Implicits._
 
 /**
- * @author Yuriy Tumakha
- */
+  * @author Yuriy Tumakha
+  */
 class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwaitTimeout with FutureAwaits {
 
   implicit private val mat: Materializer = NoMaterializer

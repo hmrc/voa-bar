@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import uk.gov.hmrc.voabar.services.NdrValidationRules.{Rt01AndRt04AndRt03AndRt04
 import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
 
 /**
- * Created by rgallet on 09/12/15.
- */
+  * Created by rgallet on 09/12/15.
+  */
 class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation" must {

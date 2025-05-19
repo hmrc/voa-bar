@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import javax.xml.parsers.DocumentBuilderFactory
 import org.scalatestplus.play.PlaySpec
 
 /**
- * This code was used to replicate problem with XML where we have nbsp entity.
- * nbsp is not declared as default XML entity. Also we doesn't permit no-breakable
- * space anywhere in code, so it's better to replace with normal space.
- */
+  * This code was used to replicate problem with XML where we have nbsp entity.
+  * nbsp is not declared as default XML entity. Also we doesn't permit no-breakable
+  * space anywhere in code, so it's better to replace with normal space.
+  */
 class XmlEntitiesSpec extends PlaySpec {
 
   "voa-bar" should {

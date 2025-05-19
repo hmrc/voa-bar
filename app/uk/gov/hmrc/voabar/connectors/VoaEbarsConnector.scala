@@ -33,8 +33,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try, Using}
 
 /**
- * @author Yuriy Tumakha
- */
+  * @author Yuriy Tumakha
+  */
 @Singleton
 class DefaultVoaEbarsConnector @Inject() (
   servicesConfig: ServicesConfig,
