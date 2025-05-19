@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import org.apache.poi.util.ReplacingInputStream
 import scala.util.{Success, Try}
 
 /**
- * Created by rgallet on 12/02/16.
- */
+  * Created by rgallet on 12/02/16.
+  */
 class RulesCorrectionEngine {
 
   val ctRules = Seq(
@@ -125,8 +125,8 @@ case object FixCTaxTrailer extends Rule {
 }
 
 /**
- * Strip whitespace characters in remarks element.
- */
+  * Strip whitespace characters in remarks element.
+  */
 case object RemarksTrimmer extends Rule {
 
   val firstStageRegex  = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r // First replace all obscure space and newline with space
@@ -351,18 +351,18 @@ case object CtRules {
   }
 
   /**
-   * CR05 reports need to have 1+ ProposedEntries and 1+ ExistingEntries to validate the XSD schema.
-   *
-   * However, there is a bug with CR05 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
-   * hence rendering the submission pointless. However, the data in <ProposedEntries>/<OccupierContact> does come across. ;-)
-   *
-   * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>. In other words,
-   * both <ProposedEntries>/<AssessmentProperties>/<TextAddress> end up in <ExistingEntries>/<AssessmentProperties>+ with a prefix value of [PROPOSED]
-   * for <ProposedEntries>/<AssessmentProperties>/<TextAddress>/<AddressLine>
-   *
-   * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
-   * This avoids duplication of <OccupierContact> elements in CDB.
-   */
+    * CR05 reports need to have 1+ ProposedEntries and 1+ ExistingEntries to validate the XSD schema.
+    *
+    * However, there is a bug with CR05 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
+    * hence rendering the submission pointless. However, the data in <ProposedEntries>/<OccupierContact> does come across. ;-)
+    *
+    * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>. In other words,
+    * both <ProposedEntries>/<AssessmentProperties>/<TextAddress> end up in <ExistingEntries>/<AssessmentProperties>+ with a prefix value of [PROPOSED]
+    * for <ProposedEntries>/<AssessmentProperties>/<TextAddress>/<AddressLine>
+    *
+    * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
+    * This avoids duplication of <OccupierContact> elements in CDB.
+    */
   case object Cr05CopyProposedEntriesToExistingEntries extends Rule {
     val codes = Seq(CR_05)
 
@@ -379,14 +379,14 @@ case object CtRules {
   }
 
   /**
-   * CR12 reports need to have 1 ProposedEntries and 1 ExistingEntries to validate the XSD schema.
-   *
-   * However, there is a bug with CR12 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
-   * hence rendering the submission pointless. However, the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across. ;-)
-   *
-   * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <BApropertyReport>/<Remarks> with a prefix value of [PROPOSED]
-   * for <ProposedEntries>/<TextAddress>/<AddressLine>
-   */
+    * CR12 reports need to have 1 ProposedEntries and 1 ExistingEntries to validate the XSD schema.
+    *
+    * However, there is a bug with CR12 codes in the legacy ebars which discards the data present in <ProposedEntries>/<AssessmentProperties>/<TextAddress>,
+    * hence rendering the submission pointless. However, the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across. ;-)
+    *
+    * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <BApropertyReport>/<Remarks> with a prefix value of [PROPOSED]
+    * for <ProposedEntries>/<TextAddress>/<AddressLine>
+    */
   case object Cr12CopyProposedEntriesToRemarks extends Rule {
     val codes = Seq(CR_12)
 

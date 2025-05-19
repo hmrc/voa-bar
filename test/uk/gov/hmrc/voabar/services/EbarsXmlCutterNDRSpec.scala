@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.scalatest.OptionValues
 import services.EbarsValidator
 
 /**
- * Created by rgallet on 09/12/15.
- */
+  * Created by rgallet on 09/12/15.
+  */
 class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues {
   val ebarsValidator = new EbarsValidator
 

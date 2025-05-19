@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package uk.gov.hmrc.voabar.models
 import ebars.xml.BAreports
 
 /**
- * Created by rgallet on 16/02/16.
- *
- * Monad style baby!
- */
+  * Created by rgallet on 16/02/16.
+  *
+  * Monad style baby!
+  */
 
 sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
 

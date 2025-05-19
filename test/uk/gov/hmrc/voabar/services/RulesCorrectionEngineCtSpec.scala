@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters._
 
 /**
- * Created by rgallet on 09/12/15.
- */
+  * Created by rgallet on 09/12/15.
+  */
 class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks {
   val ebarsValidator = new EbarsValidator
 

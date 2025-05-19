@@ -27,8 +27,8 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 /**
- * Created by rgallet on 16/02/16.
- */
+  * Created by rgallet on 16/02/16.
+  */
 class RulesValidationEngine {
 
   def applyRules(baReports: BAreports) = {
@@ -58,10 +58,10 @@ class RulesValidationEngine {
   }
 
   /**
-   * Not final version, what if tax code is not there ? TODO - improve validation on report.
-   * @param baReports
-   * @return
-   */
+    * Not final version, what if tax code is not there ? TODO - improve validation on report.
+    * @param baReports
+    * @return
+    */
   def purpose(baReports: BAreports) =
     baReports.getBApropertyReport.asScala.headOption
       .flatMap { report =>

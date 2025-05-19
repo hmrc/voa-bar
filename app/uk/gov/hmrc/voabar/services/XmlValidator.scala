@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,10 +91,10 @@ class XmlValidator {
   }
 
   /**
-   * This method is used ONLY to try parse XML to DOM tree and check if it is well formated XML document.
-   * @param xmlInput
-   * @return
-   */
+    * This method is used ONLY to try parse XML to DOM tree and check if it is well formated XML document.
+    * @param xmlInput
+    * @return
+    */
   def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] = {
 
     val errorHandler = new XmlErrorHandler
