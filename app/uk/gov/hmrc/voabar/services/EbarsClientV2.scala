@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
 
-// TODO: use uk.gov.hmrc.http.HttpClient with WSProxy
+// TODO: use uk.gov.hmrc.http.client.HttpClientV2 and method .withProxy
 @Singleton
 class EbarsClientV2 @Inject() (
   servicesConfig: ServicesConfig,

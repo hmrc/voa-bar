@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -412,7 +412,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0)).asInstanceOf[JAXBElement[String]]
 
       forAll(testData) { (originalString: String, expectedResult: String) =>
-
         remarks.setValue(originalString)
 
         RemarksTrimmer.apply(reports)
