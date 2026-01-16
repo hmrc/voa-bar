@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,38 @@ package uk.gov.hmrc.voabar.connectors
 
 import com.google.inject.{ImplementedBy, Singleton}
 import com.typesafe.config.ConfigException
-import javax.inject.Inject
 import models.Purpose.Purpose
-import play.api.Configuration
-import play.api.libs.json._
-import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.voabar.util.Utils
+import play.api.http.Status.{ACCEPTED, OK}
+import play.api.libs.json.*
+import play.api.libs.ws.writeableOf_JsValue
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.models.LoginDetails
+import uk.gov.hmrc.voabar.util.Utils
 
+import java.net.URL
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: Configuration, utils: Utils)(implicit ec: ExecutionContext)
-  extends EmailConnector {
+class DefaultEmailConnector @Inject() (
+  httpClientV2: HttpClientV2,
+  servicesConfig: ServicesConfig,
+  configuration: Configuration,
+  utils: Utils
+)(implicit ec: ExecutionContext
+) extends EmailConnector
+  with Logging:
 
-  private val emailConfigPrefix: String = "microservice.services.email"
-  if !configuration.has(emailConfigPrefix) then throw new ConfigException.Missing(emailConfigPrefix)
-
-  private val protocol: String          = configuration.getOptional[String](s"$emailConfigPrefix.protocol").getOrElse("http")
-  private val host: String              = configuration.get[String](s"$emailConfigPrefix.host")
-  private val port: String              = configuration.get[String](s"$emailConfigPrefix.port")
-  private val emailUrl: String          = s"$protocol://$host:$port"
+  private val emailServiceBase: String  = servicesConfig.baseUrl("email")
+  private val sendEmailURL: URL         = url"$emailServiceBase/hmrc/email"
   private val needsToSendEmail: Boolean = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
 
   private val email = configuration.getOptional[String]("email")
     .getOrElse(if needsToSendEmail then throw new ConfigException.Missing("email") else "")
-
-  implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
-    override def read(method: String, url: String, response: HttpResponse): Unit = ()
-  }
 
   def sendEmail(
     baRefNumber: String,
@@ -58,8 +60,9 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
     fileName: String,
     dateSubmitted: String,
     errorList: String
-  ): Future[Unit] = {
-    implicit val authHc = utils.generateHeader(LoginDetails(username, password))
+  ): Future[Unit] =
+    implicit val authHc: HeaderCarrier = utils.generateHeader(LoginDetails(username, password))
+
     if needsToSendEmail then
       val json = Json.obj(
         "to"         -> JsArray(Seq(JsString(email))),
@@ -74,14 +77,20 @@ class DefaultEmailConnector @Inject() (val http: HttpClient, val configuration: 
         "force"      -> JsBoolean(false)
       )
 
-      http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json, Seq.empty)
+      httpClientV2.post(sendEmailURL)
+        .withBody(json)
+        .execute[HttpResponse]
+        .map { r =>
+          r.status match {
+            case OK | ACCEPTED => logger.info(s"Send email successful: ${r.status}")
+            case status        => logger.error(s"Send email FAILED: $status ${r.body}")
+          }
+        }
     else
       Future.unit
-  }
-}
 
 @ImplementedBy(classOf[DefaultEmailConnector])
-trait EmailConnector {
+trait EmailConnector:
 
   def sendEmail(
     baRefNumber: String,
@@ -93,4 +102,3 @@ trait EmailConnector {
     dateSubmitted: String,
     errorList: String
   ): Future[Unit]
-}

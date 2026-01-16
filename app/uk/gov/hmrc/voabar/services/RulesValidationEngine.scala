@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,22 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeContentType}
-import ebars.xml.CtaxReasonForReportCodeContentType._
+import ebars.xml.CtaxReasonForReportCodeContentType.*
 import jakarta.xml.bind.JAXBElement
 import models.Purpose
 import uk.gov.hmrc.voabar.models.{EmptyReportValidation, ReportErrorDetail, ReportValidation}
-import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
+import uk.gov.hmrc.voabar.models.ReportErrorDetailCode as ErrorCode
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
+import scala.util.matching.Regex
 
 /**
   * Created by rgallet on 16/02/16.
   */
 class RulesValidationEngine {
 
-  def applyRules(baReports: BAreports) = {
+  def applyRules(baReports: BAreports): Seq[ReportErrorDetail] = {
     val v = purpose(baReports) match {
       case Purpose.CT  => ReportValidation(Seq.empty[ReportErrorDetail], baReports) map
           CtValidationRules.Cr01AndCr02MissingExistingEntryValidation.apply map
@@ -62,7 +63,7 @@ class RulesValidationEngine {
     * @param baReports
     * @return
     */
-  def purpose(baReports: BAreports) =
+  def purpose(baReports: BAreports): Purpose.Value =
     baReports.getBApropertyReport.asScala.headOption
       .flatMap { report =>
         report.getContent.asScala
@@ -83,15 +84,14 @@ class RulesValidationEngine {
 
 sealed trait ValidationRule {
 
-  def apply: (BAreports) => Option[ReportErrorDetail]
+  def apply: BAreports => Option[ReportErrorDetail]
 }
 
 case object NdrValidationRules {
 
   case object Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
       EbarsXmlCutter.extractCR(baReports) match {
@@ -104,8 +104,7 @@ case object NdrValidationRules {
 
   case object Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
       EbarsXmlCutter.extractCR(baReports) match {
@@ -117,7 +116,7 @@ case object NdrValidationRules {
   }
 
   case object NdrCodeValidation extends ValidationRule {
-    val validCodes = (1 to 19).map(x => "%02d".format(x)).toSet
+    private val validCodes: Set[String] = (1 to 19).map(x => "%02d".format(x)).toSet
 
     override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       EbarsXmlCutter.extractCR(baReports) match {
@@ -136,8 +135,7 @@ case object CtValidationRules {
 
   case object Cr01AndCr02MissingExistingEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
       EbarsXmlCutter.extractCR(baReports) match {
@@ -150,8 +148,7 @@ case object CtValidationRules {
 
   case object Cr03AndCr04MissingProposedEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
       EbarsXmlCutter.extractCR(baReports) match {
@@ -164,8 +161,7 @@ case object CtValidationRules {
 
   case object Cr05AndCr12MissingProposedEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
 
@@ -179,8 +175,7 @@ case object CtValidationRules {
 
   case object Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
 
       EbarsXmlCutter.extractCR(baReports) match {
@@ -193,7 +188,7 @@ case object CtValidationRules {
 
   case object Cr08InvalidCodeValidation extends ValidationRule {
 
-    override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
       EbarsXmlCutter.extractCR(baReports) match {
         case Some(CR_08) => Some(ReportErrorDetail(ErrorCode.Cr08InvalidCodeValidation))
         case Some(CR_11) => Some(ReportErrorDetail(ErrorCode.Cr11InvalidCodeValidation))
@@ -206,10 +201,9 @@ case object CtValidationRules {
 }
 
 case object TextAddressPostcodeValidation extends ValidationRule {
-  val postcodePattern = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
+  private val postcodePattern: Regex = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
 
-  override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
     val f = EbarsXmlCutter.getTextAddressStructures(baReports) map (_.getPostcode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(_)          => None
@@ -221,10 +215,9 @@ case object TextAddressPostcodeValidation extends ValidationRule {
 }
 
 case object OccupierContactAddressesPostcodeValidation extends ValidationRule {
-  val postcodePattern = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
+  private val postcodePattern: Regex = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
 
-  override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
-
+  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
     val f = EbarsXmlCutter.getOccupierContactAddresses(baReports) map (_.getPostCode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(_)          => None
@@ -251,7 +244,7 @@ case object RemarksValidation extends ValidationRule {
 
 case object PropertyPlanReferenceNumberValidation extends ValidationRule {
 
-  override def apply: (BAreports) => Option[ReportErrorDetail] = { baReports =>
+  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
     EbarsXmlCutter.getPropertyPlanReferenceNumber(baReports) flatMap {
       case v if v.length > 25 => Some(ReportErrorDetail(ErrorCode.PropertyPlanReferenceNumberValidation, Seq(v)))
       case _                  => None

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,26 @@
 
 package uk.gov.hmrc.voabar.connectors
 
-import org.mockito.ArgumentMatchers.{any, anyString}
-import org.mockito.Mockito.{times, verify, when}
 import models.Purpose
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status.OK
 import play.api.Configuration
+import play.api.http.Status.OK
 import play.api.inject.Injector
-import play.api.libs.json.{JsObject, JsValue, Writes}
 import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.util.Utils
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
-class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
+class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
 
   private def injector: Injector = app.injector
 
@@ -59,30 +61,27 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
 
   "EmailConnector" must {
     "verify that the email service gets called when email needs to be sent" in {
-      val httpMock = mock[HttpClient]
-      when(httpMock.POST[JsValue, HttpResponse](anyString, any[JsValue], any[Seq[(String, String)]])(
-        using any[Writes[JsValue]],
-        any[HttpReads[HttpResponse]],
-        any[HeaderCarrier],
-        any[ExecutionContext]
-      )).thenReturn(Future.successful(HttpResponse(OK, "")))
+      val httpClientV2Mock = mock[HttpClientV2]
+      when(
+        httpClientV2Mock.post(any[URL])(using any[HeaderCarrier])
+      ).thenReturn(RequestBuilderStub(Right(OK), "{}"))
 
-      val connector = new DefaultEmailConnector(httpMock, getConfiguration(), utils)
+      val configuration = getConfiguration()
+      val connector     = new DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
 
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
-      verify(httpMock)
-        .POST[JsObject, Unit](anyString, any[JsObject], any)(using any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
+      verify(httpClientV2Mock)
+        .post(any[URL])(using any[HeaderCarrier])
     }
     "verify that the email service doesn't get called when email needn't to be sent" in {
-      val httpMock  = mock[HttpClient]
-      val connector = new DefaultEmailConnector(httpMock, getConfiguration(sendEmail = false), utils)
+      val httpClientV2Mock = mock[HttpClientV2]
+      val configuration    = getConfiguration(sendEmail = false)
+      val connector        = new DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
 
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
-      verify(httpMock, times(0))
-        .POST[JsObject, Unit](anyString, any[JsObject], any)(using any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
+      verify(httpClientV2Mock, times(0))
+        .post(any[URL])(using any[HeaderCarrier])
     }
   }
-
-}
