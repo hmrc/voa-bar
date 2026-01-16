@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import scala.util.Try
 
-// TODO: use uk.gov.hmrc.http.HttpClient with WSProxy. Move login() to EbarsClientV2
+// TODO: use uk.gov.hmrc.http.client.HttpClientV2 and method .withProxy. Move login() to EbarsClientV2
 class EbarsClient(username: String, password: String, servicesConfig: ServicesConfig, configuration: Configuration) extends AutoCloseable with Logging {
 
   private val voaEbarsBaseUrl = servicesConfig.baseUrl("voa-ebars")
