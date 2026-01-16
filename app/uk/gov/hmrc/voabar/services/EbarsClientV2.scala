@@ -16,17 +16,18 @@
 
 package uk.gov.hmrc.voabar.services
 
-import org.apache.pekko.stream.Materializer
-import play.api.http.Status
-import play.api.libs.ws.ahc.{AhcConfigBuilder, AhcWSClient, StandaloneAhcWSClient}
-import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse, writeableOf_urlEncodedForm}
-import play.api.{Configuration, Logging}
-import play.shaded.ahc.org.asynchttpclient.proxy.{ProxyServer, ProxyType}
-import play.shaded.ahc.org.asynchttpclient.{AsyncHttpClient, DefaultAsyncHttpClient, Realm}
-import uk.gov.hmrc.http.UnauthorizedException
+import play.api.Logging
+import play.api.http.HeaderNames.AUTHORIZATION
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK, UNAUTHORIZED}
+import play.api.libs.ws.writeableOf_urlEncodedForm
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-import java.util.Collections
+import java.net.URL
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Base64
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,64 +35,41 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
 
-// TODO: use uk.gov.hmrc.http.client.HttpClientV2 and method .withProxy
 @Singleton
 class EbarsClientV2 @Inject() (
-  servicesConfig: ServicesConfig,
-  configuration: Configuration
-)(implicit ec: ExecutionContext,
-  materialize: Materializer
-) extends Logging
-  with Status {
+  httpClientV2: HttpClientV2,
+  servicesConfig: ServicesConfig
+)(implicit ec: ExecutionContext
+) extends Logging:
 
-  private val voaEbarsBaseUrl  = servicesConfig.baseUrl("voa-ebars")
-  private val xmlFileUploadUrl = s"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
-  private val timeout          = 120 seconds
+  private val voaEbarsBaseUrl: String = servicesConfig.baseUrl("voa-ebars")
+  private val xmlFileUploadURL: URL   = url"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
+  private val timeout: FiniteDuration = 120 seconds
 
-  private val ws: WSClient = {
-    val proxyAhcConfig = configuration.getOptional[Boolean]("proxy.enabled") flatMap {
-      case true => Some {
-          val proxyHost     = configuration.get[String]("proxy.host")
-          val proxyPort     = configuration.get[Int]("proxy.port")
-          val proxyUsername = configuration.get[String]("proxy.username")
-          val proxyPassword = configuration.get[String]("proxy.password")
-          val realm         = new Realm.Builder(proxyUsername, proxyPassword)
-            .setScheme(Realm.AuthScheme.BASIC)
-            .setUsePreemptiveAuth(true)
-            .build()
-
-          new AhcConfigBuilder().modifyUnderlying {
-            _.setProxyServer(new ProxyServer(proxyHost, proxyPort, proxyPort, realm, Collections.emptyList(), ProxyType.HTTP))
-          }.build()
-        }
-      case _    => None
-    }
-
-    val clientConfig                            = proxyAhcConfig.getOrElse(new AhcConfigBuilder().build())
-    val asyncHttpClient: AsyncHttpClient        = new DefaultAsyncHttpClient(clientConfig)
-    val standaloneClient: StandaloneAhcWSClient = new StandaloneAhcWSClient(asyncHttpClient)
-    new AhcWSClient(standaloneClient)
-  }
+  private def basicAuth(clientId: String, clientSecret: String): String =
+    val encodedCredentials = Base64.getEncoder.encodeToString(s"$clientId:$clientSecret".getBytes(UTF_8))
+    s"Basic $encodedCredentials"
 
   def uploadXMl(username: String, password: String, xml: String, attempt: Int): Future[Try[Int]] =
-    ws.url(xmlFileUploadUrl)
-      .withAuth(username, password, WSAuthScheme.BASIC)
-      .withRequestTimeout(timeout)
-      .post(Map("xml" -> Seq(xml)))
+    httpClientV2.post(xmlFileUploadURL)(using HeaderCarrier())
+      .setHeader(AUTHORIZATION -> basicAuth(username, password))
+      .withBody(Map("xml" -> Seq(xml)))
+      .withProxy
+      .transform(_.withRequestTimeout(timeout))
+      .execute[HttpResponse]
       .map(processResponse(attempt))
 
-  private def processResponse(attempt: Int)(response: WSResponse): Try[Int] = {
+  private def processResponse(attempt: Int)(response: HttpResponse): Try[Int] =
     logger.trace(s"Response : $response")
     response.status match {
-      case Status.OK           => parseOkResponse(response, attempt)
-      case Status.UNAUTHORIZED => Failure(new UnauthorizedException("UNAUTHORIZED"))
-      case status              =>
+      case OK           => parseOkResponse(response, attempt)
+      case UNAUTHORIZED => Failure(new UnauthorizedException("UNAUTHORIZED"))
+      case status       =>
         logger.warn(s"Couldn't send BA Reports. status: $status\n${response.body}")
-        Failure(EbarsApiError(status, s"${response.statusText}. attempt: $attempt"))
+        Failure(EbarsApiError(status, s"${response.status}. attempt: $attempt"))
     }
-  }
 
-  private def parseOkResponse(response: WSResponse, attempt: Int): Try[Int] = {
+  private def parseOkResponse(response: HttpResponse, attempt: Int): Try[Int] =
     val body = response.body
     if body.contains("401 Unauthorized") then
       Failure(new UnauthorizedException("UNAUTHORIZED"))
@@ -104,14 +82,11 @@ class EbarsClientV2 @Inject() (
           case "error"   =>
             val errorDetail = (responseXML \ "message").text
             logger.warn(s"Couldn't send BA Reports. error: $errorDetail")
-            Failure(EbarsApiError(OK, s"$errorDetail. attempt: $attempt"))
+            Failure(EbarsApiError(INTERNAL_SERVER_ERROR, s"$errorDetail. attempt: $attempt"))
         }
       } getOrElse {
         logger.warn(s"Parsing eBars response failed. Body:\n$body")
-        Failure(EbarsApiError(OK, s"Parsing eBars response failed. attempt: $attempt"))
+        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, s"Parsing eBars response failed. attempt: $attempt"))
       }
-  }
-
-}
 
 case class EbarsApiError(status: Int, message: String) extends RuntimeException(s"$status. $message")
