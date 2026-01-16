@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,25 +35,25 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.connectors.{DefaultVoaEbarsConnector, VoaBarAuditConnector, VoaEbarsConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.services.{EbarsApiError, EbarsClientV2}
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.voabar.models.LoginDetails
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 
-  def voaEbarsConnector(port: Int) = {
-
+  def voaEbarsConnector(port: Int): VoaEbarsConnector = {
     val config = inject[Configuration]
 
     val servicesConfig = new ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
     implicit val mat: Materializer = inject[Materializer]
 
-    val ebarsClientV2 = new EbarsClientV2(servicesConfig, config)
+    val ebarsClientV2 = new EbarsClientV2(inject[HttpClientV2], servicesConfig)
     new DefaultVoaEbarsConnector(servicesConfig, config, ebarsClientV2, inject[VoaBarAuditConnector])
   }
 
