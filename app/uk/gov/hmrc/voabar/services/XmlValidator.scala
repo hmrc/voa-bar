@@ -93,7 +93,7 @@ class XmlValidator {
 
   /**
     * This method is used ONLY to try parse XML to DOM tree and check if it is well formated XML document.
-    * @param xmlInput
+    * @param xmlInput XML input
     * @return
     */
   def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] = {

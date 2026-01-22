@@ -99,8 +99,6 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   }
 
-  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8)
-
   "Xml validator" should {
 
     "reject not well formatted XML" in {

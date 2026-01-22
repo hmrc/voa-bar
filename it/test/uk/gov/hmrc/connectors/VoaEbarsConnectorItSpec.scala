@@ -81,8 +81,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     UUID.randomUUID().toString,
     jsonString,
     "BA5090",
-    "BA5090",
-    1
+    "BA5090"
   )
 
   private def testEbarsGetCall(

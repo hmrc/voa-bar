@@ -523,7 +523,7 @@ object EbarsXmlCutter {
     *
     * ill remove any pre-existing ExistingEntries element first.
     *
-    * @param bAreports
+    * @param bAreports BA reports
     */
   def convertProposedEntriesIntoExistingEntries(bAreports: BAreports): Unit = {
     removeExistingEntries(bAreports)
