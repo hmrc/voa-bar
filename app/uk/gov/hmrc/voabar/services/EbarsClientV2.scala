@@ -50,7 +50,7 @@ class EbarsClientV2 @Inject() (
     val encodedCredentials = Base64.getEncoder.encodeToString(s"$clientId:$clientSecret".getBytes(UTF_8))
     s"Basic $encodedCredentials"
 
-  def uploadXMl(username: String, password: String, xml: String, attempt: Int): Future[Try[Int]] =
+  def uploadXML(username: String, password: String, xml: String, attempt: Int): Future[Try[Int]] =
     httpClientV2.post(xmlFileUploadURL)(using HeaderCarrier())
       .setHeader(AUTHORIZATION -> basicAuth(username, password))
       .withBody(Map("xml" -> Seq(xml)))

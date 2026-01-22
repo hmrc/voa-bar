@@ -81,7 +81,7 @@ class DefaultVoaEbarsConnector @Inject() (
 
   private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier)
     : Future[Int] =
-    ebarsClientV2.uploadXMl(baReportRequest.username, baReportRequest.password, xml, baReportRequest.attempt).flatMap {
+    ebarsClientV2.uploadXML(baReportRequest.username, baReportRequest.password, xml, baReportRequest.attempt).flatMap {
       case Success(_)                =>
         val billingAuthority     = reports.getBAreportHeader.getBillingAuthority
         val billingAuthorityCode = reports.getBAreportHeader.getBillingAuthorityIdentityCode
