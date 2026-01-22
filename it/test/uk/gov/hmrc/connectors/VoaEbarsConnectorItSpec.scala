@@ -171,7 +171,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
       testEbarsGetCall(
         loginPath,
         _.validate(loginDetails),
-        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "Could not login")),
+        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "500. Could not login")),
         INTERNAL_SERVER_ERROR,
         "eBars server error"
       )
