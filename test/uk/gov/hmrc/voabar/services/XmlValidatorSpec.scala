@@ -28,8 +28,8 @@ import scala.xml.XML
 
 class XmlValidatorSpec extends PlaySpec with EitherValues {
 
-  private val validator     = new XmlValidator
-  private val xmlParser     = new XmlParser()
+  private val validator = new XmlValidator
+  private val xmlParser = new XmlParser()
 
   private val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
   private def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")

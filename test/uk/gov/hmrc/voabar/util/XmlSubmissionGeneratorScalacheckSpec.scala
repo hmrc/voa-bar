@@ -57,7 +57,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       str    <- Gen.containerOfN[List, Char](lenght, restrictedChar)
     yield str.mkString
 
-  private def genNum(min: Int = 1, max: Int = 8) =
+  private def genNum(min: Int = 1, max: Int) =
     for
       lenght <- Gen.chooseNum(min, max)
       str    <- Gen.containerOfN[List, Char](lenght, Gen.numChar)
