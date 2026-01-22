@@ -46,12 +46,11 @@ import scala.util.{Failure, Success, Try}
 class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 
   def voaEbarsConnector(port: Int): VoaEbarsConnector = {
-    val config = inject[Configuration]
-
+    val config         = inject[Configuration]
     val servicesConfig = new ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
     val ebarsClientV2 = new EbarsClientV2(inject[HttpClientV2], servicesConfig)
-    new DefaultVoaEbarsConnector(servicesConfig, config, ebarsClientV2, inject[VoaBarAuditConnector])
+    new DefaultVoaEbarsConnector(ebarsClientV2, inject[VoaBarAuditConnector])
   }
 
   implicit def ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]

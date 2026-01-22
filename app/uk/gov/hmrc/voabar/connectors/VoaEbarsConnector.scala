@@ -18,52 +18,33 @@ package uk.gov.hmrc.voabar.connectors
 
 import com.google.inject.ImplementedBy
 import ebars.xml.BAreports
+import play.api.Logging
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE}
-import play.api.{Configuration, Logging}
 import play.mvc.Http.Status.OK
 import services.EbarsValidator
-import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.voabar.models.EbarsRequests._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.voabar.models.EbarsRequests.*
 import uk.gov.hmrc.voabar.models.LoginDetails
-import uk.gov.hmrc.voabar.services.{EbarsApiError, EbarsClient, EbarsClientV2}
+import uk.gov.hmrc.voabar.services.{EbarsApiError, EbarsClientV2}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try, Using}
+import scala.util.{Failure, Success, Try}
 
 /**
   * @author Yuriy Tumakha
   */
 @Singleton
 class DefaultVoaEbarsConnector @Inject() (
-  servicesConfig: ServicesConfig,
-  configuration: Configuration,
   ebarsClientV2: EbarsClientV2,
   audit: VoaBarAuditConnector
 ) extends VoaEbarsConnector
-  with Logging {
+  with Logging:
 
   val ebarsValidator: EbarsValidator = new EbarsValidator
 
   override def validate(loginDetails: LoginDetails): Future[Try[Int]] =
-    Future.successful {
-      Using(new EbarsClient(loginDetails.username, loginDetails.password, servicesConfig, configuration)) {
-        _.login match {
-          case Success(_)  => OK
-          case Failure(ex) =>
-            ex match {
-              case _: UnauthorizedException =>
-                logger.debug(s"Login failed. username: ${loginDetails.username}")
-              case e: EbarsApiError         =>
-                logger.warn(s"Login failed. username: ${loginDetails.username}, status: ${e.status}, error: ${e.message}")
-              case e                        =>
-                logger.warn(s"Login failed. username: ${loginDetails.username}, other problem : ${e.getMessage}", e)
-            }
-            throw ex
-        }
-      }
-    }
+    ebarsClientV2.login(loginDetails.username, loginDetails.password)
 
   def sendBAReport(baReportRequest: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] =
     Try(ebarsValidator.fromJson(baReportRequest.propertyReport)) map { reports =>
@@ -71,7 +52,7 @@ class DefaultVoaEbarsConnector @Inject() (
       (reports, xml, ebarsValidator.validate(xml))
     } match {
       case Success((reports, _, errors)) if errors.hasErrors =>
-        import models.EbarsBAreports._
+        import models.EbarsBAreports.*
         Future.failed(new RuntimeException(s"propertyReferenceNumbers: ${reports.uniquePropertyReferenceNumbers}. errors: $errors"))
       case Success((reports, xml, _))                        =>
         sendXML(baReportRequest, reports, xml)
@@ -108,11 +89,8 @@ class DefaultVoaEbarsConnector @Inject() (
         Future.failed(e)
     }
 
-}
-
 @ImplementedBy(classOf[DefaultVoaEbarsConnector])
-trait VoaEbarsConnector {
+trait VoaEbarsConnector:
   def validate(loginDetails: LoginDetails): Future[Try[Int]]
 
   def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int]
-}

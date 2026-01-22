@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK, UNAUTHORIZED}
 import play.api.libs.ws.writeableOf_urlEncodedForm
@@ -43,12 +43,31 @@ class EbarsClientV2 @Inject() (
 ) extends Logging:
 
   private val voaEbarsBaseUrl: String = servicesConfig.baseUrl("voa-ebars")
+  private val loginUrl: URL           = url"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/Welcome.do"
   private val xmlFileUploadURL: URL   = url"$voaEbarsBaseUrl/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
   private val timeout: FiniteDuration = 120 seconds
 
   private def basicAuth(clientId: String, clientSecret: String): String =
     val encodedCredentials = Base64.getEncoder.encodeToString(s"$clientId:$clientSecret".getBytes(UTF_8))
     s"Basic $encodedCredentials"
+
+  def login(username: String, password: String): Future[Try[Int]] =
+    Future.successful {
+      new EbarsClient(username, password, servicesConfig, Configuration.empty).login
+    }
+      .map { // TODO: Move logger.warn(s"Login failed....") into .login
+        case Success(_)  => Success(OK)
+        case Failure(ex) =>
+          ex match {
+            case _: UnauthorizedException =>
+              logger.debug(s"Login failed. username: $username")
+            case e: EbarsApiError         =>
+              logger.warn(s"Login failed. username: $username, status: ${e.status}, error: ${e.message}")
+            case e                        =>
+              logger.warn(s"Login failed. username: $username, other problem : ${e.getMessage}", e)
+          }
+          Failure(ex)
+      }
 
   def uploadXML(username: String, password: String, xml: String, attempt: Int): Future[Try[Int]] =
     httpClientV2.post(xmlFileUploadURL)(using HeaderCarrier())
