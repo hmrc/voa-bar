@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package uk.gov.hmrc.voabar.util
 
 object BillingAuthorities {
 
-  def find(baCode: String) = billingAuthorities.get(baCode.toUpperCase)
+  def find(baCode: String): Option[String] = billingAuthorities.get(baCode.toUpperCase)
 
-  val billingAuthorities = Map(
+  val billingAuthorities: Map[String, String] = Map(
     "BA0114" -> "Bath and North East Somerset",
     "BA0116" -> "Bristol",
     "BA0119" -> "South Gloucestershire",

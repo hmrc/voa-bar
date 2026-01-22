@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,17 @@ import play.api.test.Helpers.stubControllerComponents
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
-  val reportUploadService = mock[ReportUploadService]
+  private val reportUploadService = mock[ReportUploadService]
 
-  val configuration = Configuration("json.encryption.key" -> "gvBoGdgzqG1AarzF1LY0zQ==")
+  private val configuration = Configuration("json.encryption.key" -> "gvBoGdgzqG1AarzF1LY0zQ==")
 
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  val encryptedPassword = crypto.encrypt(PlainText("password")).value
+  private val encryptedPassword = crypto.encrypt(PlainText("password")).value
 
-  val controller = new UploadController(reportUploadService, configuration, stubControllerComponents())
+  private val controller = new UploadController(reportUploadService, configuration, stubControllerComponents())
 
-  def fakeRequestWithXML =
+  def fakeRequestWithXML: FakeRequest[UploadDetails] =
     FakeRequest("POST", "/request?reference=1234")
       .withHeaders(
         "BA-Code"  -> "1234",
@@ -46,11 +46,11 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
       )
       .withBody(UploadDetails("1234", "url"))
 
-  def fakeRequestWithXMLButNoBACode =
+  def fakeRequestWithXMLButNoBACode: FakeRequest[UploadDetails] =
     FakeRequest("POST", "")
       .withBody(UploadDetails("1234", "url"))
 
-  def fakeRequestWithXMLButNoPassword =
+  def fakeRequestWithXMLButNoPassword: FakeRequest[UploadDetails] =
     FakeRequest("POST", "")
       .withHeaders(
         "BA-Code" -> "1234"

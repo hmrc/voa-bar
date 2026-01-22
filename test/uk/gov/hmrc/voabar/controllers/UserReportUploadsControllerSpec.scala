@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,22 +37,22 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
 
   implicit val materializer: Materializer = NoMaterializer
 
-  val error = BarMongoError("error")
-  val id    = "id"
+  private val error = BarMongoError("error")
+  private val id    = "id"
 
-  val userReportUploadRest = UserReportUploadRest(
+  private val userReportUploadRest = UserReportUploadRest(
     id = id,
     userId = "userId",
     userPassword = "pass"
   )
 
-  val userReportUpload = UserReportUpload(
+  private val userReportUpload = UserReportUpload(
     _id = id,
     userId = "userId",
     userPassword = "pass"
   )
-  val json             = Json.toJson(userReportUploadRest)
-  val fakeRequest      = FakeRequest("", "").withBody(json)
+  private val json             = Json.toJson(userReportUploadRest)
+  private val fakeRequest      = FakeRequest("", "").withBody(json)
 
   "UserReportUploadsController" should {
     "save a user report upload successfully" in {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.util.GregorianCalendar
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 
-object DateConversion {
+object DateConversion:
 
-  val LONDON_ZONE = ZoneId.of("Europe/London")
+  private val LONDON_ZONE = ZoneId.of("Europe/London")
 
   implicit class LocalDateToXmlGregorianCalendar(localDate: LocalDate) {
 
@@ -36,5 +36,3 @@ object DateConversion {
     def toXml(implicit df: DatatypeFactory): XMLGregorianCalendar =
       df.newXMLGregorianCalendar(GregorianCalendar.from(instant.atZone(LONDON_ZONE)))
   }
-
-}

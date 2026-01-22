@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import uk.gov.hmrc.voabar.models.Cr01Cr03Submission.format
 
 class WebBarsServiceSpec extends PlaySpec with EitherValues {
 
-  val legacyCr03Submission = {
+  private val legacyCr03Submission = {
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -49,7 +49,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
   }
 
-  val legacyCr03Report =
+  private val legacyCr03Report =
     Json.obj(
       "type"       -> "Cr03Submission",
       "submission" -> format.writes(legacyCr03Submission)
@@ -61,7 +61,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     report = Some(legacyCr03Report)
   )
 
-  val newCr03Submission = {
+  private val newCr03Submission = {
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -83,7 +83,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
   }
 
-  val newCr03Report =
+  private val newCr03Report =
     Json.obj(
       "type"       -> "Cr01Cr03Submission",
       "submission" -> format.writes(newCr03Submission)
@@ -95,7 +95,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     report = Some(newCr03Report)
   )
 
-  val cr01Submission = {
+  private val cr01Submission = {
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -117,13 +117,13 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
   }
 
-  val cr01Report =
+  private val cr01Report =
     Json.obj(
       "type"       -> "Cr01Cr03Submission",
       "submission" -> format.writes(cr01Submission)
     )
 
-  val cr01ReportStatus = ReportStatus(
+  private val cr01ReportStatus = ReportStatus(
     UUID.randomUUID().toString,
     baCode = "BA1010",
     report = Some(cr01Report)

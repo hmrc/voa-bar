@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class UpscanCallbackController @Inject() (
 ) extends BackendController(controllerComponents)
   with FunctionalRun {
 
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def onConfirmation(baLogin: String): Action[JsValue] = Action(parse.tolerantJson) { implicit request: Request[JsValue] =>
     (parseUploadConfirmation(request).map(onSuccessfulConfirmation(baLogin, _)) orElse

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,17 @@ import play.api.inject.guice.GuiceInjectorBuilder
 
 class V1ValidationServiceSpec extends PlaySpec with TableDrivenPropertyChecks {
 
-  val batchWith1Report     = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid1.xml"))
-  val batchWithMoreReports = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid2.xml"))
-  val wrongHeaderTrailer   = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
+  private val batchWith1Report     = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid1.xml"))
+  private val batchWithMoreReports = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid2.xml"))
+  private val wrongHeaderTrailer   = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
 
-  val injector = new GuiceInjectorBuilder()
+  private val injector = new GuiceInjectorBuilder()
     .configure("key" -> "value")
     .injector()
 
   val v1Status = "Ok"
 
-  def submissionProcessingService = injector.instanceOf[V1ValidationService]
+  private def submissionProcessingService = injector.instanceOf[V1ValidationService]
 
   "SubmissionProcessingService" should {
     "Process and fix already valid XML" ignore {

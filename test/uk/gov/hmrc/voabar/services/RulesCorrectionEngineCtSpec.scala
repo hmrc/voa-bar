@@ -572,7 +572,8 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size 2
 
-      EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
+      EbarsXmlCutter.getRemarks(reports) should
+        contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.io.{FilterInputStream, InputStream}
 import java.math.BigInteger
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.GregorianCalendar
-import ebars.xml.CtaxReasonForReportCodeContentType._
-import ebars.xml.{BAreportBodyStructure, BAreports}
+import ebars.xml.CtaxReasonForReportCodeContentType.*
+import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeContentType}
 import jakarta.xml.bind.JAXBElement
 
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import javax.xml.namespace.QName
-import models.EbarsBAreports._
+import models.EbarsBAreports.*
 import models.Purpose
 import org.apache.commons.lang3.StringUtils
 import org.apache.poi.util.ReplacingInputStream
@@ -38,7 +38,7 @@ import scala.util.{Success, Try}
   */
 class RulesCorrectionEngine {
 
-  val ctRules = Seq(
+  private val ctRules = Seq(
     RemoveBS7666Addresses,
     RemovePropertyGridCoords,
     CtRules.Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry,
@@ -55,7 +55,7 @@ class RulesCorrectionEngine {
     PropertyDescriptionTextRemoval
   )
 
-  val ndrRules = Seq(
+  private val ndrRules = Seq(
     RemoveBS7666Addresses,
     RemovePropertyGridCoords,
     NdrRules.Rt01AndRt02AndRt03AndRt04MissingProposedEntry,
@@ -88,7 +88,7 @@ object CorrectionInputStream {
 }
 
 case object FixHeader extends Rule {
-  val zoneId = ZoneId.of("Europe/London")
+  private val zoneId = ZoneId.of("Europe/London")
 
   override def apply(baReports: BAreports): Unit = {
     val header = baReports.getBAreportHeader
@@ -107,7 +107,7 @@ case object FixHeader extends Rule {
 
 case object FixCTaxTrailer extends Rule {
 
-  val zoneId = ZoneId.of("Europe/London")
+  private val zoneId = ZoneId.of("Europe/London")
 
   override def apply(baReports: BAreports): Unit = {
     val trailer = baReports.getBAreportTrailer
@@ -129,8 +129,8 @@ case object FixCTaxTrailer extends Rule {
   */
 case object RemarksTrimmer extends Rule {
 
-  val firstStageRegex  = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r // First replace all obscure space and newline with space
-  val secondStageRegex = """\s{2,}""".r
+  private val firstStageRegex  = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r // First replace all obscure space and newline with space
+  private val secondStageRegex = """\s{2,}""".r
 
   override def apply(baReports: BAreports): Unit = {
     assert(
@@ -173,10 +173,7 @@ case object RemarksFillDefault extends Rule {
       }
     }
 
-    EbarsXmlCutter.findRemarksIdx(baReports).isEmpty match {
-      case true => content.add(newRemarks)
-      case _    => // nothing
-    }
+    if EbarsXmlCutter.findRemarksIdx(baReports).isEmpty then content.add(newRemarks)
   }
 }
 
@@ -212,7 +209,7 @@ case object PropertyDescriptionTextRemoval extends Rule {
 case object NdrRules {
 
   case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry extends Rule {
-    val codes = Seq("5", "6", "7", "8", "9", "11")
+    val codes: Seq[String] = Seq("5", "6", "7", "8", "9", "11")
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -227,7 +224,7 @@ case object NdrRules {
   }
 
   case object Rt01AndRt02AndRt03AndRt04MissingProposedEntry extends Rule {
-    val codes = Seq("1", "2", "3", "4")
+    val codes: Seq[String] = Seq("1", "2", "3", "4")
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -242,7 +239,7 @@ case object NdrRules {
   }
 
   case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries extends Rule {
-    val codes = Seq("5", "6", "7", "8", "9", "11")
+    val codes: Seq[String] = Seq("5", "6", "7", "8", "9", "11")
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -257,7 +254,7 @@ case object NdrRules {
   }
 
   case object Rt01AndRt02AndRt03AndRt04RemoveExistingEntries extends Rule {
-    val codes = Seq("1", "2", "3", "4")
+    val codes: Seq[String] = Seq("1", "2", "3", "4")
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -275,7 +272,7 @@ case object NdrRules {
 case object CtRules {
 
   case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry extends Rule {
-    val codes = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -290,7 +287,7 @@ case object CtRules {
   }
 
   case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries extends Rule {
-    val codes = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -305,7 +302,7 @@ case object CtRules {
   }
 
   case object Cr03AndCr04BothProposedAndExistingEntries extends Rule {
-    val codes = Seq(CR_03, CR_04)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_03, CR_04)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -320,7 +317,7 @@ case object CtRules {
   }
 
   case object Cr03AndCr04MissingProposedEntry extends Rule {
-    val codes = Seq(CR_03, CR_04)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_03, CR_04)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -335,7 +332,7 @@ case object CtRules {
   }
 
   case object Cr05AndCr12MissingAnyEntry extends Rule {
-    val codes = Seq(CR_05, CR_12)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_05, CR_12)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -364,7 +361,7 @@ case object CtRules {
     * This avoids duplication of <OccupierContact> elements in CDB.
     */
   case object Cr05CopyProposedEntriesToExistingEntries extends Rule {
-    val codes = Seq(CR_05)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_05)
 
     override def apply(baReports: BAreports): Unit = {
 
@@ -388,7 +385,7 @@ case object CtRules {
     * for <ProposedEntries>/<TextAddress>/<AddressLine>
     */
   case object Cr12CopyProposedEntriesToRemarks extends Rule {
-    val codes = Seq(CR_12)
+    val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_12)
 
     override def apply(baReports: BAreports): Unit = {
 

@@ -20,7 +20,6 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import ebars.xml.BAreports
 import jakarta.xml.bind.JAXBContext
-import org.apache.pekko.stream.Materializer
 
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
@@ -50,8 +49,6 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     val config = inject[Configuration]
 
     val servicesConfig = new ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
-
-    implicit val mat: Materializer = inject[Materializer]
 
     val ebarsClientV2 = new EbarsClientV2(inject[HttpClientV2], servicesConfig)
     new DefaultVoaEbarsConnector(servicesConfig, config, ebarsClientV2, inject[VoaBarAuditConnector])

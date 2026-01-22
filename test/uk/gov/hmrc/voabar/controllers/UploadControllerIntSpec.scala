@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -53,12 +54,12 @@ class UploadControllerIntSpec
   with GuiceOneAppPerSuite
   with MockitoSugar {
 
-  val voaEbarsConnector = mock[VoaEbarsConnector]
+  private val voaEbarsConnector = mock[VoaEbarsConnector]
 
   when(voaEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
     .thenAnswer(_ => Future.successful(OK))
 
-  override def fakeApplication() = new GuiceApplicationBuilder()
+  override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
     .bindings(
       bind[VoaEbarsConnector].to(voaEbarsConnector),
@@ -66,14 +67,14 @@ class UploadControllerIntSpec
     )
     .build()
 
-  lazy val controller           = app.injector.instanceOf[UploadController]
-  lazy val mongoComponent       = app.injector.instanceOf[MongoComponent]
-  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
-  lazy val configuration        = app.injector.instanceOf[play.api.Configuration]
+  private val controller           = app.injector.instanceOf[UploadController]
+  private val mongoComponent       = app.injector.instanceOf[MongoComponent]
+  private val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val configuration        = app.injector.instanceOf[play.api.Configuration]
 
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  def fakeRequestWithXML = {
+  private def fakeRequestWithXML = {
 
     val xmlURL = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
 

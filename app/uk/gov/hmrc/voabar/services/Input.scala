@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,11 @@ class Input extends LSInput {
 
   override def getCharacterStream: Reader = reader
 
-  override def setCertifiedText(certifiedText: Boolean) = this.certifiedText = certifiedText
+  override def setCertifiedText(certifiedText: Boolean): Unit = this.certifiedText = certifiedText
 
   override def getEncoding: String = encoding
 
-  override def setEncoding(encoding: String) = this.encoding = encoding
+  override def setEncoding(encoding: String): Unit = this.encoding = encoding
 
   override def getStringData: String = stringData
 
@@ -56,7 +56,7 @@ class Input extends LSInput {
 
   override def getCertifiedText: Boolean = certifiedText
 
-  override def setCharacterStream(characterStream: Reader) = this.reader = characterStream
+  override def setCharacterStream(characterStream: Reader): Unit = this.reader = characterStream
 
-  override def setStringData(stringData: String) = this.stringData = stringData
+  override def setStringData(stringData: String): Unit = this.stringData = stringData
 }

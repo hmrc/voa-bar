@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,17 @@ package uk.gov.hmrc.voabar.util
 
 import java.math.BigInteger
 import java.time.{Instant, LocalDate}
-
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
 import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
+import jakarta.xml.bind.JAXBElement
+
 import javax.xml.datatype.DatatypeFactory
 import uk.gov.hmrc.voabar.models.{AddProperty, Cr01Cr03Submission, OtherReason}
-import uk.gov.hmrc.voabar.util.DateConversion._
+import uk.gov.hmrc.voabar.util.DateConversion.*
 
 import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 @deprecated("Have bug for CR01, replaced by XmlSubmissionGenerator", "April 2021")
 class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
@@ -84,7 +85,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     body
   }
 
-  def proposedEntries() = {
+  private def proposedEntries(): JAXBElement[BApropertySplitMergeStructure] = {
     val assessmentProperties = new AssessmentProperties()
     assessmentProperties.setPropertyIdentity(propertyIdentification())
     assessmentProperties.setOccupierContact(occupierContact())
@@ -156,7 +157,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     propertyIdentity
   }
 
-  def typeOfTax = {
+  private def typeOfTax = {
     val reasonForReportCode                                = new CtaxReasonForReportCodeStructure()
     val (reasonForReportValue, reasonForReportDescription) =
       submission.reasonReport.fold(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
   val BA_LOGIN = "BA5090"
 
-  val requestId = "mdtp-request-" + UUID.randomUUID().toString().replaceAll("-", "")
+  private val requestId = "mdtp-request-" + UUID.randomUUID().toString.replaceAll("-", "")
 
   "Validate controller" should {
     "validate correct xml" in {
@@ -42,7 +42,7 @@ class ValidateControllerSpec extends PlaySpec with Results {
     }
   }
 
-  def aSucessfullRequest() = {
+  private def aSucessfullRequest() = {
 
     val path = Paths.get("test/resources/xml/CTValid1.xml")
 

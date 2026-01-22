@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,26 +36,26 @@ import scala.util.{Failure, Success}
 class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
   val fakeRequest = FakeRequest("GET", "/")
 
-  def fakeRequestWithJson(jsonStr: String) = {
+  private def fakeRequestWithJson(jsonStr: String) = {
     val json = Json.parse(jsonStr)
     FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> "1234").withJsonBody(json)
   }
 
-  val mockVoaEbarsConnector = mock[VoaEbarsConnector]
+  private val mockVoaEbarsConnector = mock[VoaEbarsConnector]
   when(mockVoaEbarsConnector.validate(any[LoginDetails])).thenReturn(Future.successful(Success(OK)))
 
-  val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
+  private val mockVoaEbarsConnectorFailed = mock[VoaEbarsConnector]
   when(mockVoaEbarsConnectorFailed.validate(any[LoginDetails])).thenReturn(
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
   )
 
-  val mockAudit = mock[VoaBarAuditConnector]
+  private val mockAudit = mock[VoaBarAuditConnector]
 
-  val applicationCrypto = app.injector.instanceOf[ApplicationCrypto]
-  val encryptedPassword = applicationCrypto.JsonCrypto.encrypt(PlainText("xxxdyyy")).value
+  private val applicationCrypto = app.injector.instanceOf[ApplicationCrypto]
+  private val encryptedPassword = applicationCrypto.JsonCrypto.encrypt(PlainText("xxxdyyy")).value
 
-  val goodJson  = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
-  val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
+  private val goodJson  = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
+  private val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
   private def controller = new LoginController(mockVoaEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
 

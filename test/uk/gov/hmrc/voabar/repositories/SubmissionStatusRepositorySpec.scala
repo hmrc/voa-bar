@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -50,13 +51,13 @@ class SubmissionStatusRepositorySpec
     def normalize: Instant = Instant.ofEpochMilli(instant.toEpochMilli)
   }
 
-  override def fakeApplication() = new GuiceApplicationBuilder()
+  override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
     .build()
 
-  lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
+  private val mongoComponent = app.injector.instanceOf[MongoComponent]
 
-  val repo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val repo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
 
   "repository" should {
 

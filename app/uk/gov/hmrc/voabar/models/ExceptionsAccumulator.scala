@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,20 +37,20 @@ final case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]()
 
   override def get: Seq[ReportErrorDetail] = Seq.empty[ReportErrorDetail]
 
-  override def flatMap(f: (B) => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
+  override def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 
-  override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
+  override def map(f: B => Option[A]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 }
 
 final case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
 
   override def get: Seq[ReportErrorDetail] = errors
 
-  override infix def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] =
+  override infix def map(f: B => Option[A]): ExceptionsAccumulator[A, B] =
     f(report) match {
       case Some(newErrors) => copy(errors = errors :+ newErrors)
       case _               => this
     }
 
-  override def flatMap(f: (B) => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = f(report)
+  override def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = f(report)
 }

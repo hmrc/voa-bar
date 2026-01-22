@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,7 @@ object BarError {
   implicit val barValidationErrorFormat: OWrites[BarValidationError]                     = Json.writes[BarValidationError]
   implicit val barSubmissionValidationErrorFormat: OWrites[BarSubmissionValidationError] = Json.writes[BarSubmissionValidationError]
 
-  implicit val barMongoErrorFormat: OWrites[BarMongoError] = new OWrites[BarMongoError] {
-    override def writes(o: BarMongoError): JsObject = Json.obj("mongoError" -> o.error)
-  }
+  implicit val barMongoErrorFormat: OWrites[BarMongoError] = (o: BarMongoError) => Json.obj("mongoError" -> o.error)
   implicit val barEbarErrorFormat: OWrites[BarEbarError]   = Json.writes[BarEbarError]
   implicit val barEmailErrorFormat: OWrites[BarEmailError] = Json.writes[BarEmailError]
   implicit val unknownErrorFormat: OWrites[UnknownError]   = Json.writes[UnknownError]
