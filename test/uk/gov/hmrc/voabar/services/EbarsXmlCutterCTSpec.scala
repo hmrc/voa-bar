@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -230,23 +230,23 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
     "return values from all OccupierContact" in {
       val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
 
-      EbarsXmlCutter.getOccupierContacts(reports)                                                 should have size 1
-      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonFamilyName          should be("FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonRequestedName       should be("MR M FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonGivenName().get(0)  should be("M")
-      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameTitle().get(0)  should be("MR")
-      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameSuffix().get(0) should be("P")
+      EbarsXmlCutter.getOccupierContacts(reports)                                               should have size 1
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonFamilyName        should be("FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonRequestedName     should be("MR M FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonGivenName.get(0)  should be("M")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameTitle.get(0)  should be("MR")
+      EbarsXmlCutter.getOccupierContacts(reports)(0).getOccupierName.getPersonNameSuffix.get(0) should be("P")
     }
 
     "return values from 1 AssessmentProperties" in {
       val reports              = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
       val assessmentProperties = EbarsXmlCutter.getAssessmentProperties(reports)(0)
 
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonFamilyName          should be("FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonRequestedName       should be("MR M FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonGivenName().get(0)  should be("M")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameTitle().get(0)  should be("MR")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameSuffix().get(0) should be("P")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonFamilyName        should be("FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonRequestedName     should be("MR M FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonGivenName.get(0)  should be("M")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameTitle.get(0)  should be("MR")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameSuffix.get(0) should be("P")
     }
   }
 
@@ -422,13 +422,13 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       val occupierContactsAfter = EbarsXmlCutter.getOccupierContacts(reports)
       occupierContactsAfter should have size 2
 
-      occupierContactsAfter(0).getOccupierName.getPersonFamilyName         should be("MALIK")
-      occupierContactsAfter(0).getOccupierName.getPersonGivenName().get(0) should be("MOHAMMED")
-      occupierContactsAfter(0).getOccupierName.getPersonNameTitle().get(0) should be("MR")
+      occupierContactsAfter(0).getOccupierName.getPersonFamilyName       should be("MALIK")
+      occupierContactsAfter(0).getOccupierName.getPersonGivenName.get(0) should be("MOHAMMED")
+      occupierContactsAfter(0).getOccupierName.getPersonNameTitle.get(0) should be("MR")
 
-      occupierContactsAfter(1).getOccupierName.getPersonFamilyName         should be("MALIK")
-      occupierContactsAfter(1).getOccupierName.getPersonGivenName().get(0) should be("MOHAMMED")
-      occupierContactsAfter(1).getOccupierName.getPersonNameTitle().get(0) should be("MR")
+      occupierContactsAfter(1).getOccupierName.getPersonFamilyName       should be("MALIK")
+      occupierContactsAfter(1).getOccupierName.getPersonGivenName.get(0) should be("MOHAMMED")
+      occupierContactsAfter(1).getOccupierName.getPersonNameTitle.get(0) should be("MR")
     }
   }
 
@@ -457,7 +457,8 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       val textAddressStructuresAfter = EbarsXmlCutter.getTextAddressStructures(reports)
       textAddressStructuresAfter should have size 2
 
-      EbarsXmlCutter.getRemarks(reports) should contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
+      EbarsXmlCutter.getRemarks(reports) should
+        contain("THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT - [PROPOSED] - [ROMAIN - GROUND FLOOR FLAT,ROMAIN - 11 RUBY STREET,ROMAIN - ADAMSDOWN,ROMAIN - CARDIFF,CF24 1LP]")
     }
   }
 

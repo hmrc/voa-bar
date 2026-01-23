@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  val parser    = new XmlParser()
-  val validator = new XmlValidator()
+  private val parser    = new XmlParser()
+  private val validator = new XmlValidator()
 
-  val jaxb           = JAXBContext.newInstance(classOf[BAreports])
-  val jaxbMarshaller = jaxb.createMarshaller()
+  private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
+  private val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
   "submission generator" should "generate CR05 XML" in {

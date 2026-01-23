@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,20 +26,17 @@ import javax.xml.transform.stream.StreamSource
 
 class ValidationServiceSpec extends PlaySpec with EitherValues {
 
-  def batchWith1Report                = aXml("/xml/CTValid1.xml")
-  def batchWith4Reports               = aXml("/xml/CTValid2.xml")
-  def batchWith32Reports              = aXml("/xml/res100.xml")
-  def batchWith32ReportsWithErrors    = aXml("/xml/res101.xml")
-  def batchWithWrongBaCodeInSubreport = aXml("/xml/CTInvalidBAidentityNumber.xml")
-  def reportWithMultipleErrors        = aXml("/xml/InvalidMultipleErrors.xml")
+  private def batchWith1Report                = aXml("/xml/CTValid1.xml")
+  private def batchWith4Reports               = aXml("/xml/CTValid2.xml")
+  private def batchWith32Reports              = aXml("/xml/res100.xml")
+  private def batchWithWrongBaCodeInSubreport = aXml("/xml/CTInvalidBAidentityNumber.xml")
+  private def reportWithMultipleErrors        = aXml("/xml/InvalidMultipleErrors.xml")
 
-  val BA_LOGIN = LoginDetails("BA5090", "BA5090")
+  private val BA_LOGIN = LoginDetails("BA5090", "BA5090")
 
-  val xmlValidator   = new XmlValidator
-  val reportBuilder  = new MockBAReportBuilder
-  val ebarsValidator = new EbarsValidator()
+  private val ebarsValidator = new EbarsValidator()
 
-  def validationService = new ValidationService()
+  private def validationService = new ValidationService()
 
   "Validation service" must {
 
@@ -133,21 +130,19 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
       val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
 
       validationError.errors must have size 1
-      validationError.errors must contain only (
-        ReportError(
-          Some("41348"),
-          Some("WET012006000N"),
-          Seq.empty,
-          List(
-            ReportErrorDetail(ReportErrorDetailCode.InvalidNdrCode, List("CR06"))
-          )
+      validationError.errors must contain only ReportError(
+        Some("41348"),
+        Some("WET012006000N"),
+        Seq.empty,
+        List(
+          ReportErrorDetail(ReportErrorDetailCode.InvalidNdrCode, List("CR06"))
         )
       )
     }
 
   }
 
-  def aXml(path: String) =
+  private def aXml(path: String) =
     ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream(path)))
 
 }

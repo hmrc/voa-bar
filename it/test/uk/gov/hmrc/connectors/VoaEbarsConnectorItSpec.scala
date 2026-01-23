@@ -20,7 +20,6 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import ebars.xml.BAreports
 import jakarta.xml.bind.JAXBContext
-import org.apache.pekko.stream.Materializer
 
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
@@ -47,14 +46,11 @@ import scala.util.{Failure, Success, Try}
 class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 
   def voaEbarsConnector(port: Int): VoaEbarsConnector = {
-    val config = inject[Configuration]
-
+    val config         = inject[Configuration]
     val servicesConfig = new ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
-    implicit val mat: Materializer = inject[Materializer]
-
     val ebarsClientV2 = new EbarsClientV2(inject[HttpClientV2], servicesConfig)
-    new DefaultVoaEbarsConnector(servicesConfig, config, ebarsClientV2, inject[VoaBarAuditConnector])
+    new DefaultVoaEbarsConnector(ebarsClientV2, inject[VoaBarAuditConnector])
   }
 
   implicit def ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
@@ -84,8 +80,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
     UUID.randomUUID().toString,
     jsonString,
     "BA5090",
-    "BA5090",
-    1
+    "BA5090"
   )
 
   private def testEbarsGetCall(
@@ -176,7 +171,7 @@ class VoaEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOne
       testEbarsGetCall(
         loginPath,
         _.validate(loginDetails),
-        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "Could not login")),
+        Failure(EbarsApiError(INTERNAL_SERVER_ERROR, "500. Could not login")),
         INTERNAL_SERVER_ERROR,
         "eBars server error"
       )

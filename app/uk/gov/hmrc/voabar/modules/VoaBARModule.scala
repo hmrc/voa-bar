@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,12 @@ import services.EbarsValidator
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
 import uk.gov.hmrc.voabar.util.DataMonitor
 
-class VoaBARModule extends AbstractModule {
+class VoaBARModule extends AbstractModule:
 
-  override def configure() = {
+  override def configure(): Unit =
     bind(classOf[EbarsValidator]).toInstance(new EbarsValidator)
     bind(classOf[DataMonitor]).asEagerSingleton()
-  }
 
   @Provides
   def jsonCryptoProvider(config: Configuration): Encrypter & Decrypter =
     new ApplicationCrypto(config.underlying).JsonCrypto
-
-}

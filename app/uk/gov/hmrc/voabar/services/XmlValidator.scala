@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,12 +56,13 @@ class XmlErrorHandler extends ErrorHandler {
 
 class XmlValidator {
 
-  val log = Logger(this.getClass)
+  private val log = Logger(this.getClass)
 
-  val schemaFile1 = new StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
-  val factory     = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+  private val schemaFile1 = new StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
+  private val factory     = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
   factory.setResourceResolver(new ResourceResolver)
-  val schema      = factory.newSchema(schemaFile1)
+
+  private val schema = factory.newSchema(schemaFile1)
 
   def validate(document: Document): Either[BarError, Boolean] = {
 
@@ -92,7 +93,7 @@ class XmlValidator {
 
   /**
     * This method is used ONLY to try parse XML to DOM tree and check if it is well formated XML document.
-    * @param xmlInput
+    * @param xmlInput XML input
     * @return
     */
   def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] = {

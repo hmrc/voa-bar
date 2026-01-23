@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
       case rr          => rr.xmlValue
     }
 
-  def createProperties(properties: Seq[Cr05AddProperty]) = {
+  private def createProperties(properties: Seq[Cr05AddProperty]): BApropertySplitMergeStructure = {
 
     val reportProperties = properties.map { property =>
       val assessmentProperties = new AssessmentProperties()
@@ -109,7 +109,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     entries
   }
 
-  def cr01Cr03PropertyEntries() = {
+  private def cr01Cr03PropertyEntries(): JAXBElement[BApropertySplitMergeStructure] = {
     val sub = submission.asInstanceOf[Cr01Cr03Submission]
 
     val assessmentProperties = new AssessmentProperties()
@@ -188,7 +188,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     propertyIdentity
   }
 
-  def typeOfTax = {
+  private def typeOfTax = {
     val reasonForReportCode                                = new CtaxReasonForReportCodeStructure()
     val (reasonForReportValue, reasonForReportDescription) = submission match {
       case submission: Cr01Cr03Submission =>

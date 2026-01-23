@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ class ValidationService {
 
   }
 
-  def createSubmissionDetailDescription(submission: BAreports) = {
+  private def createSubmissionDetailDescription(submission: BAreports): ReportError = {
     // TODO should we have assert or just return None, or take head ???
     // TODO maybe delete after full development.
     assert(submission.getBApropertyReport.size() == 1, "createPropertyDescription can create description for only one submission")
@@ -90,7 +90,7 @@ class ValidationService {
     }.getOrElse(ReportError(None, None, Seq.empty, Seq.empty))
   }
 
-  def extractUPRN(submission: BAreportBodyStructure, entries: String) =
+  private def extractUPRN(submission: BAreportBodyStructure, entries: String): Seq[Long] =
     Try {
       submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
         .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)

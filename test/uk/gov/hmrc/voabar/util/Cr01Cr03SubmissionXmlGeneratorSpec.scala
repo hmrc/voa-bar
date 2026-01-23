@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,37 +37,37 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  val parser    = new XmlParser()
-  val validator = new XmlValidator()
+  private val parser    = new XmlParser()
+  private val validator = new XmlValidator()
 
-  val jaxb           = JAXBContext.newInstance(classOf[BAreports])
-  val jaxbMarshaller = jaxb.createMarshaller()
+  private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
+  private val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
-  def otherChar = Gen.oneOf(""" ~!"@#$%+&;'()*,-./:;<=>?[\]_{}^£€""")
+  private def otherChar = Gen.oneOf(""" ~!"@#$%+&;'()*,-./:;<=>?[\]_{}^£€""")
 
-  def restrictedChar = frequency((1, otherChar), (5, Gen.alphaNumChar))
+  private def restrictedChar = frequency((1, otherChar), (5, Gen.alphaNumChar))
 
-  def genRestrictedString(min: Int = 1, max: Int = 8) =
+  private def genRestrictedString(min: Int = 1, max: Int = 8) =
     for
       lenght <- Gen.chooseNum(min, max)
       str    <- Gen.containerOfN[List, Char](lenght, restrictedChar)
     yield str.mkString
 
-  def genNum(min: Int = 1, max: Int = 8) =
+  private def genNum(min: Int = 1, max: Int) =
     for
       lenght <- Gen.chooseNum(min, max)
       str    <- Gen.containerOfN[List, Char](lenght, Gen.numChar)
     yield str.mkString
 
-  def genEffectiveDate =
+  private def genEffectiveDate =
     for
       year  <- Gen.chooseNum(1993, 2010)
       month <- Gen.chooseNum(1, 12)
       day   <- Gen.chooseNum(1, 28)
     yield LocalDate.of(year, month, day)
 
-  def genAddress(max: Int = 35) =
+  private def genAddress(max: Int = 35) =
     for
       line1 <- genRestrictedString(max = max)
       line2 <- genRestrictedString(max = max)
@@ -75,7 +75,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       line4 <- Gen.option(genRestrictedString(max = max))
     yield Address(line1, line2, line3, line4, "BN12 4AX")
 
-  def genContactDetails =
+  private def genContactDetails =
     for
       firstName <- genRestrictedString(max = 35)
       lastName  <- genRestrictedString(max = 35)
@@ -83,7 +83,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       phone     <- Gen.option(genNum(max = 20))
     yield ContactDetails(firstName, lastName, email, phone)
 
-  def genPlanningReference: Gen[(Option[String], Option[NoPlanningReferenceType])] =
+  private def genPlanningReference: Gen[(Option[String], Option[NoPlanningReferenceType])] =
     for
       planningRef   <- Gen.option(genRestrictedString(max = 25))
       noPlanningRef <-
@@ -96,7 +96,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
         )
     yield planningRef.fold((None, Some(noPlanningRef)))(_ => (planningRef, None))
 
-  def getCr03Submission =
+  private def getCr03Submission =
     for
       reportReason                 <- Gen.option(AddProperty)
       baReport                     <- genRestrictedString(max = 12)
@@ -126,7 +126,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       comment
     )
 
-  def getCr01Submission =
+  private def getCr01Submission =
     for
       reportReason                 <- Gen.some(RemoveProperty)
       removalReason                <- Gen.option(Gen.oneOf[RemovalReasonType](

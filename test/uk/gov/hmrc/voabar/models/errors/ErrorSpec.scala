@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import uk.gov.hmrc.voabar.util.ErrorCode.*
 
 class ErrorSpec extends PlaySpec {
 
-  val code       = CHARACTER
-  val errorValue = Seq("testing error")
+  private val code       = CHARACTER
+  private val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)
 

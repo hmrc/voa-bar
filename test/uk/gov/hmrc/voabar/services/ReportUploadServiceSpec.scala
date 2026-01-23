@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,13 @@ import scala.util.Try
 
 class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.Matchers with OptionValues with WsScalaTestClient {
 
-  val uploadReference = "submissionID"
+  private val uploadReference = "submissionID"
 
-  val aXmlUrl = getClass.getResource("/xml/CTValid1.xml").toString
+  private val aXmlUrl = getClass.getResource("/xml/CTValid1.xml").toString
 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
-  val loginDetails = LoginDetails("BA5090", "BA5090")
+  private val loginDetails = LoginDetails("BA5090", "BA5090")
 
   "ReportUploadServiceSpec" must {
     "proces request " in {
@@ -224,35 +224,29 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     repository
   }
 
-  def aJaxbInput(xml: URL) = {
+  private def aJaxbInput(xml: URL) = {
     val doc             = aXmlParser().parse(xml).toOption.get
     val jaxbContext     = JAXBContext.newInstance("ebars.xml")
     val xmlUnmarshaller = jaxbContext.createUnmarshaller()
     xmlUnmarshaller.unmarshal(doc).asInstanceOf[BAreports]
   }
 
-  def aValidationService(): ValidationService = {
+  private def aValidationService(): ValidationService = {
     val validationService = mock[ValidationService]
     when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Right(()))
     validationService
   }
 
-  def aValidationThrowError() = {
+  private def aValidationThrowError() = {
     val validationService = mock[ValidationService]
     when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Left(BarXmlError("Failed")))
     validationService
   }
 
-  def aXmlParser(): XmlParser =
+  private def aXmlParser(): XmlParser =
     new XmlParser()
 
-  def aSubmissionProcessingService(): V1ValidationService = {
-    val processingEngine = mock[V1ValidationService]
-    when(processingEngine.fixAndValidateAsV2(any[Array[Byte]], any[String], any[String], any[String])).thenReturn(true)
-    processingEngine
-  }
-
-  def aVoaEbarsConnector(): VoaEbarsConnector = {
+  private def aVoaEbarsConnector(): VoaEbarsConnector = {
     val connector = mock[VoaEbarsConnector]
 
     when(connector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
@@ -264,7 +258,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     connector
   }
 
-  def aEmailConnector(): EmailConnector = {
+  private def aEmailConnector(): EmailConnector = {
     val emailConnector = mock[EmailConnector]
 
     when(emailConnector.sendEmail(any[String], any[Purpose], any[String], any[String], any[String], any[String], any[String], any[String]))
@@ -273,14 +267,14 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
     emailConnector
   }
 
-  def aUpscanConnector() =
+  private def aUpscanConnector() =
     new UpscanConnector {
 
       override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
         Future(Right(IOUtils.toByteArray(new URI(url).toURL.openStream())))
     }
 
-  def aAuditConnector() = {
+  private def aAuditConnector() = {
     val hmrcAudit = mock[AuditConnector]
     new VoaBarAuditConnector(hmrcAudit)
   }

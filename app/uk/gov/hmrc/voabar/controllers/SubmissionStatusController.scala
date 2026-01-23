@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ class SubmissionStatusController @Inject() (
 )(implicit ec: ExecutionContext
 ) extends BackendController(controllerComponents) {
 
-  val logger      = Logger("SubmissionStatusController")
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  val logger         = Logger("SubmissionStatusController")
+  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] =
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(

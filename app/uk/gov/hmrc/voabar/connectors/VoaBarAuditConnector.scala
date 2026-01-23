@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ class VoaBarAuditConnector @Inject() (audit: AuditConnector)(implicit val ec: Ex
       Map("username" -> username, "baName" -> BillingAuthorities.find(username).getOrElse("NONE"), "reports" -> reports.toString)
     )
 
-  def reportUploadFailed[T](username: String, error: T)(implicit ec: ExecutionContext, hc: HeaderCarrier, w: OWrites[T]) = {
+  def reportUploadFailed[T](username: String, error: T)(implicit ec: ExecutionContext, hc: HeaderCarrier, w: OWrites[T]): Unit = {
     val oErrors = w.writes(error)
 
     audit.sendExplicitAudit(

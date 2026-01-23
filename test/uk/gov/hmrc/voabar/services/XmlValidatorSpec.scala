@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,18 +28,17 @@ import scala.xml.XML
 
 class XmlValidatorSpec extends PlaySpec with EitherValues {
 
-  val validator     = new XmlValidator
-  val reportBuilder = new MockBAReportBuilder
-  val xmlParser     = new XmlParser()
+  private val validator = new XmlValidator
+  private val xmlParser = new XmlParser()
 
-  val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
-  def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
-  val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
-  val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
-  val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
-  def withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
-  def wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
-  def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
+  private val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
+  private def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
+  private val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
+  private val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
+  private val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
+  private def withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
+  private def wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
+  private def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
 
   "A valid ba batch submission xml file (valid1)" must {
     "validate successfully" in {
@@ -100,8 +99,6 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   }
 
-  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8)
-
   "Xml validator" should {
 
     "reject not well formatted XML" in {
@@ -140,9 +137,8 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       validationResutl mustBe Symbol("left")
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
-      validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (
+      validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only
         Error(INVALID_XML_XSD, List("Error on line -1: The value '0£' of element 'TotalNNDRreportCount' is not valid."))
-      )
     }
 
   }

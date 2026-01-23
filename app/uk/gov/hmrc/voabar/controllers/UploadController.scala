@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
 class UploadController @Inject() (reportUploadService: ReportUploadService, configuration: Configuration, controllerComponents: ControllerComponents)
   extends BackendController(controllerComponents) {
 
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def upload: Action[UploadDetails] = Action(parse.json[UploadDetails]) { implicit request =>
     val headers       = request.headers

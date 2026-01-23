@@ -60,7 +60,7 @@ class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwa
 
       val ebarsClient = new EbarsClientV2(httpClientV2Mock, servicesConfig)
 
-      await(ebarsClient.uploadXMl("user", "pass", "<xml/>", 1)) shouldBe Failure(
+      await(ebarsClient.uploadXML("user", "pass", "<xml/>", 1)) shouldBe Failure(
         EbarsApiError(500, "Parsing eBars response failed. attempt: 1")
       )
     }

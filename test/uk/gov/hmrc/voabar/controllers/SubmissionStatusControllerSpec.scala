@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,24 +42,26 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
 
   implicit val materializer: Materializer = NoMaterializer
 
-  val id     = "id"
-  val date   = Instant.now
-  val userId = "userId"
+  private val id     = "id"
+  private val date   = Instant.now
+  private val userId = "userId"
 
-  val reportStatus       = ReportStatus(
+  private val reportStatus       = ReportStatus(
     id = id,
     createdAt = date,
     url = Some("url.com"),
     baCode = userId
   )
-  val configuration      = Configuration(ConfigFactory.load())
-  val crypto             = new ApplicationCrypto(configuration.underlying).JsonCrypto
-  val reportStatusJson   = Json.toJson(reportStatus)
-  val reportStatusesJson = Json.toJson(Seq(reportStatus))
-  val fakeRequest        = FakeRequest("", "").withBody(reportStatusJson).withHeaders(("BA-Code", userId), "password" -> crypto.encrypt(PlainText("gggg")).value)
-  val error              = BarMongoError("error")
+  private val configuration      = Configuration(ConfigFactory.load())
+  private val crypto             = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val reportStatusJson   = Json.toJson(reportStatus)
+  private val reportStatusesJson = Json.toJson(Seq(reportStatus))
 
-  val webBarsServiceMock = mock[WebBarsService]
+  private val fakeRequest =
+    FakeRequest("", "").withBody(reportStatusJson).withHeaders(("BA-Code", userId), "password" -> crypto.encrypt(PlainText("gggg")).value)
+  private val error       = BarMongoError("error")
+
+  private val webBarsServiceMock = mock[WebBarsService]
 
   "SubmissionStatusController" should {
     "save a new report status successfully" in {
