@@ -5,7 +5,7 @@ object AppDependencies {
 
   private val bootstrapVersion          = "10.5.0"
   private val hmrcMongoVersion          = "2.12.0"
-  private val autoBarsXsdVersion        = "9.16.0"
+  private val autoBarsXsdVersion        = "9.16.0" // TODO: latest
   private val jacksonModuleScalaVersion = "2.21.0"
   private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 because 7.0.0 is not compatible with play-guice:3.0.10
   private val catsEffectVersion         = "3.6.3"
