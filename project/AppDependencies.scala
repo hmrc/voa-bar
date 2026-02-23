@@ -6,7 +6,7 @@ object AppDependencies {
   private val bootstrapVersion          = "10.6.0"
   private val hmrcMongoVersion          = "2.12.0"
   private val autoBarsXsdVersion        = "9.17.0"
-  private val jacksonModuleScalaVersion = "2.21.0"
+  private val jacksonModuleScalaVersion = "2.21.1"
   private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 because 7.0.0 is not compatible with play-guice:3.0.10
   private val catsEffectVersion         = "3.6.3"
   private val jerichoHtmlVersion        = "3.4"
@@ -15,13 +15,10 @@ object AppDependencies {
   private val apachePOIVersion          = "5.5.1"
 
   // Test dependencies
-  private val scalaTestPlusPlayVersion    = "7.0.2"
-  private val scalaTestVersion            = "3.2.19"
   private val testPlusScalaCheckVersion   = "3.2.19.0"
   private val scalaTestPlusMockitoVersion = "3.2.19.0"
   private val wiremockVersion             = "3.13.2"
   private val xmlunitVersion              = "2.11.0"
-  private val flexMarkVersion             = "0.64.8"
 
   private val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
@@ -37,11 +34,8 @@ object AppDependencies {
   )
 
   private val commonTests = Seq(
-    "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusPlayVersion  % Test,
-    "org.playframework"      %% "play-test"          % PlayVersion.current       % Test,
-    "org.scalatest"          %% "scalatest"          % scalaTestVersion          % Test,
-    "org.scalatestplus"      %% "scalacheck-1-18"    % testPlusScalaCheckVersion % Test,
-    "com.vladsch.flexmark"    % "flexmark-all"       % flexMarkVersion           % Test // for scalatest 3.2.x
+    "uk.gov.hmrc"       %% "bootstrap-test-play-30" % bootstrapVersion          % Test,
+    "org.scalatestplus" %% "scalacheck-1-18"        % testPlusScalaCheckVersion % Test
   )
 
   private val testOnly = Seq(
