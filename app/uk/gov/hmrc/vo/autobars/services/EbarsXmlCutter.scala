@@ -1,0 +1,542 @@
+/*
+ * Copyright 2026 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.vo.autobars.services
+
+import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
+import ebars.xml.BAreportBodyStructure.TypeOfTax
+import ebars.xml.*
+import jakarta.xml.bind.JAXBElement
+import javax.xml.namespace.QName
+import models.Purpose
+
+import scala.jdk.CollectionConverters.*
+
+/**
+  * Created by rgallet on 12/02/16.
+  *
+  * Note: only in use for BAreports containing 1 and only 1 report. Subsequent entries within same BAreports would be ignored.
+  */
+object EbarsXmlCutter:
+
+  /**
+    * Returns tjhe first report from BAreports. BAreports is expected to only hold one report.
+    *
+    * @param baReports the XML report
+    * @return
+    */
+  private def content(baReports: BAreports) = baReports.getBApropertyReport.get(0).getContent
+
+  /**
+    * Extracts CR code value
+    *
+    * @param baReports the XML report
+    * @return optional CR code enum CtaxReasonForReportCodeContentType
+    */
+  def extractCR(baReports: BAreports) = {
+    import models.EbarsBAreports._
+
+    (baReports.purpose: @unchecked) match {
+      case Purpose.CT  =>
+        content(baReports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax" && !e.isNil)
+          .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))
+          .flatMap(e => Option(e.getCtaxReasonForReport))
+          .map(e => e.getReasonForReportCode)
+          .map(e => e.getValue).filter(_ != null)
+      case Purpose.NDR =>
+        content(baReports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax")
+          .map(e => e.getValue.asInstanceOf[TypeOfTax])
+          .map(e => e.getNNDRreasonForReport)
+          .map(e => e.getReasonForReportCode)
+          .filter(_ != null)
+          .map(e => e.getValue).filter(_ != "")
+    }
+  }
+
+  /**
+    * Returns <AssessmentProperties> elements from both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.AssessmentProperties
+    */
+  def getAssessmentProperties(baReports: BAreports): Seq[AssessmentProperties] = {
+    val proposedEntries = findProposedEntriesIdx(baReports)
+    val existingEntries = findExistingEntriesIdx(baReports)
+
+    val propertyEntries = existingEntries ++: proposedEntries
+
+    val properties = propertyEntries map (idx => content(baReports).get(idx))
+
+    properties.map(_.getValue.asInstanceOf[BApropertySplitMergeStructure]).flatMap(_.getAssessmentProperties.asScala)
+  }
+
+  /**
+    * Returns <CurrentTax> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.CurrentTax
+    */
+  def getCurrentTaxes(baReports: BAreports): Seq[AssessmentProperties.CurrentTax] = getAssessmentProperties(baReports) map (_.getCurrentTax) filterNot
+    (_ == null)
+
+  /**
+    * Removes all <CurrentTax>  elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    * which are either empty or NULL
+    *
+    * @param baReports the XML report
+    */
+  def removeNullCurrentTax(baReports: BAreports): Unit =
+    getAssessmentProperties(baReports) foreach { assessmentProperties =>
+      assessmentProperties.getCurrentTax match {
+        case null                                               => // nothing
+        case currentTax if currentTax.getCouncilTaxBand == null => assessmentProperties.setCurrentTax(null)
+        case _                                                  => // nothing
+      }
+    }
+
+  /**
+    * Returns <PropertyIdentity> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.BApropertyIdentificationStructure
+    */
+  def getPropertyIdentities(baReports: BAreports): Seq[BApropertyIdentificationStructure] = getAssessmentProperties(baReports) map (_.getPropertyIdentity)
+
+  /**
+    * Returns <PropertyDescription> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.PropertyDescription
+    */
+  def getPropertyDescriptions(baReports: BAreports): Seq[AssessmentProperties.PropertyDescription] = getAssessmentProperties(baReports) map
+    (_.getPropertyDescription) filterNot (_ == null)
+
+  /**
+    * Returns <OccupierContact> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.OccupierContactStructure
+    */
+  def getOccupierContacts(baReports: BAreports): Seq[OccupierContactStructure] = getAssessmentProperties(baReports).flatMap(getOccupierContacts)
+
+  def getOccupierContacts(assessmentProperties: AssessmentProperties): Option[OccupierContactStructure] =
+    assessmentProperties.getOccupierContact match {
+      case null => None
+      case v    => Some(v)
+    }
+
+  /**
+    * Removes BS7666Address elements from XML
+    *
+    * @param baReports the XML report
+    */
+  def removeBS7666Address(baReports: BAreports): Unit = {
+    val propertyIdentities = getPropertyIdentities(baReports)
+
+    propertyIdentities foreach { bApropertyIdentificationStructure =>
+      bApropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "BS7666Address") map (_._2) match {
+        case Some(index) => bApropertyIdentificationStructure.getContent.remove(index)
+        case _           => // nothing
+      }
+    }
+  }
+
+  /**
+    * Removes PropertyGridCoords elements from XML
+    *
+    * @param baReports the XML report
+    */
+  def removePropertyGridCoords(baReports: BAreports): Unit = {
+    val propertyIdentities = getPropertyIdentities(baReports)
+
+    propertyIdentities foreach { bApropertyIdentificationStructure =>
+      bApropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "PropertyGridCoords") map (_._2) match {
+        case Some(index) => bApropertyIdentificationStructure.getContent.remove(index)
+        case _           => // nothing
+      }
+    }
+  }
+
+  /**
+    * Returns <TextAddress> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.TextAddressStructure
+    */
+  def getTextAddressStructures(baReports: BAreports): Seq[TextAddressStructure] = getPropertyIdentities(baReports) flatMap getTextAddressStructures
+
+  /**
+    * Returns <TextAddress> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baPropertyIdentificationStructure the BApropertyIdentificationStructure <PropertyIdentity> from the XML report
+    * @return Seq of ebars.xml.TextAddressStructure
+    */
+  def getTextAddressStructures(baPropertyIdentificationStructure: BApropertyIdentificationStructure): Seq[TextAddressStructure] =
+    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "TextAddress")
+      .map(_.getValue.asInstanceOf[TextAddressStructure]).toSeq
+
+  /**
+    * Returns <BAreference> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of Strings
+    */
+  def getBAreferences(baReports: BAreports): Seq[String] = getPropertyIdentities(baReports) flatMap getBAreferences
+
+  /**
+    * Returns <BAreference> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baPropertyIdentificationStructure the BApropertyIdentificationStructure <PropertyIdentity> from the XML report
+    * @return Seq of Strings
+    */
+  def getBAreferences(baPropertyIdentificationStructure: BApropertyIdentificationStructure): Seq[String] =
+    baPropertyIdentificationStructure.getContent.asScala.filter(_.getName.getLocalPart == "BAreference").map(_.getValue.asInstanceOf[String]).toSeq
+
+  /**
+    * Returns <OccupierContact> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
+    *
+    * @param baReports the XML report
+    * @return Seq of ebars.xml.UKPostalAddressStructure
+    */
+  def getOccupierContactAddresses(baReports: BAreports): Seq[UKPostalAddressStructure] = {
+    val occupierContactAddresses = getOccupierContacts(baReports)
+    occupierContactAddresses map (_.getContactAddress) filterNot (_ == null)
+  }
+
+  /**
+    * Returns the <Remarks> element in <BApropertyReport>
+    *
+    * Not the ones in <AssessmentProperties>
+    *
+    * @param baReports the XML report
+    * @return Option of String
+    */
+  def getRemarks(baReports: BAreports): Option[String] =
+    EbarsXmlCutter.findRemarksIdx(baReports).headOption map { idx =>
+      val content = baReports.getBApropertyReport.get(0).getContent
+      val remarks = content.get(idx)
+      remarks.getValue.asInstanceOf[String]
+    }
+
+  /**
+    * Returns the <PropertyPlanReferenceNumber> element in <BApropertyReport>
+    *
+    * @param baReports the XML report
+    * @return Option of String
+    */
+  def getPropertyPlanReferenceNumber(baReports: BAreports): Seq[String] =
+    EbarsXmlCutter.findPropertyPlanReferenceNumberIdx(baReports) map { idx =>
+      val content = baReports.getBApropertyReport.get(0).getContent
+      val remarks = content.get(idx)
+      remarks.getValue.asInstanceOf[String]
+    }
+
+  /**
+    * Returns, if any, all indices of elements whose QName's LocalPart is @name
+    *
+    * Only 1-level deep. Only looks up elements right underneath <BApropertyReport>
+    *
+    * @param name      The qname value to look up
+    * @param baReports the XML report
+    * @return
+    */
+  private def findEntriesIdx(name: String)(baReports: BAreports): Seq[Int] =
+    content(baReports).asScala.zipWithIndex.filter(e => e._1.getName.getLocalPart == name).map(e => e._2).toSeq
+
+  private def findTypeOfTaxIdx: BAreports => Seq[Int] = findEntriesIdx("TypeOfTax")
+
+  def findRemarksIdx: BAreports => Seq[Int] = findEntriesIdx("Remarks")
+
+  private def findPropertyPlanReferenceNumberIdx: BAreports => Seq[Int] = findEntriesIdx("PropertyPlanReferenceNumber")
+
+  def findLastTypeOfTaxIdx(baReports: BAreports): Option[Int] = findTypeOfTaxIdx(baReports).reverse.headOption
+
+  def findExistingEntriesIdx: BAreports => Seq[Int] = findEntriesIdx("ExistingEntries")
+
+  def findProposedEntriesIdx: BAreports => Seq[Int] = findEntriesIdx("ProposedEntries")
+
+  def findFirstExistingEntriesIdx(baReports: BAreports): Option[Int] = findExistingEntriesIdx(baReports).headOption
+
+  def findFirstProposedEntriesIdx(baReports: BAreports): Option[Int] = findProposedEntriesIdx(baReports).headOption
+
+  /**
+    * Removes <ProposedEntries>
+    *
+    * @param baReports the XML report
+    */
+  def removeProposedEntries(baReports: BAreports): Unit = {
+    val indices = findProposedEntriesIdx(baReports)
+
+    indices foreach content(baReports).remove
+  }
+
+  /**
+    * Removes <ExistingEntries>
+    *
+    * @param baReports the XML report
+    */
+  def removeExistingEntries(baReports: BAreports): Unit = {
+    val indices = findExistingEntriesIdx(baReports)
+
+    indices foreach content(baReports).remove
+  }
+
+  /**
+    * Performs a shallow copy of all <ExistingEntries>/<AssessmentProperties> into <ProposedEntries>
+    *
+    * Copy is shallow in that only <TextAddress> is copied over.
+    * Existing <ProposedEntries> are removed.
+    *
+    * @param baReports the XML report
+    */
+  def copyExistingEntriesToProposed(baReports: BAreports): Unit = {
+    removeProposedEntries(baReports)
+
+    findFirstExistingEntriesIdx(baReports) foreach { index =>
+      val existingPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
+
+      val proposedPropertiesValue = new BApropertySplitMergeStructure // the destination <ProposedEntries>/<AssessmentProperties>
+
+      existingPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
+        val existingTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
+        val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
+
+        val copyPropertyIdentity   = new BApropertyIdentificationStructure
+        val copyAssessmentProperty = new AssessmentProperties
+        copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
+        proposedPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
+
+        existingTextAddressStructures.zipWithIndex foreach { case (existingTextAddressStructure, i) =>
+          val textAddressStructureCopy = new TextAddressStructure
+
+          existingTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
+
+          textAddressStructureCopy.setPostcode(existingTextAddressStructure.getPostcode)
+
+          copyPropertyIdentity.getContent.add(createTextAddress(textAddressStructureCopy))
+
+          /**
+            * In theory, each <TextAddress> would be followed by a <BAreference> as per XSDs.
+            * So baReferences(i) should always be there. Nevertheless, the initially submitted
+            * XML may be invalid in the sense that <BAreference> is missing, hence the check.
+            */
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
+        }
+      }
+
+      /**
+        * index is that of <ExistingEntries>. <ProposedEntries> must be the element right after as per XSDs.
+        */
+      content(baReports).add(index + 1, createProposedEntries(proposedPropertiesValue))
+    }
+  }
+
+  /**
+    * Performs a shallow copy of all <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>
+    *
+    * Copy is shallow in that only <TextAddress> is copied over.
+    * Existing <ExistingEntries> are removed.
+    *
+    * @param baReports the XML report
+    */
+  def copyProposedEntriesToExisting(baReports: BAreports): Unit = {
+    removeExistingEntries(baReports)
+
+    findFirstProposedEntriesIdx(baReports) foreach { index =>
+      val proposedPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
+
+      val existingPropertiesValue = new BApropertySplitMergeStructure
+
+      proposedPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
+        val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
+        val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
+
+        val copyPropertyIdentity   = new BApropertyIdentificationStructure
+        val copyAssessmentProperty = new AssessmentProperties
+        copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
+        existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
+
+        proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
+          val textAddressStructureCopy = new TextAddressStructure
+
+          proposedTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
+
+          textAddressStructureCopy.setPostcode(proposedTextAddressStructure.getPostcode)
+
+          copyPropertyIdentity.getContent.add(createTextAddress(textAddressStructureCopy))
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
+        }
+      }
+
+      /**
+        * index is that of <ProposedEntries>. <ExistingEntries> must be the element right before as per XSDs.
+        */
+      content(baReports).add(index, createExistingEntries(existingPropertiesValue))
+    }
+  }
+
+  private def createProposedEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
+    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ProposedEntries")
+    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
+  }
+
+  private def createExistingEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
+    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ExistingEntries")
+    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
+  }
+
+  private def createTextAddress(textAddressStructure: TextAddressStructure) = {
+    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "TextAddress")
+    new JAXBElement(qName, classOf[TextAddressStructure], classOf[BApropertyIdentificationStructure], textAddressStructure)
+  }
+
+  private def createBAreference(baReference: String) = {
+    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "BAreference")
+    new JAXBElement(qName, classOf[String], classOf[BApropertyIdentificationStructure], baReference)
+  }
+
+  /**
+    * Loops through all <ProposedEntries>/<AssessmentProperties>, edits the <TextAddress>/<AddressLine> elements
+    * in each by prefix the value @prefix. And adds a reference for each <ProposedEntries>/<AssessmentProperties> into
+    * <ExistingProperties>.
+    *
+    * Note: this is not a copy at all. <ProposedEntries>/<AssessmentProperties> are not duplicated, merely referenced twice
+    * in both <ProposedEntries> and <ExistingEntries>.
+    *
+    * @param baReports the XML report
+    * @param prefix    The value that serves as a prefix.
+    */
+  def appendProposedEntriesToExisting(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit = {
+    val existingPropertiesValue = findFirstExistingEntriesIdx(baReports) match {
+      case Some(index) => content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure]
+      case None        =>
+        val newExistingPropertiesValue = new BApropertySplitMergeStructure
+        findLastTypeOfTaxIdx(baReports) foreach { typeOfTaxIndex =>
+          content(baReports).add(typeOfTaxIndex, createExistingEntries(newExistingPropertiesValue))
+        }
+
+        newExistingPropertiesValue
+    }
+
+    findFirstProposedEntriesIdx(baReports) foreach { index =>
+      val proposedPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // proposed entry's data
+
+      proposedPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
+        val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
+        val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
+
+        val copyPropertyIdentity   = new BApropertyIdentificationStructure
+        val copyAssessmentProperty = new AssessmentProperties
+        copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
+
+        existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
+
+        proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
+          val textAddressStructureCopy = new TextAddressStructure
+
+          // TODO - What is address is too long
+          // should we trip proposet od addres?? I don't know
+          proposedTextAddressStructure.getAddressLine.asScala map (prefix + _) foreach textAddressStructureCopy.getAddressLine.add
+
+          textAddressStructureCopy.setPostcode(proposedTextAddressStructure.getPostcode)
+
+          copyPropertyIdentity.getContent.add(createTextAddress(textAddressStructureCopy))
+          if baReferences.isDefinedAt(i) then copyPropertyIdentity.getContent.add(createBAreference(baReferences(i)))
+        }
+      }
+    }
+  }
+
+  /**
+    * Loops through all <ProposedEntries>/<AssessmentProperties>, edits the <TextAddress>/<AddressLine> elements
+    * in each by prefix the value @prefix. Appends all <TextAddress>/<AddressLine> and <TextAddress>/<Postcode> to
+    * existing <Remarks> element.
+    *
+    * @param baReports the XML report
+    * @param prefix    The value that serves as a prefix.
+    */
+  def appendProposedEntriesToRemarks(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit = {
+    val existingRemarks = getRemarks(baReports) // current Remarks value
+
+    // all <ProposedEntries>/<AssessmentProperties>
+    val g = findFirstProposedEntriesIdx(baReports) match {
+      case Some(proposedEntriesIndex) =>
+        content(baReports).get(proposedEntriesIndex).getValue.asInstanceOf[BApropertySplitMergeStructure].getAssessmentProperties.asScala.toList
+      case _                          => Nil
+    }
+
+    // producing a []-enclosed value with AddressLine and Postcode
+    val addressLines = g map (_.getPropertyIdentity) filterNot (_ == null) flatMap getTextAddressStructures map { textAddressStructure =>
+      val addressLines = textAddressStructure.getAddressLine.asScala.mkString(",").trim
+      s"[$addressLines,${textAddressStructure.getPostcode}]"
+    }
+
+    findRemarksIdx(baReports) map content(baReports).remove // removing existing remarks element
+
+    // creating and adding a new <Remarks> element
+    val proposedQName   = new QName(content(baReports).get(0).getName.getNamespaceURI, "Remarks")
+    val newRemarksValue = existingRemarks.map(_ + " - ").getOrElse("") + s"$prefix- " + addressLines.mkString(",").trim // TODO - What if remarks are too long?
+    // should we remove rest of address?
+    // fix bug in ebars
+    val newRemarks      = new JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
+    content(baReports).add(newRemarks) // Remarks element must be last
+  }
+
+  /**
+    * Converts <ExistingEntries> into <ProposedEntries>
+    *
+    * Will remove any pre-existing ProposedEntries element first.
+    *
+    * @param baReports the report
+    */
+  def convertExistingEntriesIntoProposedEntries(baReports: BAreports): Unit = {
+    removeProposedEntries(baReports)
+
+    findFirstExistingEntriesIdx(baReports) foreach { index =>
+      val value = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
+
+      val newBApropertySplitMergeStructure = createProposedEntries(value)
+
+      removeExistingEntries(baReports)
+
+      findLastTypeOfTaxIdx(baReports) foreach { typeOfTaxIndex =>
+        content(baReports).add(typeOfTaxIndex + 1, newBApropertySplitMergeStructure)
+      }
+    }
+  }
+
+  /**
+    * Converts <ProposedEntries> into <ExistingEntries>
+    *
+    * ill remove any pre-existing ExistingEntries element first.
+    *
+    * @param baReports BA reports
+    */
+  def convertProposedEntriesIntoExistingEntries(baReports: BAreports): Unit = {
+    removeExistingEntries(baReports)
+
+    findFirstProposedEntriesIdx(baReports) foreach { index =>
+      val value = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
+
+      val newBApropertySplitMergeStructure = createExistingEntries(value)
+
+      removeProposedEntries(baReports)
+
+      findLastTypeOfTaxIdx(baReports) foreach { typeOfTaxIndex =>
+        content(baReports).add(typeOfTaxIndex + 1, newBApropertySplitMergeStructure)
+      }
+    }
+  }
