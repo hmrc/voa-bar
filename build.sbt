@@ -2,7 +2,7 @@ import uk.gov.hmrc.DefaultBuildSettings.{itSettings, targetJvm}
 
 val appName = "voa-bar"
 
-ThisBuild / scalaVersion := "3.8.1"
+ThisBuild / scalaVersion := "3.8.2"
 ThisBuild / majorVersion := 1
 ThisBuild / scalafmtFailOnErrors := true
 ThisBuild / semanticdbEnabled := true

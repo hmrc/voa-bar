@@ -1,14 +1,13 @@
 import sbt.*
-import play.core.PlayVersion
 
 object AppDependencies {
 
-  private val bootstrapVersion          = "10.6.0"
+  private val bootstrapVersion          = "10.7.0"
   private val hmrcMongoVersion          = "2.12.0"
-  private val autoBarsXsdVersion        = "9.17.0"
+  private val autoBarsXsdVersion        = "9.19.0"
   private val jacksonModuleScalaVersion = "2.21.1"
   private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 because 7.0.0 is not compatible with play-guice:3.0.10
-  private val catsEffectVersion         = "3.6.3"
+  private val catsEffectVersion         = "3.7.0"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"
   private val xercesVersion             = "2.12.2"
