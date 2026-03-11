@@ -21,13 +21,11 @@ import com.google.inject.AbstractModule
 import play.api.Configuration
 import services.EbarsValidator
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
-import uk.gov.hmrc.vo.autobars.util.DataMonitor
 
 class VOBARModule extends AbstractModule:
 
   override def configure(): Unit =
     bind(classOf[EbarsValidator]).toInstance(new EbarsValidator)
-    bind(classOf[DataMonitor]).asEagerSingleton()
 
   @Provides
   def jsonCryptoProvider(config: Configuration): Encrypter & Decrypter =
