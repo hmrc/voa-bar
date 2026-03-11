@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.connectors
 
 import com.google.inject.{ImplementedBy, Singleton}
 import com.typesafe.config.ConfigException
-import models.Purpose.Purpose
+import models.Purpose
 import play.api.http.Status.{ACCEPTED, OK}
 import play.api.libs.json.*
 import play.api.libs.ws.writeableOf_JsValue
@@ -40,7 +40,7 @@ class DefaultEmailConnector @Inject() (
   servicesConfig: ServicesConfig,
   configuration: Configuration,
   utils: Utils
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends EmailConnector
   with Logging:
 
@@ -49,7 +49,7 @@ class DefaultEmailConnector @Inject() (
   private val needsToSendEmail: Boolean = configuration.getOptional[Boolean]("needToSendEmail").getOrElse(false)
 
   private val email = configuration.getOptional[String]("email")
-    .getOrElse(if needsToSendEmail then throw new ConfigException.Missing("email") else "")
+    .getOrElse(if needsToSendEmail then throw ConfigException.Missing("email") else "")
 
   def sendEmail(
     baRefNumber: String,
@@ -61,7 +61,8 @@ class DefaultEmailConnector @Inject() (
     dateSubmitted: String,
     errorList: String
   ): Future[Unit] =
-    implicit val authHc: HeaderCarrier = utils.generateHeader(LoginDetails(username, password))
+
+    given HeaderCarrier = utils.generateHeader(LoginDetails(username, password))
 
     if needsToSendEmail then
       val json = Json.obj(
@@ -81,10 +82,9 @@ class DefaultEmailConnector @Inject() (
         .withBody(json)
         .execute[HttpResponse]
         .map { r =>
-          r.status match {
+          r.status match
             case OK | ACCEPTED => logger.info(s"Send email successful: ${r.status}")
             case status        => logger.error(s"Send email FAILED: $status ${r.body}")
-          }
         }
     else
       Future.unit

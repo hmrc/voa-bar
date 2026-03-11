@@ -20,20 +20,17 @@ import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeConte
 import ebars.xml.CtaxReasonForReportCodeContentType.*
 import jakarta.xml.bind.JAXBElement
 import models.Purpose
-import uk.gov.hmrc.voabar.models.{EmptyReportValidation, ReportErrorDetail, ReportValidation}
+import uk.gov.hmrc.voabar.models.{ReportErrorDetail, ReportValidation}
 import uk.gov.hmrc.voabar.models.ReportErrorDetailCode as ErrorCode
 
 import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
 import scala.util.matching.Regex
 
-/**
-  * Created by rgallet on 16/02/16.
-  */
-class RulesValidationEngine {
+class RulesValidationEngine:
 
-  def applyRules(baReports: BAreports): Seq[ReportErrorDetail] = {
-    val v = purpose(baReports) match {
+  def applyRules(baReports: BAreports): Seq[ReportErrorDetail] =
+    val v = purpose(baReports) match
       case Purpose.CT  => ReportValidation(Seq.empty[ReportErrorDetail], baReports) map
           CtValidationRules.Cr01AndCr02MissingExistingEntryValidation.apply map
           CtValidationRules.Cr03AndCr04MissingProposedEntryValidation.apply map
@@ -52,18 +49,14 @@ class RulesValidationEngine {
           OccupierContactAddressesPostcodeValidation.apply map
           RemarksValidation.apply map
           PropertyPlanReferenceNumberValidation.apply
-      case _           => EmptyReportValidation()
-    }
-
     v.get
-  }
 
   /**
     * Not final version, what if tax code is not there ? TODO - improve validation on report.
-    * @param baReports
+    * @param baReports BA reports
     * @return
     */
-  def purpose(baReports: BAreports): Purpose.Value =
+  def purpose(baReports: BAreports): Purpose =
     baReports.getBApropertyReport.asScala.headOption
       .flatMap { report =>
         report.getContent.asScala
@@ -72,182 +65,129 @@ class RulesValidationEngine {
       .map { typeOfTaxElement =>
         val cTax   = Option(typeOfTaxElement.getCtaxReasonForReport).flatMap(x => Option(x.getReasonForReportCode))
         val ndrTax = Option(typeOfTaxElement.getNNDRreasonForReport).flatMap(x => Option(x.getReasonForReportCode))
-        (cTax, ndrTax) match {
-          case (Some(ct), Some(ndr)) => throw new RuntimeException(s"Invalid tax, two codes in XML, ct: $ct ndr: $ndr")
+        (cTax, ndrTax) match
+          case (Some(ct), Some(ndr)) => throw RuntimeException(s"Invalid tax, two codes in XML, ct: $ct ndr: $ndr")
           case (Some(_), None)       => Purpose.CT
           case (None, Some(_))       => Purpose.NDR
-          case (None, None)          => throw new RuntimeException("No tax code specified")
-        }
-      }.getOrElse(throw new RuntimeException("Unable to find type of tax"))
+          case (None, None)          => throw RuntimeException("No tax code specified")
+      }.getOrElse(throw RuntimeException("Unable to find type of tax"))
 
-}
-
-sealed trait ValidationRule {
-
+sealed trait ValidationRule:
   def apply: BAreports => Option[ReportErrorDetail]
-}
 
-case object NdrValidationRules {
+case object NdrValidationRules:
 
-  case object Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation extends ValidationRule {
+  case object Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some("1") | Some("2") | Some("3") | Some("4") if proposed.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation))
         case _                                                                 => None
-      }
-    }
-  }
 
-  case object Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation extends ValidationRule {
+  case object Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if Seq("5", "6", "7", "8", "9", "11").contains(v) && existing.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation))
         case _                                                                             => None
-      }
-    }
-  }
 
-  case object NdrCodeValidation extends ValidationRule {
+  case object NdrCodeValidation extends ValidationRule:
     private val validCodes: Set[String] = (1 to 19).map(x => "%02d".format(x)).toSet
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
-      EbarsXmlCutter.extractCR(baReports) match {
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v: String) if validCodes.contains(v)   =>
           None
         case Some(v: String)                             => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v)))
         case Some(v: CtaxReasonForReportCodeContentType) => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v.value())))
         case _                                           => Some(ReportErrorDetail(ErrorCode.NoNDRCode))
-      }
-    }
-  }
 
-}
+case object CtValidationRules:
 
-case object CtValidationRules {
+  case object Cr01AndCr02MissingExistingEntryValidation extends ValidationRule:
 
-  case object Cr01AndCr02MissingExistingEntryValidation extends ValidationRule {
-
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(CR_01) | Some(CR_02) if existing.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Cr01AndCr02MissingExistingEntryValidation))
         case _                                             => None
-      }
-    }
-  }
 
-  case object Cr03AndCr04MissingProposedEntryValidation extends ValidationRule {
+  case object Cr03AndCr04MissingProposedEntryValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(CR_03) | Some(CR_04) if proposed.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Cr03AndCr04MissingProposedEntryValidation))
         case _                                             => None
-      }
-    }
-  }
 
-  case object Cr05AndCr12MissingProposedEntryValidation extends ValidationRule {
+  case object Cr05AndCr12MissingProposedEntryValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(CR_05) | Some(CR_12) if proposed.isEmpty || existing.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Cr05AndCr12MissingProposedEntryValidation))
         case _                                                                 => None
-      }
-    }
-  }
 
-  case object Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation extends ValidationRule {
+  case object Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if Seq(CR_06, CR_07, CR_09, CR_10, CR_14).contains(v) && existing.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation))
         case _                                                                                 => None
-      }
-    }
-  }
 
-  case object Cr08InvalidCodeValidation extends ValidationRule {
+  case object Cr08InvalidCodeValidation extends ValidationRule:
 
-    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
-      EbarsXmlCutter.extractCR(baReports) match {
+    override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(CR_08) => Some(ReportErrorDetail(ErrorCode.Cr08InvalidCodeValidation))
         case Some(CR_11) => Some(ReportErrorDetail(ErrorCode.Cr11InvalidCodeValidation))
         case Some(CR_13) => Some(ReportErrorDetail(ErrorCode.Cr13InvalidCodeValidation))
         case _           => None
-      }
-    }
-  }
 
-}
-
-case object TextAddressPostcodeValidation extends ValidationRule {
+case object TextAddressPostcodeValidation extends ValidationRule:
   private val postcodePattern: Regex = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
 
-  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
-    val f = EbarsXmlCutter.getTextAddressStructures(baReports) map (_.getPostcode) flatMap {
+  override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
+    EbarsXmlCutter.getTextAddressStructures(baReports) map (_.getPostcode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(_)          => None
       case v                           => Some(ReportErrorDetail(ErrorCode.TextAddressPostcodeValidation, Seq(v)))
-    }
+    } headOption
 
-    f headOption
-  }
-}
-
-case object OccupierContactAddressesPostcodeValidation extends ValidationRule {
+case object OccupierContactAddressesPostcodeValidation extends ValidationRule:
   private val postcodePattern: Regex = "([A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][A-Z-[CIKMOV]]{2})".r
 
-  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
-    val f = EbarsXmlCutter.getOccupierContactAddresses(baReports) map (_.getPostCode) flatMap {
+  override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
+    EbarsXmlCutter.getOccupierContactAddresses(baReports) map (_.getPostCode) flatMap {
       case v if v == null || v.isEmpty => None
       case postcodePattern(_)          => None
       case v                           => Some(ReportErrorDetail(ErrorCode.OccupierContactAddressesPostcodeValidation, Seq(v)))
-    }
+    } headOption
 
-    f headOption
-  }
-}
+case object RemarksValidation extends ValidationRule:
+  private val maxChars = 240
 
-case object RemarksValidation extends ValidationRule {
-
-  val maxChars = 240
-
-  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+  override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
     EbarsXmlCutter.getRemarks(baReports) flatMap {
       case v if v.length <= 1       => Some(ReportErrorDetail(ErrorCode.RemarksValidationNotEmpty))
       case v if v.length > maxChars => Some(ReportErrorDetail(ErrorCode.RemarksValidationTooLong, Seq(s"The remarks cannot exceed $maxChars characters.")))
       case _                        => None
     }
-  }
 
-}
+case object PropertyPlanReferenceNumberValidation extends ValidationRule:
 
-case object PropertyPlanReferenceNumberValidation extends ValidationRule {
-
-  override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+  override def apply: BAreports => Option[ReportErrorDetail] = baReports =>
     EbarsXmlCutter.getPropertyPlanReferenceNumber(baReports) flatMap {
       case v if v.length > 25 => Some(ReportErrorDetail(ErrorCode.PropertyPlanReferenceNumberValidation, Seq(v)))
       case _                  => None
     } headOption
-  }
-}

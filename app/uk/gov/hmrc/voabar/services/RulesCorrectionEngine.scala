@@ -33,10 +33,7 @@ import org.apache.poi.util.ReplacingInputStream
 
 import scala.util.{Success, Try}
 
-/**
-  * Created by rgallet on 12/02/16.
-  */
-class RulesCorrectionEngine {
+class RulesCorrectionEngine:
 
   private val ctRules = Seq(
     RemoveBS7666Addresses,
@@ -68,29 +65,23 @@ class RulesCorrectionEngine {
   )
 
   def applyRules(baReports: BAreports): Unit =
-    baReports.purpose match {
+    baReports.purpose match
       case Purpose.CT  => ctRules foreach (_.apply(baReports))
       case Purpose.NDR => ndrRules foreach (_.apply(baReports))
-      case _           => ()
-    }
-}
 
-sealed trait Rule {
+sealed trait Rule:
   def apply(baReports: BAreports): Unit
-}
 
-object CorrectionInputStream {
+object CorrectionInputStream:
 
   def apply(input: InputStream): FilterInputStream =
     // In future we can add mode replacement. We want to replace on byte level to prevent problem with different XML charset.
-    new ReplacingInputStream(input, "&nbsp;", " ")
+    ReplacingInputStream(input, "&nbsp;", " ")
 
-}
-
-case object FixHeader extends Rule {
+case object FixHeader extends Rule:
   private val zoneId = ZoneId.of("Europe/London")
 
-  override def apply(baReports: BAreports): Unit = {
+  override def apply(baReports: BAreports): Unit =
     val header = baReports.getBAreportHeader
     if header.getEntryDateTime == null then
       val now    = ZonedDateTime.now(zoneId)
@@ -102,14 +93,12 @@ case object FixHeader extends Rule {
       val xmlNow = DatatypeFactory.newInstance()
         .newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
       header.setProcessDate(xmlNow)
-  }
-}
 
-case object FixCTaxTrailer extends Rule {
+case object FixCTaxTrailer extends Rule:
 
   private val zoneId = ZoneId.of("Europe/London")
 
-  override def apply(baReports: BAreports): Unit = {
+  override def apply(baReports: BAreports): Unit =
     val trailer = baReports.getBAreportTrailer
     // Always set properly number of records
     trailer.setRecordCount(BigInteger.valueOf(baReports.getBApropertyReport.size()))
@@ -121,18 +110,16 @@ case object FixCTaxTrailer extends Rule {
       val now    = ZonedDateTime.now(zoneId)
       val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
       trailer.setEntryDateTime(xmlNow)
-  }
-}
 
 /**
   * Strip whitespace characters in remarks element.
   */
-case object RemarksTrimmer extends Rule {
+case object RemarksTrimmer extends Rule:
 
   private val firstStageRegex  = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r // First replace all obscure space and newline with space
   private val secondStageRegex = """\s{2,}""".r
 
-  override def apply(baReports: BAreports): Unit = {
+  override def apply(baReports: BAreports): Unit =
     assert(
       baReports.getBApropertyReport.size() == 1,
       s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)"
@@ -142,210 +129,150 @@ case object RemarksTrimmer extends Rule {
 
     EbarsXmlCutter.findRemarksIdx(baReports) foreach { idx =>
       val remarks = content.get(idx).asInstanceOf[JAXBElement[String]]
-      remarks.getValue match {
+      remarks.getValue match
         case null | "" => // nothing
         case value     =>
           val firstStageResult  = firstStageRegex.replaceAllIn(value, " ")
           val secondStageResult = secondStageRegex.replaceAllIn(firstStageResult, " ")
           val newRemarksValue   = StringUtils.strip(secondStageResult)
           remarks.setValue(newRemarksValue)
-      }
     }
-  }
 
-}
+case object RemarksFillDefault extends Rule:
 
-case object RemarksFillDefault extends Rule {
-
-  override def apply(baReports: BAreports): Unit = {
-    val qName      = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "Remarks")
-    val newRemarks = new JAXBElement(qName, classOf[String], classOf[BAreportBodyStructure], "NO REMARKS")
+  override def apply(baReports: BAreports): Unit =
+    val qName      = QName("http://www.govtalk.gov.uk/LG/Valuebill", "Remarks")
+    val newRemarks = JAXBElement(qName, classOf[String], classOf[BAreportBodyStructure], "NO REMARKS")
     val content    = baReports.getBApropertyReport.get(0).getContent
 
     EbarsXmlCutter.findRemarksIdx(baReports) foreach { idx =>
       val remarks = content.get(idx)
 
-      remarks.getValue.asInstanceOf[String] match {
+      remarks.getValue.asInstanceOf[String] match
         case null | "" =>
           content.remove(idx)
           content.add(idx, newRemarks)
         case _         => // nothing
-      }
     }
-
     if EbarsXmlCutter.findRemarksIdx(baReports).isEmpty then content.add(newRemarks)
-  }
-}
 
-case object RemoveBS7666Addresses extends Rule {
+case object RemoveBS7666Addresses extends Rule:
 
   override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removeBS7666Address(baReports)
-}
 
-case object RemovePropertyGridCoords extends Rule {
+case object RemovePropertyGridCoords extends Rule:
 
   override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removePropertyGridCoords(baReports)
-}
 
-case object RemovingInvalidTaxBand extends Rule {
+case object RemovingInvalidTaxBand extends Rule:
 
   override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.removeNullCurrentTax(baReports)
-}
 
-case object PropertyDescriptionTextRemoval extends Rule {
+case object PropertyDescriptionTextRemoval extends Rule:
 
   override def apply(baReports: BAreports): Unit =
     EbarsXmlCutter.getAssessmentProperties(baReports)
       .filter(_.getPropertyDescription != null)
       .filter(_.getPropertyDescription.getPropertyDescriptionText != null)
-      .filter(_.getPropertyDescription.getPropertyDescriptionText.length <= 1) foreach {
-      _.setPropertyDescription(null)
-    }
-}
+      .filter(_.getPropertyDescription.getPropertyDescriptionText.length <= 1) foreach { _.setPropertyDescription(null) }
 
-case object NdrRules {
+case object NdrRules:
 
-  case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry extends Rule {
+  case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11MissingExistingEntry extends Rule:
     val codes: Seq[String] = Seq("5", "6", "7", "8", "9", "11")
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
         case _                                                                     => // nothing to do
-      }
-    }
-  }
 
-  case object Rt01AndRt02AndRt03AndRt04MissingProposedEntry extends Rule {
+  case object Rt01AndRt02AndRt03AndRt04MissingProposedEntry extends Rule:
     val codes: Seq[String] = Seq("1", "2", "3", "4")
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
         case _                                                                     => // nothing to do
-      }
-    }
-  }
 
-  case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries extends Rule {
+  case object Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries extends Rule:
     val codes: Seq[String] = Seq("5", "6", "7", "8", "9", "11")
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
         case _                                                                      => // nothing to do
-      }
-    }
-  }
 
-  case object Rt01AndRt02AndRt03AndRt04RemoveExistingEntries extends Rule {
+  case object Rt01AndRt02AndRt03AndRt04RemoveExistingEntries extends Rule:
     val codes: Seq[String] = Seq("1", "2", "3", "4")
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
         case _                                                                      => // nothing to do
-      }
-    }
-  }
-}
 
-case object CtRules {
+case object CtRules:
 
-  case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry extends Rule {
+  case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.convertProposedEntriesIntoExistingEntries(baReports)
         case _                                                                     => // nothing to do
-      }
-    }
-  }
 
-  case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries extends Rule {
+  case object Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_01, CR_02, CR_06, CR_07, CR_09, CR_10, CR_14)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeProposedEntries(baReports)
         case _                                                                      => // nothing to do
-      }
-    }
-  }
 
-  case object Cr03AndCr04BothProposedAndExistingEntries extends Rule {
+  case object Cr03AndCr04BothProposedAndExistingEntries extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_03, CR_04)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.nonEmpty && existing.nonEmpty => EbarsXmlCutter.removeExistingEntries(baReports)
         case _                                                                      => // nothing to do
-      }
-    }
-  }
 
-  case object Cr03AndCr04MissingProposedEntry extends Rule {
+  case object Cr03AndCr04MissingProposedEntry extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_03, CR_04)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.convertExistingEntriesIntoProposedEntries(baReports)
         case _                                                                     => // nothing to do
-      }
-    }
-  }
 
-  case object Cr05AndCr12MissingAnyEntry extends Rule {
+  case object Cr05AndCr12MissingAnyEntry extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_05, CR_12)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.isEmpty && existing.nonEmpty => EbarsXmlCutter.copyExistingEntriesToProposed(baReports)
         case Some(v) if codes.contains(v) && existing.isEmpty && proposed.nonEmpty => EbarsXmlCutter.copyProposedEntriesToExisting(baReports)
         case _                                                                     => // nothing to do
-      }
-    }
-  }
 
   /**
     * CR05 reports need to have 1+ ProposedEntries and 1+ ExistingEntries to validate the XSD schema.
@@ -360,20 +287,15 @@ case object CtRules {
     * Because the data in <ProposedEntries>/<AssessmentProperties>/<OccupierContact> does come across, we also remove the <ProposedEntries> altogether.
     * This avoids duplication of <OccupierContact> elements in CDB.
     */
-  case object Cr05CopyProposedEntriesToExistingEntries extends Rule {
+  case object Cr05CopyProposedEntriesToExistingEntries extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_05)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val existing = EbarsXmlCutter.findFirstExistingEntriesIdx(baReports)
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && existing.nonEmpty && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToExisting(baReports)
         case _                                                                      => // nothing to do
-      }
-    }
-  }
 
   /**
     * CR12 reports need to have 1 ProposedEntries and 1 ExistingEntries to validate the XSD schema.
@@ -384,46 +306,34 @@ case object CtRules {
     * To mitigate the bug above, we append all the <ProposedEntries>/<AssessmentProperties> into <BApropertyReport>/<Remarks> with a prefix value of [PROPOSED]
     * for <ProposedEntries>/<TextAddress>/<AddressLine>
     */
-  case object Cr12CopyProposedEntriesToRemarks extends Rule {
+  case object Cr12CopyProposedEntriesToRemarks extends Rule:
     val codes: Seq[CtaxReasonForReportCodeContentType] = Seq(CR_12)
 
-    override def apply(baReports: BAreports): Unit = {
-
+    override def apply(baReports: BAreports): Unit =
       lazy val proposed = EbarsXmlCutter.findFirstProposedEntriesIdx(baReports)
-
-      EbarsXmlCutter.extractCR(baReports) match {
+      EbarsXmlCutter.extractCR(baReports) match
         case Some(v) if codes.contains(v) && proposed.nonEmpty => EbarsXmlCutter.appendProposedEntriesToRemarks(baReports)
         case _                                                 => // nothing to do
-      }
-    }
-  }
-}
 
-case object PostcodesToUppercase extends Rule {
+case object PostcodesToUppercase extends Rule:
 
-  override def apply(baReports: BAreports): Unit = {
-
+  override def apply(baReports: BAreports): Unit =
     def sanitising(postcode: String) =
       Try {
         val trimmed = postcode.toUpperCase.trim.replaceAll("\\s", "") // TODO - implement as webBars
         trimmed.substring(0, trimmed.length - 3) + " " + trimmed.substring(trimmed.length - 3) // and validate, if not valid keep original postcode
-      } match {
+      } match
         case Success(v) => v
         case _          => postcode
-      }
 
     EbarsXmlCutter.getTextAddressStructures(baReports) foreach { textAddressStructure =>
-      textAddressStructure.getPostcode match {
+      textAddressStructure.getPostcode match
         case null => // nothing
         case v    => textAddressStructure.setPostcode(sanitising(v.toUpperCase))
-      }
     }
 
     EbarsXmlCutter.getOccupierContactAddresses(baReports) foreach { occupierContactAddress =>
-      occupierContactAddress.getPostCode match {
+      occupierContactAddress.getPostCode match
         case null => // nothing
         case v    => occupierContactAddress.setPostCode(sanitising(v.toUpperCase))
-      }
     }
-  }
-}
