@@ -308,19 +308,19 @@ object EbarsXmlCutter:
     findFirstExistingEntriesIdx(baReports) foreach { index =>
       val existingPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
 
-      val proposedPropertiesValue = new BApropertySplitMergeStructure // the destination <ProposedEntries>/<AssessmentProperties>
+      val proposedPropertiesValue = BApropertySplitMergeStructure() // the destination <ProposedEntries>/<AssessmentProperties>
 
       existingPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
         val existingTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
         proposedPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         existingTextAddressStructures.zipWithIndex foreach { case (existingTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           existingTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
 
@@ -358,19 +358,19 @@ object EbarsXmlCutter:
     findFirstProposedEntriesIdx(baReports) foreach { index =>
       val proposedPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
 
-      val existingPropertiesValue = new BApropertySplitMergeStructure
+      val existingPropertiesValue = BApropertySplitMergeStructure()
 
       proposedPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
         val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
         existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           proposedTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
 
@@ -389,23 +389,23 @@ object EbarsXmlCutter:
   }
 
   private def createProposedEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ProposedEntries")
-    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "ProposedEntries")
+    JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
   }
 
   private def createExistingEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ExistingEntries")
-    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "ExistingEntries")
+    JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
   }
 
   private def createTextAddress(textAddressStructure: TextAddressStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "TextAddress")
-    new JAXBElement(qName, classOf[TextAddressStructure], classOf[BApropertyIdentificationStructure], textAddressStructure)
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "TextAddress")
+    JAXBElement(qName, classOf[TextAddressStructure], classOf[BApropertyIdentificationStructure], textAddressStructure)
   }
 
   private def createBAreference(baReference: String) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "BAreference")
-    new JAXBElement(qName, classOf[String], classOf[BApropertyIdentificationStructure], baReference)
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "BAreference")
+    JAXBElement(qName, classOf[String], classOf[BApropertyIdentificationStructure], baReference)
   }
 
   /**
@@ -423,7 +423,7 @@ object EbarsXmlCutter:
     val existingPropertiesValue = findFirstExistingEntriesIdx(baReports) match {
       case Some(index) => content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure]
       case None        =>
-        val newExistingPropertiesValue = new BApropertySplitMergeStructure
+        val newExistingPropertiesValue = BApropertySplitMergeStructure()
         findLastTypeOfTaxIdx(baReports) foreach { typeOfTaxIndex =>
           content(baReports).add(typeOfTaxIndex, createExistingEntries(newExistingPropertiesValue))
         }
@@ -438,14 +438,14 @@ object EbarsXmlCutter:
         val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
 
         existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           // TODO - What is address is too long
           // should we trip proposet od addres?? I don't know
@@ -487,11 +487,11 @@ object EbarsXmlCutter:
     findRemarksIdx(baReports) map content(baReports).remove // removing existing remarks element
 
     // creating and adding a new <Remarks> element
-    val proposedQName   = new QName(content(baReports).get(0).getName.getNamespaceURI, "Remarks")
+    val proposedQName   = QName(content(baReports).get(0).getName.getNamespaceURI, "Remarks")
     val newRemarksValue = existingRemarks.map(_ + " - ").getOrElse("") + s"$prefix- " + addressLines.mkString(",").trim // TODO - What if remarks are too long?
     // should we remove rest of address?
     // fix bug in ebars
-    val newRemarks      = new JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
+    val newRemarks      = JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
     content(baReports).add(newRemarks) // Remarks element must be last
   }
 

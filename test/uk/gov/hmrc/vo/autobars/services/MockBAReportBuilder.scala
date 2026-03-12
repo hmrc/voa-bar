@@ -74,17 +74,15 @@ class MockBAReportBuilder {
     case _ => concat(node ++ existingEntries, existing - 1, proposed)
   }
 
-  private def invalidate(existingVal: String, newValue: String) = new RewriteRule {
-
-    override def transform(node: Node): Node = node match {
-      case e: Elem if e.label == existingVal => e.copy(label = newValue)
-      case e: Elem if e.text == existingVal  => e.copy(child = Text(newValue))
-      case other                             => other
-    }
-  }
+  private def invalidate(existingVal: String, newValue: String) =
+    new RewriteRule:
+      override def transform(node: Node): Node = node match
+        case e: Elem if e.label == existingVal => e.copy(label = newValue)
+        case e: Elem if e.text == existingVal  => e.copy(child = Text(newValue))
+        case other                             => other
 
   private def invalidator(rule: RewriteRule, node: Node): Seq[Node] = {
-    val transformer = new RuleTransformer(rule)
+    val transformer = RuleTransformer(rule)
     transformer.transform(node)
   }
 

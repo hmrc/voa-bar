@@ -51,7 +51,7 @@ object PlayMongoUtil {
   private def ttlSeconds(collectionName: String, config: Configuration): Long = {
     val ttlPath = s"$collectionName.timeToLiveInSeconds"
     config.getOptional[Long](ttlPath)
-      .getOrElse(throw new ConfigException.Missing(ttlPath))
+      .getOrElse(throw ConfigException.Missing(ttlPath))
   }
 
 }

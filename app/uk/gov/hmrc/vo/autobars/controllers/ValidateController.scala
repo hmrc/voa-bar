@@ -28,7 +28,7 @@ import java.nio.file.Files
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
 @Singleton
-class ValidateController @Inject() (controllerComponents: ControllerComponents, v1ValidationService: V1ValidationService)(implicit ec: ExecutionContext)
+class ValidateController @Inject() (controllerComponents: ControllerComponents, v1ValidationService: V1ValidationService)(using ec: ExecutionContext)
   extends BackendController(controllerComponents) {
 
   val logger = Logger("v2-validation")

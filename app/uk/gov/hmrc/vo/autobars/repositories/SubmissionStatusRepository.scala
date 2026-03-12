@@ -46,7 +46,7 @@ object SubmissionStatusRepository {
 class SubmissionStatusRepositoryImpl @Inject() (
   mongo: MongoComponent,
   config: Configuration
-)(implicit executionContext: ExecutionContext
+)(using executionContext: ExecutionContext
 ) extends PlayMongoRepository[ReportStatus](
     collectionName = submissionsCollectionName,
     mongoComponent = mongo,
@@ -188,7 +188,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
       .toFutureOption()
       .flatMap {
         case Some(reportStatus) => Future.successful(reportStatus)
-        case _                  => Future.failed(new IllegalStateException("reportStatus not found for markSubmissionFailed"))
+        case _                  => Future.failed(IllegalStateException("reportStatus not found for markSubmissionFailed"))
       }
   }
 

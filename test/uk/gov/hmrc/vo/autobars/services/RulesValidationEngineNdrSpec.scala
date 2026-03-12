@@ -30,8 +30,8 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation" must {
     "report missing existing entry" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT1_NO_PROPERTIES.xml")))
+      val ebarsValidator = EbarsValidator()
+      val reports        = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT1_NO_PROPERTIES.xml")))
 
       val result = Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply(reports)
 
@@ -42,8 +42,8 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation" must {
     "report missing existing entry" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT5_NO_PROPERTIES.xml")))
+      val ebarsValidator = EbarsValidator()
+      val reports        = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT5_NO_PROPERTIES.xml")))
 
       val result = Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply(reports)
 

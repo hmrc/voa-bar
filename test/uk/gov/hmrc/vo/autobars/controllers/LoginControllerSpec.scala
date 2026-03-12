@@ -46,7 +46,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
 
   private val mockVOEbarsConnectorFailed = mock[VOEbarsConnector]
   when(mockVOEbarsConnectorFailed.validate(any[LoginDetails])).thenReturn(
-    Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
+    Future.successful(Failure(RuntimeException("Received exception from upstream service")))
   )
 
   private val mockAudit = mock[VOBarAuditConnector]
@@ -57,7 +57,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
   private val goodJson  = s"""{"username": "ba0121", "password":"$encryptedPassword"}"""
   private val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
 
-  private def controller = new LoginController(mockVOEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
+  private def controller = LoginController(mockVOEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
 
   "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
     val result = controller.verifyLogin(Some(Json.parse(goodJson)))

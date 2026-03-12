@@ -37,7 +37,7 @@ trait WebBarsService {
 @Singleton
 class DefaultWebBarsService @Inject() (
   reportUploadService: ReportUploadService
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends WebBarsService {
 
   val log = Logger(this.getClass)
@@ -53,7 +53,7 @@ class DefaultWebBarsService @Inject() (
       given HeaderCarrier = HeaderCarrier()
 
       val submissionGenerator =
-        new XmlSubmissionGenerator(submission, username.substring(2).toInt, BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
+        XmlSubmissionGenerator(submission, username.substring(2).toInt, BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
       val areports = submissionGenerator.generateXml()
       log.debug("Generated report")
@@ -74,7 +74,7 @@ class DefaultWebBarsService @Inject() (
       val jaxbContext    = JAXBContext.newInstance(classOf[BAreports])
       val jaxbMarshaller = jaxbContext.createMarshaller
       jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, java.lang.Boolean.TRUE)
-      val sw             = new StringWriter
+      val sw             = StringWriter()
       jaxbMarshaller.marshal(employee, sw)
       val xmlContent     = sw.toString
       log.debug(xmlContent)

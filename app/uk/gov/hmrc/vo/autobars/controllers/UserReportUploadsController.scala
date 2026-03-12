@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UserReportUploadsController @Inject() (
   userReportUploadsRepository: UserReportUploadsRepository,
   controllerComponents: ControllerComponents
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends BackendController(controllerComponents)
   with Logging {
 

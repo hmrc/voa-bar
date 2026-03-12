@@ -40,11 +40,11 @@ class UpscanCallbackController @Inject() (
   submissionStatusRepository: SubmissionStatusRepository,
   webBarsService: WebBarsService,
   controllerComponents: MessagesControllerComponents
-)(implicit val ec: ExecutionContext
+)(using val ec: ExecutionContext
 ) extends BackendController(controllerComponents)
   with FunctionalRun {
 
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def onConfirmation(baLogin: String): Action[JsValue] = Action(parse.tolerantJson) { implicit request: Request[JsValue] =>
     (parseUploadConfirmation(request).map(onSuccessfulConfirmation(baLogin, _)) orElse
@@ -72,7 +72,7 @@ class UpscanCallbackController @Inject() (
     login: LoginDetails,
     xmlUrl: String,
     uploadConfirmation: UploadConfirmation
-  )(implicit hc: HeaderCarrier
+  )(using hc: HeaderCarrier
   ): F[String] =
     fromFuture(
       reportUploadService.upload(login, xmlUrl, uploadConfirmation.reference)
@@ -120,7 +120,7 @@ class UpscanCallbackController @Inject() (
     saveSubmission(login, reportStatus)
   }
 
-  private def onSuccessfulConfirmation(baLogin: String, uploadConfirmation: UploadConfirmation)(implicit request: Request[JsValue]): Future[Result] =
+  private def onSuccessfulConfirmation(baLogin: String, uploadConfirmation: UploadConfirmation)(using request: Request[JsValue]): Future[Result] =
     run {
       (for {
         login <- getLoginDetails(uploadConfirmation.reference)

@@ -32,11 +32,11 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   private val configuration = Configuration("json.encryption.key" -> "gvBoGdgzqG1AarzF1LY0zQ==")
 
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private val encryptedPassword = crypto.encrypt(PlainText("password")).value
 
-  private val controller = new UploadController(reportUploadService, configuration, stubControllerComponents())
+  private val controller = UploadController(reportUploadService, configuration, stubControllerComponents())
 
   def fakeRequestWithXML: FakeRequest[UploadDetails] =
     FakeRequest("POST", "/request?reference=1234")

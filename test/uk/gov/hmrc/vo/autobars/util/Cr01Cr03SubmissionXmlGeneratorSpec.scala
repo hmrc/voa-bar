@@ -38,8 +38,8 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -170,7 +170,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   "CR01 CR03 generator" should "generate valid xml" in {
     val jaxbStructure =
-      new Cr01Cr03SubmissionXmlGenerator(
+      Cr01Cr03SubmissionXmlGenerator(
         aCR03Submission(),
         1010,
         "Brighton and Hove",
@@ -187,7 +187,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     val id = UUID.randomUUID().toString
     forAll(getCr03Submission) { submission =>
       val jaxbStructure =
-        new Cr01Cr03SubmissionXmlGenerator(
+        Cr01Cr03SubmissionXmlGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -205,7 +205,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     val id = UUID.randomUUID().toString
     forAll(getCr01Submission) { submission =>
       val jaxbStructure =
-        new Cr01Cr03SubmissionXmlGenerator(
+        Cr01Cr03SubmissionXmlGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -232,7 +232,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
   }
 
   def printXml(report: BAreports): String = {
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(report, sw)
     sw.toString
   }

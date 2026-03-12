@@ -21,7 +21,7 @@ import java.io.Reader
 import org.scalatestplus.play.PlaySpec
 
 class InputSpec extends PlaySpec {
-  val input      = new Input
+  val input      = Input()
   val encoding   = "some encoding"
   val stringData = "some data"
 
@@ -31,7 +31,7 @@ class InputSpec extends PlaySpec {
     override def close(): Unit = ()
   }
 
-  val reader = new FakeReader
+  val reader = FakeReader()
 
   "An input class " must {
 

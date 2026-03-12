@@ -24,7 +24,7 @@ import scala.xml._
 
 class MockBAReportBuilderSpec extends PlaySpec {
 
-  val reportBuilder = new MockBAReportBuilder
+  val reportBuilder = MockBAReportBuilder()
 
   "A mock BA property report" must {
 

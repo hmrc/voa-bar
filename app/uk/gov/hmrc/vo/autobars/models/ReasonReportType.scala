@@ -38,21 +38,17 @@ case object RemoveProperty extends ReasonReportType {
   def reasonForCodeDescription: String                      = "Demolished"
 }
 
-object ReasonReportType {
+object ReasonReportType:
 
-  implicit val format: Format[ReasonReportType] = new Format[ReasonReportType] {
+  implicit val format: Format[ReasonReportType] =
+    new Format[ReasonReportType]:
+      override def reads(json: JsValue): JsResult[ReasonReportType] =
+        json match
+          case JsString("AddProperty")    => JsSuccess(AddProperty)
+          case JsString("RemoveProperty") => JsSuccess(RemoveProperty)
+          case x                          => JsError(s"Unable to deserialize ReasonReportType $x")
 
-    override def reads(json: JsValue): JsResult[ReasonReportType] =
-      json match {
-        case JsString("AddProperty")    => JsSuccess(AddProperty)
-        case JsString("RemoveProperty") => JsSuccess(RemoveProperty)
-        case x                          => JsError(s"Unable to deserialize ReasonReportType $x")
-      }
-
-    override def writes(o: ReasonReportType): JsValue =
-      o match {
-        case AddProperty    => JsString("AddProperty")
-        case RemoveProperty => JsString("RemoveProperty")
-      }
-  }
-}
+      override def writes(o: ReasonReportType): JsValue =
+        o match
+          case AddProperty    => JsString("AddProperty")
+          case RemoveProperty => JsString("RemoveProperty")

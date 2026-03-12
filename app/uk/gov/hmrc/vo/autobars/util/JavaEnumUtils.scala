@@ -32,5 +32,5 @@ object JavaEnumUtils:
 
   private def enumWrites[T <: Enum[T]]: Writes[T] = (v: T) => JsString(v.toString)
 
-  def format[T <: Enum[T]](implicit classTag: ClassTag[T]): Format[T] =
+  def format[T <: Enum[T]](using classTag: ClassTag[T]): Format[T] =
     Format(enumReads[T](classTag.runtimeClass.asInstanceOf[Class[T]]), enumWrites[T])

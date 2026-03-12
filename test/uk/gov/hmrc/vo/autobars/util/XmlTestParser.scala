@@ -26,11 +26,11 @@ import java.nio.charset.StandardCharsets.UTF_8
 object XmlTestParser {
 
   def parseXml(xml: String): Document = {
-    val xmlParser = new XmlParser()
+    val xmlParser = XmlParser()
 
     val docBuilder = xmlParser.documentBuilderFactory.newDocumentBuilder()
     docBuilder.parse(ReaderInputStream.builder()
-      .setReader(new StringReader(xml))
+      .setReader(StringReader(xml))
       .setCharset(UTF_8)
       .get())
 

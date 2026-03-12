@@ -51,7 +51,7 @@ class SubmissionStatusRepositorySpec
     def normalize: Instant = Instant.ofEpochMilli(instant.toEpochMilli)
   }
 
-  override def fakeApplication(): Application = new GuiceApplicationBuilder()
+  override def fakeApplication(): Application = GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
     .build()
 

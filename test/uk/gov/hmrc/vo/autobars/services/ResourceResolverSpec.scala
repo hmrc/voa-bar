@@ -19,7 +19,7 @@ package uk.gov.hmrc.vo.autobars.services
 import org.scalatestplus.play.PlaySpec
 
 class ResourceResolverSpec extends PlaySpec {
-  val resolver        = new ResourceResolver
+  val resolver        = ResourceResolver()
   val existingFile    = "BS7666-v2-0.xsd"
   val nonExistingFile = "file.xsd"
 

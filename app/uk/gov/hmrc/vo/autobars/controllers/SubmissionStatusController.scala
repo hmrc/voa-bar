@@ -39,11 +39,11 @@ class SubmissionStatusController @Inject() (
   controllerComponents: ControllerComponents,
   webBarsService: WebBarsService,
   configuration: Configuration
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends BackendController(controllerComponents) {
 
   val logger         = Logger("SubmissionStatusController")
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] =
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(

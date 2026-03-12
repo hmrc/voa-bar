@@ -40,8 +40,8 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   private def injector: Injector = app.injector
 
   private val configuration = injector.instanceOf[Configuration]
-  private val crypto        = new ApplicationCrypto(configuration.underlying)
-  private val utils         = new Utils(crypto.JsonCrypto)
+  private val crypto        = ApplicationCrypto(configuration.underlying)
+  private val utils         = Utils(crypto.JsonCrypto)
   private val username      = "username"
   private val password      = "password"
   private val baCode        = "BA1234"
@@ -67,7 +67,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       ).thenReturn(RequestBuilderStub(Right(OK), "{}"))
 
       val configuration = getConfiguration()
-      val connector     = new DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
+      val connector     = DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
 
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
@@ -77,7 +77,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
     "verify that the email service doesn't get called when email needn't to be sent" in {
       val httpClientV2Mock = mock[HttpClientV2]
       val configuration    = getConfiguration(sendEmail = false)
-      val connector        = new DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
+      val connector        = DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
 
       connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 

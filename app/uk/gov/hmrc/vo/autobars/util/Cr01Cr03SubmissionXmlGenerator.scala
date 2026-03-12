@@ -33,13 +33,13 @@ import scala.jdk.CollectionConverters.*
 @deprecated("Have bug for CR01, replaced by XmlSubmissionGenerator", "April 2021")
 class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
 
-  val OF                        = new ebars.xml.ObjectFactory()
+  val OF                        = ebars.xml.ObjectFactory()
   val transactionIdentityLength = 25
 
   implicit val dataFactory: DatatypeFactory = DatatypeFactory.newInstance()
 
   def generateXml(): BAreports = {
-    val report = new BAreports()
+    val report = BAreports()
     report.setBAreportHeader(generateHeader())
     report.setBAreportTrailer(generateReportTrailer())
     report.getBApropertyReport.add(generateBody())
@@ -50,7 +50,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def generateBody(): BAreportBodyStructure = {
-    val body = new BAreportBodyStructure()
+    val body = BAreportBodyStructure()
 
     val bodyElements = ListBuffer(
       OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
@@ -86,11 +86,11 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   private def proposedEntries(): JAXBElement[BApropertySplitMergeStructure] = {
-    val assessmentProperties = new AssessmentProperties()
+    val assessmentProperties = AssessmentProperties()
     assessmentProperties.setPropertyIdentity(propertyIdentification())
     assessmentProperties.setOccupierContact(occupierContact())
 
-    val proposed = new BApropertySplitMergeStructure()
+    val proposed = BApropertySplitMergeStructure()
     proposed.getAssessmentProperties.add(assessmentProperties)
 
     OF.createBAreportBodyStructureProposedEntries(proposed)
@@ -98,14 +98,14 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def occupierContact(): OccupierContactStructure = {
-    val person  = new PersonNameStructure()
+    val person  = PersonNameStructure()
     person.getPersonGivenName.add(submission.propertyContactDetails.firstName)
     person.setPersonFamilyName(submission.propertyContactDetails.lastName)
-    val contact = new OccupierContactStructure()
+    val contact = OccupierContactStructure()
     contact.setOccupierName(person)
     if !submission.sameContactAddress then
       val address        = submission.contactAddress.get
-      val contactAddress = new UKPostalAddressStructure()
+      val contactAddress = UKPostalAddressStructure()
       contactAddress.getLine.add(address.line1)
       contactAddress.getLine.add(address.line2)
       if address.line3.isDefined then
@@ -118,14 +118,14 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
       contact.setContactAddress(contactAddress)
 
     if submission.propertyContactDetails.email.isDefined || submission.propertyContactDetails.phoneNumber.isDefined then
-      val nos = new ContactDetailsStructure()
+      val nos = ContactDetailsStructure()
       if submission.propertyContactDetails.email.isDefined then
-        val email = new EmailStructure
+        val email = EmailStructure()
         email.setEmailAddress(submission.propertyContactDetails.email.get)
         nos.getEmail.add(email)
 
       if submission.propertyContactDetails.phoneNumber.isDefined then
-        val tel = new TelephoneStructure()
+        val tel = TelephoneStructure()
         tel.setTelNationalNumber(submission.propertyContactDetails.phoneNumber.get)
         nos.getTelephone.add(tel)
 
@@ -138,7 +138,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val uprn        = submission.uprn.map { uprn =>
       OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }
-    val textAddress = new TextAddressStructure()
+    val textAddress = TextAddressStructure()
     textAddress.getAddressLine.add(submission.address.line1)
     textAddress.getAddressLine.add(submission.address.line2)
     if submission.address.line3.isDefined then
@@ -152,20 +152,20 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
 
     val baReference = OF.createBApropertyIdentificationStructureBAreference(submission.baRef)
 
-    val propertyIdentity = new BApropertyIdentificationStructure()
+    val propertyIdentity = BApropertyIdentificationStructure()
     propertyIdentity.getContent.addAll(List(uprn, Option(jaxbTextAddress), Option(baReference)).flatten.asJava)
     propertyIdentity
   }
 
   private def typeOfTax = {
-    val reasonForReportCode                                = new CtaxReasonForReportCodeStructure()
+    val reasonForReportCode                                = CtaxReasonForReportCodeStructure()
     val (reasonForReportValue, reasonForReportDescription) =
       submission.reasonReport.fold(
         (ebars.xml.CtaxReasonForReportCodeContentType.CR_03, AddProperty.reasonForCodeDescription)
       )(rr => (rr.xmlValue, rr.reasonForCodeDescription))
     reasonForReportCode.setValue(reasonForReportValue)
 
-    val cTaxReport = new CtaxReasonForReport()
+    val cTaxReport = CtaxReasonForReport()
     cTaxReport.setReasonForReportCode(reasonForReportCode)
     cTaxReport.setReasonForReportDescription(reasonForReportDescription)
 
@@ -176,7 +176,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def generateHeader(): ReportHeaderStructure = {
-    val header = new ReportHeaderStructure()
+    val header = ReportHeaderStructure()
     header.setBillingAuthority(baName)
     header.setBillingAuthorityIdentityCode(baCode)
     header.setProcessDate(LocalDate.now().toXml)
@@ -185,7 +185,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
   }
 
   def generateReportTrailer(): ReportTrailerStructure = {
-    val trailer = new ReportTrailerStructure()
+    val trailer = ReportTrailerStructure()
     trailer.setRecordCount(BigInteger.ONE)
     trailer.setTotalCtaxReportCount(BigInteger.ONE)
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)

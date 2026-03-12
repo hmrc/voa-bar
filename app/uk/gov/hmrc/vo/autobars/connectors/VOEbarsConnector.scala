@@ -41,26 +41,26 @@ class DefaultVOEbarsConnector @Inject() (
 ) extends VOEbarsConnector
   with Logging:
 
-  val ebarsValidator: EbarsValidator = new EbarsValidator
+  val ebarsValidator: EbarsValidator = EbarsValidator()
 
   override def validate(loginDetails: LoginDetails): Future[Try[Int]] =
     ebarsClientV2.login(loginDetails.username, loginDetails.password)
 
-  def sendBAReport(baReportRequest: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] =
+  def sendBAReport(baReportRequest: BAReportRequest)(using ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] =
     Try(ebarsValidator.fromJson(baReportRequest.propertyReport)) map { reports =>
       val xml = ebarsValidator.toXml(reports)
       (reports, xml, ebarsValidator.validate(xml))
     } match {
       case Success((reports, _, errors)) if errors.hasErrors =>
         import models.EbarsBAreports.*
-        Future.failed(new RuntimeException(s"propertyReferenceNumbers: ${reports.uniquePropertyReferenceNumbers}. errors: $errors"))
+        Future.failed(RuntimeException(s"propertyReferenceNumbers: ${reports.uniquePropertyReferenceNumbers}. errors: $errors"))
       case Success((reports, xml, _))                        =>
         sendXML(baReportRequest, reports, xml)
       case Failure(e) if e.getCause != null                  => Future.failed(e.getCause)
       case Failure(e)                                        => Future.failed(e)
     }
 
-  private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier)
+  private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)(using ec: ExecutionContext, headerCarrier: HeaderCarrier)
     : Future[Int] =
     ebarsClientV2.uploadXML(baReportRequest.username, baReportRequest.password, xml, baReportRequest.attempt).flatMap {
       case Success(_)                =>
@@ -79,10 +79,10 @@ class DefaultVOEbarsConnector @Inject() (
         Future.successful(OK)
       case Failure(e: EbarsApiError) =>
         e.status match {
-          case OK                    => Future.failed(new RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
-          case SERVICE_UNAVAILABLE   => Future.failed(new RuntimeException("eBars UNAVAILABLE"))
-          case INTERNAL_SERVER_ERROR => Future.failed(new RuntimeException("eBars INTERNAL_SERVER_ERROR"))
-          case status                => Future.failed(new RuntimeException(s"Unspecified eBars error, status: $status"))
+          case OK                    => Future.failed(RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
+          case SERVICE_UNAVAILABLE   => Future.failed(RuntimeException("eBars UNAVAILABLE"))
+          case INTERNAL_SERVER_ERROR => Future.failed(RuntimeException("eBars INTERNAL_SERVER_ERROR"))
+          case status                => Future.failed(RuntimeException(s"Unspecified eBars error, status: $status"))
         }
       case Failure(e)                =>
         logger.warn(s"Couldn't send BA Reports. ${e.getMessage}", e)
@@ -93,4 +93,4 @@ class DefaultVOEbarsConnector @Inject() (
 trait VOEbarsConnector:
   def validate(loginDetails: LoginDetails): Future[Try[Int]]
 
-  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int]
+  def sendBAReport(baReport: BAReportRequest)(using ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int]

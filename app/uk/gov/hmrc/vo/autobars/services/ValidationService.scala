@@ -29,7 +29,7 @@ import scala.util.Try
 
 @Singleton
 class ValidationService {
-  val x   = new EbarsValidator()
+  val x   = EbarsValidator()
   val log = Logger(this.getClass)
 
   def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] = {
@@ -59,7 +59,7 @@ class ValidationService {
   def validateSubmission(submission: BAreports): Option[ReportError] = {
     assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
 
-    val validation = new RulesValidationEngine
+    val validation = RulesValidationEngine()
     val errors     = validation.applyRules(submission)
 
     Option(errors)

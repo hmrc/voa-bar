@@ -27,29 +27,29 @@ import services.EbarsValidator
   * Created by rgallet on 09/12/15.
   */
 class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues {
-  val ebarsValidator = new EbarsValidator
+  val ebarsValidator = EbarsValidator()
 
   "extracting CR code" should {
     "return 11" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
+      val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
       EbarsXmlCutter.extractCR(reports) should contain("11")
     }
 
     "return None if missing" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_MISSING_CR_CODE.xml")))
+      val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_MISSING_CR_CODE.xml")))
       EbarsXmlCutter.extractCR(reports) should be(None)
     }
 
     "return None if invalid" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_INVALID_CR_CODE.xml")))
+      val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_INVALID_CR_CODE.xml")))
       EbarsXmlCutter.extractCR(reports) should be(None)
     }
   }
 
   "working from a file with just a proposed entry" should {
     "move first existing entry to proposed" in {
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_EXISTING_PROPERTIES.xml")))
+      val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_EXISTING_PROPERTIES.xml")))
 
       EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 0
       EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 1

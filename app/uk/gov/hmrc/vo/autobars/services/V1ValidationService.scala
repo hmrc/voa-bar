@@ -33,15 +33,15 @@ class V1ValidationService @Inject() (validationService: ValidationService) {
 
   val log = Logger(getClass)
 
-  val correctionEngine = new RulesCorrectionEngine
+  val correctionEngine = RulesCorrectionEngine()
 
-  val rulesValidationEngine = new RulesValidationEngine
+  val rulesValidationEngine = RulesValidationEngine()
 
-  val xmlValidator = new EbarsValidator
+  val xmlValidator = EbarsValidator()
 
   def fixAndValidateAsV2(xml: Array[Byte], baLogin: String, requestId: String, v1Status: String): Boolean =
     Try {
-      val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(xml)))
+      val source = StreamSource(CorrectionInputStream(ByteArrayInputStream(xml)))
 
       val submission = xmlValidator.fromXml(source)
 

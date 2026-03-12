@@ -34,7 +34,7 @@ class LoginController @Inject() (
   audit: VOBarAuditConnector,
   applicationCrypto: ApplicationCrypto,
   controllerComponents: ControllerComponents
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends BackendController(controllerComponents)
   with Logging {
 

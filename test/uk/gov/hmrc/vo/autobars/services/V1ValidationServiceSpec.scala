@@ -29,7 +29,7 @@ class V1ValidationServiceSpec extends PlaySpec with TableDrivenPropertyChecks {
   private val batchWithMoreReports = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid2.xml"))
   private val wrongHeaderTrailer   = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
 
-  private val injector = new GuiceInjectorBuilder()
+  private val injector = GuiceInjectorBuilder()
     .configure("key" -> "value")
     .injector()
 

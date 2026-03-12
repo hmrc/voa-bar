@@ -37,8 +37,8 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -47,16 +47,16 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   "submission generator" should "generate CR05 XML" in {
     val submission = aCr05Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
@@ -83,16 +83,16 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   it should "generate CR01 XML" in {
     val submission = aCr01Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
@@ -117,16 +117,16 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   it should "generate CR03 XML" in {
     val submission = aCr03Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",

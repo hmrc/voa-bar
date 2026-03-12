@@ -64,9 +64,9 @@ case object OtherReason extends RemovalReasonType {
   override def xmlValue: String = "Other reason"
 }
 
-object RemovalReasonType {
+object RemovalReasonType:
 
-  val removalReasonMap: Map[String, RemovalReasonType] = Map(
+  private val removalReasonMap: Map[String, RemovalReasonType] = Map(
     "Demolition"                 -> Demolition,
     "Disrepair"                  -> Disrepair,
     "Derelict"                   -> Derelict,
@@ -79,21 +79,16 @@ object RemovalReasonType {
     "OtherReason"                -> OtherReason
   )
 
-  val removalReasonMapByType: Map[RemovalReasonType, String] = removalReasonMap.map(_.swap)
+  private val removalReasonMapByType: Map[RemovalReasonType, String] = removalReasonMap.map(_.swap)
 
-  implicit val format: Format[RemovalReasonType] = new Format[RemovalReasonType] {
+  implicit val format: Format[RemovalReasonType] =
+    new Format[RemovalReasonType]:
+      override def reads(json: JsValue): JsResult[RemovalReasonType] =
+        json match
+          case JsString(removalReason) =>
+            removalReasonMap.get(removalReason)
+              .fold[JsResult[RemovalReasonType]](JsError(s"Unknown Reason: $removalReason"))(JsSuccess(_))
+          case error                   => JsError(s"Unable to deserialize RemovalReasonType $error")
 
-    override def reads(json: JsValue): JsResult[RemovalReasonType] =
-      json match {
-        case JsString(removalReason) =>
-          removalReasonMap.get(removalReason)
-            .fold[JsResult[RemovalReasonType]](JsError(s"Unknown Reason: $removalReason"))(JsSuccess(_))
-        case error                   => JsError(s"Unable to deserialize RemovalReasonType $error")
-      }
-
-    override def writes(rrt: RemovalReasonType): JsValue =
-      JsString(removalReasonMapByType.getOrElse(rrt, throw new RuntimeException(s"RemovalReason: $rrt not found in map")))
-
-  }
-
-}
+      override def writes(rrt: RemovalReasonType): JsValue =
+        JsString(removalReasonMapByType.getOrElse(rrt, throw RuntimeException(s"RemovalReason: $rrt not found in map")))

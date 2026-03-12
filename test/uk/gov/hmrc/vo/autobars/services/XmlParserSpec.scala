@@ -32,7 +32,7 @@ import scala.xml.parsing.NoBindingFactoryAdapter
 
 class XmlParserSpec extends PlaySpec with EitherValues with Logging {
 
-  val xmlParser = new XmlParser()
+  val xmlParser = XmlParser()
 
   private val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTValid1.xml")
   private val validWithXXE               = getClass.getResource("/xml/CTValidWithXXE.xml")
@@ -44,13 +44,13 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
 
   private def domToScalaXMLNode(document: org.w3c.dom.Document): Either[BarError, Node] =
     Try {
-      val saxHandler = new NoBindingFactoryAdapter() {
-        override def endDocument(): Unit = {}
-      }
+      val saxHandler =
+        new NoBindingFactoryAdapter():
+          override def endDocument(): Unit = {}
 
       TransformerFactory.newInstance
         .newTransformer
-        .transform(new DOMSource(document), new SAXResult(saxHandler))
+        .transform(DOMSource(document), SAXResult(saxHandler))
 
       saxHandler.rootElem
     } match {

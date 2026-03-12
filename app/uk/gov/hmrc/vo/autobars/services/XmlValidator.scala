@@ -58,7 +58,7 @@ class XmlValidator {
 
   private val log = Logger(this.getClass)
 
-  private val schemaFile1 = new StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
+  private val schemaFile1 = StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
   private val factory     = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
   factory.setResourceResolver(new ResourceResolver)
 
@@ -66,8 +66,8 @@ class XmlValidator {
 
   def validate(document: Document): Either[BarError, Boolean] = {
 
-    val source       = new DOMSource(document)
-    val errorHandler = new XmlErrorHandler
+    val source       = DOMSource(document)
+    val errorHandler = XmlErrorHandler()
 
     Try {
       val validator = schema.newValidator
@@ -98,7 +98,7 @@ class XmlValidator {
     */
   def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] = {
 
-    val errorHandler = new XmlErrorHandler
+    val errorHandler = XmlErrorHandler()
 
     val maybeInvalid = Try {
       val documentBuilderFactory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", null)

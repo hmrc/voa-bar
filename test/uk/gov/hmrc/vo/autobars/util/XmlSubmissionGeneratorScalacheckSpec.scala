@@ -41,8 +41,8 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 500)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -209,7 +209,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     val id = UUID.randomUUID().toString
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -227,7 +227,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     val id = UUID.randomUUID().toString
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -245,7 +245,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     val id = UUID.randomUUID().toString
     forAll(genCr05Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -264,7 +264,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     val id = UUID.randomUUID().toString
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -273,7 +273,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
@@ -292,7 +292,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     val id = UUID.randomUUID().toString
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -301,7 +301,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
@@ -320,17 +320,15 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   }
 
   private val evaluator =
-    new DifferenceEvaluator {
-
+    new DifferenceEvaluator:
       override def evaluate(comparison: Comparison, outcome: ComparisonResult): ComparisonResult =
         if outcome != ComparisonResult.EQUAL && comparison.getControlDetails.getTarget.getParentNode.getNodeName == "EntryDateTime" then
           ComparisonResult.EQUAL
         else
           outcome
-    }
 
   def printXml(report: BAreports): String = {
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(report, sw)
     sw.toString
   }

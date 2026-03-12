@@ -44,7 +44,7 @@ object UserReportUpload {
 class DefaultUserReportUploadsRepository @Inject() (
   mongo: MongoComponent,
   config: Configuration
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends PlayMongoRepository[UserReportUpload](
     collectionName = UserReportUpload.collectionName,
     mongoComponent = mongo,

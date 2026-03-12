@@ -41,7 +41,7 @@ import scala.xml.XML
 class EbarsClientV2 @Inject() (
   httpClientV2: HttpClientV2,
   servicesConfig: ServicesConfig
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends Logging:
 
   private val eBarsBaseUrl: String    = servicesConfig.baseUrl("voa-ebars")
@@ -77,7 +77,7 @@ class EbarsClientV2 @Inject() (
     logger.trace(s"Response : $response")
     response.status match {
       case OK           => parseUploadOkResponse(response, attempt)
-      case UNAUTHORIZED => Failure(new UnauthorizedException("UNAUTHORIZED"))
+      case UNAUTHORIZED => Failure(UnauthorizedException("UNAUTHORIZED"))
       case status       =>
         logger.warn(s"Couldn't send BA Reports. status: $status\n${response.body}")
         Failure(EbarsApiError(status, s"${response.status}. attempt: $attempt"))
@@ -86,7 +86,7 @@ class EbarsClientV2 @Inject() (
   private def parseUploadOkResponse(response: HttpResponse, attempt: Int): Try[Int] =
     val body = response.body
     if body.contains("401 Unauthorized") then
-      Failure(new UnauthorizedException("UNAUTHORIZED"))
+      Failure(UnauthorizedException("UNAUTHORIZED"))
     else
       Try {
         val responseXML = XML.loadString(body)
@@ -107,7 +107,7 @@ class EbarsClientV2 @Inject() (
     htmlContent.contains("Your session has expired, you will need to login again")
 
   private def extractErrors(htmlContent: String): Seq[models.Error] =
-    val source = new Source(htmlContent)
+    val source = Source(htmlContent)
     val errors = source.getAllElements("name", "errorMsg", true).asScala.toList.map(t => models.Error("voa-ebars-0002", t.getAttributeValue("value")))
 
     val errors2 = source.getAllElements().asScala.filter { e =>

@@ -53,7 +53,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     baCode = userId
   )
   private val configuration      = Configuration(ConfigFactory.load())
-  private val crypto             = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto             = ApplicationCrypto(configuration.underlying).JsonCrypto
   private val reportStatusJson   = Json.toJson(reportStatus)
   private val reportStatusesJson = Json.toJson(Seq(reportStatus))
 
@@ -68,7 +68,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[ReportStatus], any[Boolean])).thenReturn(Future.successful(Right(())))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.save()(fakeRequest)
 
@@ -78,7 +78,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[ReportStatus], any[Boolean])).thenReturn(Future.successful(Left(error)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.save()(fakeRequest)
 
@@ -88,7 +88,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String])).thenReturn(Future.successful(Right(())))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
 
@@ -98,7 +98,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String])).thenReturn(Future.successful(Left(error)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
 
@@ -108,7 +108,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])).thenReturn(Future.successful(Right(Seq(reportStatus))))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByUser()(fakeRequest)
 
@@ -119,7 +119,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])).thenReturn(Future.successful(Left(error)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByUser()(fakeRequest)
 
@@ -129,7 +129,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByReference(any[String])).thenReturn(Future.successful(Right(reportStatus)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByReference(id)(fakeRequest)
 
@@ -140,7 +140,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByReference(any[String])).thenReturn(Future.successful(Left(error)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByReference(id)(fakeRequest)
 
@@ -150,7 +150,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getAll()).thenReturn(Future.successful(Right(Seq(reportStatus))))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getAll()(fakeRequest)
 
@@ -162,7 +162,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getAll()).thenReturn(Future.successful(Left(error)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getAll()(fakeRequest)
 
@@ -180,7 +180,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.deleteByReference(any[String], any[String])).thenReturn(Future.successful(Right(deleteResult)))
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.deleteByReference(reference).apply(fakeRequest.withHeaders("BA-Code" -> "BA1010")).run()
 
@@ -192,7 +192,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
       val reference                      = UUID.randomUUID().toString
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       val submissionStatusController     =
-        new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+        SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.deleteByReference(reference).apply(fakeRequest.withHeaders(fakeRequest.headers.remove("BA-Code"))).run()
 

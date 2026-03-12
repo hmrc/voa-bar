@@ -73,7 +73,7 @@ class UpscanCallbackControllerSpec
     when(voEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer(_ => Future.successful(OK))
 
-    new GuiceApplicationBuilder()
+    GuiceApplicationBuilder()
       .bindings(
         bind[VOEbarsConnector].to(voEbarsConnector),
         bind[UpscanConnector].to(StubUpscanConnector)
@@ -86,7 +86,7 @@ class UpscanCallbackControllerSpec
   private val submissionRepository        = inject[SubmissionStatusRepositoryImpl]
   private val userReportUploadsRepository = inject[DefaultUserReportUploadsRepository]
   private val configuration               = inject[Configuration]
-  private val crypto                      = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto                      = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private val xmlUrl     = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
   private val reference  = "111-777"
@@ -110,7 +110,7 @@ class UpscanCallbackControllerSpec
   private def buildUploadConfirmationError(submissionReference: String, failureDetails: FailureDetails): FakeRequest[JsValue] =
     buildUpscanRequest(UploadConfirmationError(submissionReference, "FAILED", failureDetails))
 
-  private def buildUpscanRequest[T](upscanRequestObj: T)(implicit tjs: Writes[T]): FakeRequest[JsValue] =
+  private def buildUpscanRequest[T](upscanRequestObj: T)(using tjs: Writes[T]): FakeRequest[JsValue] =
     FakeRequest("POST", "/voa-bar/upload/confirmation")
       .withHeaders("Content-Type" -> "application/json")
       .withBody(Json.toJson(upscanRequestObj))
@@ -214,9 +214,9 @@ class UpscanCallbackControllerSpec
 
 object StubUpscanConnector extends UpscanConnector {
 
-  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
+  override def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future.successful(Right(
-      Using.resource(new URI(url).toURL.openStream()) {
+      Using.resource(URI(url).toURL.openStream()) {
         _.readAllBytes()
       }
     ))

@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
 class UploadController @Inject() (reportUploadService: ReportUploadService, configuration: Configuration, controllerComponents: ControllerComponents)
   extends BackendController(controllerComponents) {
 
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def upload: Action[UploadDetails] = Action(parse.json[UploadDetails]) { implicit request =>
     val headers       = request.headers

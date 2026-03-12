@@ -27,12 +27,12 @@ object DateConversion:
 
   implicit class LocalDateToXmlGregorianCalendar(localDate: LocalDate) {
 
-    def toXml(implicit df: DatatypeFactory): XMLGregorianCalendar =
+    def toXml(using df: DatatypeFactory): XMLGregorianCalendar =
       df.newXMLGregorianCalendarDate(localDate.getYear, localDate.getMonthValue, localDate.getDayOfMonth, javax.xml.datatype.DatatypeConstants.FIELD_UNDEFINED)
   }
 
   implicit class InstantToXmlGregorianCalendar(instant: Instant) {
 
-    def toXml(implicit df: DatatypeFactory): XMLGregorianCalendar =
+    def toXml(using df: DatatypeFactory): XMLGregorianCalendar =
       df.newXMLGregorianCalendar(GregorianCalendar.from(instant.atZone(LONDON_ZONE)))
   }
