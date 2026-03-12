@@ -17,7 +17,7 @@
 package uk.gov.hmrc.vo.autobars.connectors
 
 import com.google.inject.ImplementedBy
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HeaderNames.*
@@ -31,9 +31,7 @@ trait UpscanConnector:
   def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]]
 
 @Singleton
-class DefaultUpscanConnector @Inject() (httpClient: WSClient)(using ec: ExecutionContext) extends UpscanConnector:
-
-  val logger = Logger(this.getClass)
+class DefaultUpscanConnector @Inject() (httpClient: WSClient)(using ec: ExecutionContext) extends UpscanConnector with Logging:
 
   def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     httpClient.url(url)

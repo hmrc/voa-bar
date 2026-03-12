@@ -78,12 +78,11 @@ class DefaultVOEbarsConnector @Inject() (
 
         Future.successful(OK)
       case Failure(e: EbarsApiError) =>
-        e.status match {
+        e.status match
           case OK                    => Future.failed(RuntimeException(s"eBars response status: ${e.status}. ${e.getMessage}"))
           case SERVICE_UNAVAILABLE   => Future.failed(RuntimeException("eBars UNAVAILABLE"))
           case INTERNAL_SERVER_ERROR => Future.failed(RuntimeException("eBars INTERNAL_SERVER_ERROR"))
           case status                => Future.failed(RuntimeException(s"Unspecified eBars error, status: $status"))
-        }
       case Failure(e)                =>
         logger.warn(s"Couldn't send BA Reports. ${e.getMessage}", e)
         Future.failed(e)
