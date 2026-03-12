@@ -56,7 +56,7 @@ class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwa
       val httpClientV2Mock = mock[HttpClientV2]
       when(
         httpClientV2Mock.post(any[URL])(using any[HeaderCarrier])
-      ).thenReturn(RequestBuilderStub(Right(OK), ""))
+      ).thenReturn(RequestBuilderStub(Right(OK)))
 
       val ebarsClient = EbarsClientV2(httpClientV2Mock, servicesConfig)
 

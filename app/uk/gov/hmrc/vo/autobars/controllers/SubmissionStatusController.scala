@@ -52,7 +52,7 @@ class SubmissionStatusController @Inject() (
     ))
 
   private def getAllReportStatuses: Future[Either[Result, Seq[ReportStatus]]] =
-    submissionStatusRepository.getAll().map(_.fold(
+    submissionStatusRepository.getAll.map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))

@@ -114,7 +114,7 @@ class SubmissionStatusRepositoryImpl @Inject() (
         case ex: Throwable => handleMongoWarn(s"Couldn't retrieve BA reports for reference $reference", ex, logger)
       }
 
-  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] =
+  override def getAll: Future[Either[BarError, Seq[ReportStatus]]] =
     collection.withReadPreference(ReadPreference.primary())
       .find().sort(descending("createdAt")).toFuture()
       .flatMap { res =>
@@ -247,7 +247,7 @@ trait SubmissionStatusRepository {
 
   def deleteByReference(reference: String, user: String): Future[Either[BarError, JsValue]]
 
-  def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
+  def getAll: Future[Either[BarError, Seq[ReportStatus]]]
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit]]
 
