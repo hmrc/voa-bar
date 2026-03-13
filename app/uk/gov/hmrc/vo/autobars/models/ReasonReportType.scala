@@ -19,24 +19,17 @@ package uk.gov.hmrc.vo.autobars.models
 import ebars.xml.CtaxReasonForReportCodeContentType
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
 
-sealed trait ReasonReportType {
+sealed trait ReasonReportType:
   def xmlValue: CtaxReasonForReportCodeContentType
   def reasonForCodeDescription: String
-}
 
-case object AddProperty extends ReasonReportType {
-
-  override def xmlValue: CtaxReasonForReportCodeContentType =
-    CtaxReasonForReportCodeContentType.CR_03
+case object AddProperty extends ReasonReportType:
+  override def xmlValue: CtaxReasonForReportCodeContentType = CtaxReasonForReportCodeContentType.CR_03
   def reasonForCodeDescription: String                      = "New"
-}
 
-case object RemoveProperty extends ReasonReportType {
-
-  override def xmlValue: CtaxReasonForReportCodeContentType =
-    CtaxReasonForReportCodeContentType.CR_01
+case object RemoveProperty extends ReasonReportType:
+  override def xmlValue: CtaxReasonForReportCodeContentType = CtaxReasonForReportCodeContentType.CR_01
   def reasonForCodeDescription: String                      = "Demolished"
-}
 
 object ReasonReportType:
 

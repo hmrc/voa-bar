@@ -22,21 +22,18 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import ErrorCode.*
 
-class ErrorCodeSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
+class ErrorCodeSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
   "ErrorCode" should {
     "return valid ErrorCode from String" in {
       val value: JsValue = Json.toJson(NOT_IN_USE.errorCode)
 
       val errorCode = ErrorCode.reader.reads(value)
-
       errorCode mustBe JsSuccess(NOT_IN_USE)
     }
     "return valid String from ErrorCode" in {
       val value: JsValue = Json.toJson(NOT_IN_USE.errorCode)
 
       val errorCode = ErrorCode.writer.writes(NOT_IN_USE)
-
       errorCode mustBe value
     }
   }
-}

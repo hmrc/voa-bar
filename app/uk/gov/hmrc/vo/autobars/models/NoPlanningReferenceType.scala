@@ -18,29 +18,23 @@ package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
 
-sealed trait NoPlanningReferenceType {
+sealed trait NoPlanningReferenceType:
   def xmlValue: String
-}
 
-case object WithoutPlanningPermission extends NoPlanningReferenceType {
+case object WithoutPlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-BWPP."
-}
 
-case object NotApplicablePlanningPermission extends NoPlanningReferenceType {
+case object NotApplicablePlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PPNA."
-}
 
-case object NotRequiredPlanningPermission extends NoPlanningReferenceType {
+case object NotRequiredPlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PPNR."
-}
 
-case object PermittedDevelopment extends NoPlanningReferenceType {
+case object PermittedDevelopment extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PD."
-}
 
-case object NoPlanningApplicationSubmitted extends NoPlanningReferenceType {
+case object NoPlanningApplicationSubmitted extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-NPAS."
-}
 
 object NoPlanningReferenceType:
 

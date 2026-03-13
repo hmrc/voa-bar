@@ -26,7 +26,7 @@ import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.vo.autobars.models.UploadDetails
 import uk.gov.hmrc.vo.autobars.services.ReportUploadService
 
-class UploadControllerSpec extends PlaySpec with MockitoSugar {
+class UploadControllerSpec extends PlaySpec with MockitoSugar:
 
   private val reportUploadService = mock[ReportUploadService]
 
@@ -71,5 +71,3 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
     val result = controller.upload()(fakeRequestWithXMLButNoPassword)
     status(result) mustBe UNAUTHORIZED
   }
-
-}

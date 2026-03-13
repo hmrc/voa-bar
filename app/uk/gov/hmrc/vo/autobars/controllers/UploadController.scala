@@ -28,7 +28,7 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UploadController @Inject() (reportUploadService: ReportUploadService, configuration: Configuration, controllerComponents: ControllerComponents)
-  extends BackendController(controllerComponents) {
+  extends BackendController(controllerComponents):
 
   private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -36,23 +36,20 @@ class UploadController @Inject() (reportUploadService: ReportUploadService, conf
     val headers       = request.headers
     val uploadDetails = request.body
 
-    val response = for {
-      baCode            <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing"))
-      encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing"))
-      password          <- decryptPassword(encryptedPassword)
-    } yield {
-      reportUploadService.upload(LoginDetails(baCode, password), uploadDetails.xmlUrl, uploadDetails.reference)
-      Ok("")
-    }
+    val response =
+      for
+        baCode            <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing"))
+        encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing"))
+        password          <- decryptPassword(encryptedPassword)
+      yield
+        reportUploadService.upload(LoginDetails(baCode, password), uploadDetails.xmlUrl, uploadDetails.reference)
+        Ok("")
     response.fold(identity, identity)
   }
 
   private def decryptPassword(encryptedPassword: String): Either[Result, String] =
     Try {
       crypto.decrypt(Crypted(encryptedPassword))
-    } match {
+    } match
       case Success(password)  => Right(password.value)
       case Failure(exception) => Left(Unauthorized("Unable to decrypt password"))
-    }
-
-}

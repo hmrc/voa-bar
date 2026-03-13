@@ -27,11 +27,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 
-class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
+class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
 
   private val username  = "ba0121"
   private val password  = "wibble"
   private val goodLogin = LoginDetails(username, password)
+
   "Utils" must {
     "have decryptPassword method that"   must {
       "Decrypt the  encrypted password and return it in plain text" in {
@@ -52,12 +53,11 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
         val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
-        hc.authorization match {
+        hc.authorization match
           case Some(s) =>
             hc.authorization.isDefined mustBe true
             s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
           case _       => assert(false)
-        }
       }
 
       "include some basic authorization in the header for existing header carrier" in {
@@ -69,13 +69,11 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
         val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
-        hc.authorization match {
+        hc.authorization match
           case Some(s) =>
             hc.authorization.isDefined mustBe true
             s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
           case _       => assert(false)
-        }
       }
     }
   }
-}

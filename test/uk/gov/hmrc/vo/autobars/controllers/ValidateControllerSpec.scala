@@ -19,33 +19,31 @@ package uk.gov.hmrc.vo.autobars.controllers
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util.UUID
 
-import org.scalatestplus.play._
+import org.scalatestplus.play.*
 import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.api.mvc._
-import play.api.test._
-import play.api.test.Helpers._
+import play.api.mvc.*
+import play.api.test.*
+import play.api.test.Helpers.*
 import uk.gov.hmrc.vo.autobars.services.{V1ValidationService, ValidationService, XmlValidator}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ValidateControllerSpec extends PlaySpec with Results {
+class ValidateControllerSpec extends PlaySpec with Results:
 
   val BA_LOGIN = "BA5090"
 
-  private val requestId = "mdtp-request-" + UUID.randomUUID().toString.replaceAll("-", "")
+  private val requestId = "mdtp-request-" + UUID.randomUUID.toString.replaceAll("-", "")
 
   "Validate controller" should {
     "validate correct xml" in {
       val controller = ValidateController(Helpers.stubControllerComponents(), aSubmissionProcessingService())
-      val response   = controller.validate(BA_LOGIN).apply(aSucessfullRequest())
+      val response   = controller.validate(BA_LOGIN).apply(aSuccessfulRequest)
       status(response) mustBe OK
     }
   }
 
-  private def aSucessfullRequest() = {
-
-    val path = Paths.get("test/resources/xml/CTValid1.xml")
-
+  private def aSuccessfulRequest =
+    val path     = Paths.get("test/resources/xml/CTValid1.xml")
     val tempPath = Files.createTempFile("CTValid1", "xml")
 
     Files.copy(path, tempPath, StandardCopyOption.REPLACE_EXISTING)
@@ -54,12 +52,6 @@ class ValidateControllerSpec extends PlaySpec with Results {
     FakeRequest(POST, "/sss").withBody(tempFile)
       .withHeaders("X-Request-ID" -> requestId)
 
-  }
+  private def aSubmissionProcessingService() = V1ValidationService(aValidationService)
 
-  def aSubmissionProcessingService() = V1ValidationService(aValidationService())
-
-  def aValidationService() = ValidationService()
-
-  def xmlValidator() = XmlValidator()
-
-}
+  private def aValidationService = ValidationService()

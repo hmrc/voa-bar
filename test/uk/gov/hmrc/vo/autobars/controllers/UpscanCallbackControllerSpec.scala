@@ -63,7 +63,7 @@ class UpscanCallbackControllerSpec
   with GuiceOneAppPerSuite
   with MockitoSugar
   with Status
-  with Injecting {
+  with Injecting:
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
@@ -115,7 +115,7 @@ class UpscanCallbackControllerSpec
       .withHeaders("Content-Type" -> "application/json")
       .withBody(Json.toJson(upscanRequestObj))
 
-  private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) = {
+  private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) =
     eventually {
       await(submissionRepository.getByReference(submissionReference)).value.status must not be Submitted.value
     }
@@ -125,7 +125,6 @@ class UpscanCallbackControllerSpec
     submissionReport.value.status mustBe expectedStatus.value
     submissionReport.value.baCode mustBe expectedBaCode
     submissionReport.value.errors mustBe expectedErrors
-  }
 
   "UpscanCallbackController " must {
     "handle upscan callback with `UploadConfirmation`" in {
@@ -210,9 +209,7 @@ class UpscanCallbackControllerSpec
     }
   }
 
-}
-
-object StubUpscanConnector extends UpscanConnector {
+object StubUpscanConnector extends UpscanConnector:
 
   override def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future.successful(Right(
@@ -220,5 +217,3 @@ object StubUpscanConnector extends UpscanConnector {
         _.readAllBytes()
       }
     ))
-
-}

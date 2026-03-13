@@ -23,13 +23,14 @@ import org.scalatest.OptionValues
 import services.EbarsValidator
 
 import javax.xml.transform.stream.StreamSource
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionValues {
-  val ebarsValidator = EbarsValidator()
+class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionValues:
+
+  private val ebarsValidator = EbarsValidator()
 
   "extracting CR code" should {
     "return CR03" in {
@@ -487,4 +488,3 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
-}

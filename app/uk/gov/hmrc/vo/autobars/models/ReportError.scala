@@ -17,18 +17,14 @@
 package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.{Format, Json, OFormat}
-import uk.gov.hmrc.vo.autobars.util.JavaEnumUtils
 
 case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[String] = Seq.empty[String])
 
-object ReportErrorDetail {
-  implicit val errorCodeFormat: Format[ReportErrorDetailCode] = JavaEnumUtils.format[ReportErrorDetailCode]
-  implicit val format: OFormat[ReportErrorDetail]             = Json.format[ReportErrorDetail]
-
-}
+object ReportErrorDetail:
+  implicit val errorCodeFormat: Format[ReportErrorDetailCode] = Scala3EnumJsonFormat.format
+  implicit val format: OFormat[ReportErrorDetail]             = Json.format
 
 case class ReportError(reportNumber: Option[String], baTransaction: Option[String], uprn: Seq[Long], errors: Seq[ReportErrorDetail])
 
-object ReportError {
-  implicit val format: OFormat[ReportError] = Json.format[ReportError]
-}
+object ReportError:
+  implicit val format: OFormat[ReportError] = Json.format

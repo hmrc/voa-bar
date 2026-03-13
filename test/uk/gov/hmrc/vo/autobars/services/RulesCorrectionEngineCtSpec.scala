@@ -22,17 +22,18 @@ import org.scalatest.OptionValues
 import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
-import CtRules._
+import CtRules.*
 
 import jakarta.xml.bind.JAXBElement
 import javax.xml.transform.stream.StreamSource
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks {
-  val ebarsValidator = EbarsValidator()
+class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks:
+
+  private val ebarsValidator = EbarsValidator()
 
   "RulesCorrectionEngine" should {
     val engine = RulesCorrectionEngine()
@@ -602,4 +603,3 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
       EbarsXmlCutter.getPropertyIdentities(reports).head.getContent.asScala.find(_.getName.getLocalPart == "PropertyGridCoords") should be(None)
     }
   }
-}

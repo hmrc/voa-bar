@@ -26,8 +26,9 @@ import services.EbarsValidator
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues {
-  val ebarsValidator = EbarsValidator()
+class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues:
+
+  private val ebarsValidator = EbarsValidator()
 
   "extracting CR code" should {
     "return 11" in {
@@ -61,4 +62,3 @@ class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with Option
       EbarsXmlCutter.findProposedEntriesIdx(reports) should have size 1
     }
   }
-}

@@ -21,15 +21,16 @@ import org.scalatest.OptionValues
 import org.scalatest.matchers.should
 import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
-import NdrRules._
+import NdrRules.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with OptionValues {
-  val ebarsValidator = EbarsValidator()
+class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with OptionValues:
+
+  private val ebarsValidator = EbarsValidator()
 
   "RemoveBS7666Addresses" should {
     "remove BS7666Address" in {
@@ -237,4 +238,3 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
       EbarsXmlCutter.findExistingEntriesIdx(reports) should have size 0
     }
   }
-}

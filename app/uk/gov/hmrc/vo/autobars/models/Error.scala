@@ -24,8 +24,8 @@ import uk.gov.hmrc.vo.autobars.util.ErrorCode
 
 case class Error(code: ErrorCode, values: Seq[String] = Seq(), submissionDetail: Option[String] = None)
 
-object Error {
-  implicit val format: OFormat[Error] = Json.format[Error]
+object Error:
+  implicit val format: OFormat[Error] = Json.format
 
   // val errorCodecProvider: CodecProvider = Macros.createCodecProvider[Error]()
   private val errorCodecProvider: CodecProvider = CodecProviders.playFormatCodecProvider(format)
@@ -33,4 +33,3 @@ object Error {
   val errorCodecRegistry: CodecRegistry = fromProviders(errorCodecProvider)
 
   // implicit val errorHandler: BSONHandler[BsonDocument, Error] = Macros.handler[Error]
-}

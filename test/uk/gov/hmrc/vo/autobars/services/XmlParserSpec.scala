@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
 import scala.xml.*
 import scala.xml.parsing.NoBindingFactoryAdapter
 
-class XmlParserSpec extends PlaySpec with EitherValues with Logging {
+class XmlParserSpec extends PlaySpec with EitherValues with Logging:
 
   val xmlParser = XmlParser()
 
@@ -53,12 +53,11 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
         .transform(DOMSource(document), SAXResult(saxHandler))
 
       saxHandler.rootElem
-    } match {
+    } match
       case Success(scalaNode) => Right(scalaNode)
       case Failure(exception) =>
         logger.error("Transforming DOM to Scala XML Node failed", exception)
         Left(BarXmlError(exception.getMessage))
-    }
 
   "Xml parser " must {
     "successfuly parse xml to DOM" in {
@@ -229,5 +228,3 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging {
       nonEmptyPropertyReports.forall(_.sizeIs == 1) mustBe true
     }
   }
-
-}

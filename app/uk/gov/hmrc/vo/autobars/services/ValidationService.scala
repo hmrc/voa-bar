@@ -18,7 +18,7 @@ package uk.gov.hmrc.vo.autobars.services
 
 import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports}
 import jakarta.xml.bind.JAXBElement
-import play.api.Logger
+import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.vo.autobars.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
@@ -28,27 +28,25 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 @Singleton
-class ValidationService {
-  val x   = EbarsValidator()
-  val log = Logger(this.getClass)
+class ValidationService extends Logging:
 
-  def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] = {
+  val eBarsValidator = EbarsValidator()
 
-    log.warn(s"submissions in XML : ${submissions.getBApropertyReport.size()}, isEmpty ${submissions.getBApropertyReport.isEmpty}")
+  def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] =
+    logger.warn(s"submissions in XML : ${submissions.getBApropertyReport.size()}, isEmpty ${submissions.getBApropertyReport.isEmpty}")
 
     if submissions.getBApropertyReport.isEmpty then
       Left(BarXmlError("No submission found."))
     else
-      val headerErros = validateHeaderTrailer(submissions, baLogin)
-      if headerErros.isEmpty then
-        val bodyErrros = validateBody(submissions)
-        if bodyErrros.isEmpty then Right(()) else Left(BarSubmissionValidationError(bodyErrros))
+      val headerErrors = validateHeaderTrailer(submissions, baLogin)
+      if headerErrors.isEmpty then
+        val bodyErrors = validateBody(submissions)
+        if bodyErrors.isEmpty then Right(()) else Left(BarSubmissionValidationError(bodyErrors))
       else
-        Left(BarValidationError(headerErros))
-  }
+        Left(BarValidationError(headerErrors))
 
-  def validateBody(submissions: BAreports): List[ReportError] =
-    x.split(submissions).flatMap { submission =>
+  private def validateBody(submissions: BAreports): List[ReportError] =
+    eBarsValidator.split(submissions).flatMap { submission =>
       validateSubmission(submission)
     }.toList
 
@@ -56,7 +54,7 @@ class ValidationService {
     * @param submission only one submission!!!!.
     * @return
     */
-  def validateSubmission(submission: BAreports): Option[ReportError] = {
+  private def validateSubmission(submission: BAreports): Option[ReportError] =
     assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
 
     val validation = RulesValidationEngine()
@@ -66,9 +64,7 @@ class ValidationService {
       .filter(_.nonEmpty)
       .map(x => createSubmissionDetailDescription(submission).copy(errors = x))
 
-  }
-
-  private def createSubmissionDetailDescription(submission: BAreports): ReportError = {
+  private def createSubmissionDetailDescription(submission: BAreports): ReportError =
     // TODO should we have assert or just return None, or take head ???
     // TODO maybe delete after full development.
     assert(submission.getBApropertyReport.size() == 1, "createPropertyDescription can create description for only one submission")
@@ -88,7 +84,6 @@ class ValidationService {
 
       ReportError(reportNumber, baTransaction, uprn, Seq.empty)
     }.getOrElse(ReportError(None, None, Seq.empty, Seq.empty))
-  }
 
   private def extractUPRN(submission: BAreportBodyStructure, entries: String): Seq[Long] =
     Try {
@@ -96,54 +91,24 @@ class ValidationService {
         .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
         .toList.flatMap(x => x.getAssessmentProperties.asScala.toList)
         .flatMap { x =>
-          val UPRN = x.getPropertyIdentity.getContent.asScala
+          x.getPropertyIdentity.getContent.asScala
             .find(z => z.getName.getLocalPart == "UniquePropertyReferenceNumber" && !z.isNil)
             .map(z => z.asInstanceOf[JAXBElement[Long]].getValue)
-          UPRN
         }
     }.fold(
-      e => {
-        log.warn("Unable to extract UPRN: ", e)
+      e =>
+        logger.warn("Unable to extract UPRN: ", e)
         List.empty[Long]
-      },
+      ,
       identity
     )
 
-  /*
-   * Uncle Bob say it should be deleted, but it's so handy and also document hacks in autobars.
-
-  def extractProperties(submission: BAreportBodyStructure, entries: String) = {
-    Try {
-      submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
-        .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
-        .toList.flatMap(x => x.getAssessmentProperties.asScala.toList)
-        .flatMap { x =>
-          val address = x.getPropertyIdentity.getContent.asScala
-            .find(z => z.getName.getLocalPart == "TextAddress" && !z.isNil)
-            .map(z => z.asInstanceOf[JAXBElement[TextAddressStructure]].getValue)
-            .map(z => {
-              z.getAddressLine.asScala.map(_.trim).filter(_ != "").mkString("", ", ", " ") + Option(z.getPostcode).getOrElse("")
-            })
-            .filterNot(x => entries == "ExistingEntries" && x.contains("[PROPOSED]")) //TODO - FIX bug in ebars.
-                                                                                // uk.gov.hmrc.vo.autobars.services.CtRules.Cr05CopyProposedEntriesToExistingEntries
-          address
-        }
-    }.fold(e => {
-      log.warn("Unable to extract Properties: ", e)
-      List.empty[String]
-    }, identity)
-  }
-   */
-
-  def validateHeaderTrailer(submission: BAreports, baLogin: LoginDetails): List[Error] =
+  private def validateHeaderTrailer(submission: BAreports, baLogin: LoginDetails): List[Error] =
     validationBACode(submission, baLogin)
 
-  def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] =
-    Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
+  private def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] =
+    Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match
       case None                                     => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if baCode == 0              => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if baCode == baLogin.baCode => List.empty
       case Some(wrongBaNumber)                      => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
-    }
-
-}

@@ -30,7 +30,7 @@ case class UserReportUploadRest(id: String, userId: String, userPassword: String
 
 object UserReportUploadRest {
 
-  implicit val format: OFormat[UserReportUploadRest] = Json.format[UserReportUploadRest]
+  implicit val format: OFormat[UserReportUploadRest] = Json.format
 
   def apply(userReportUpload: UserReportUpload): UserReportUploadRest =
     UserReportUploadRest(userReportUpload._id, userReportUpload.userId, userReportUpload.userPassword)

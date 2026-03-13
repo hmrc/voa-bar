@@ -35,7 +35,7 @@ class UserReportUploadsController @Inject() (
   controllerComponents: ControllerComponents
 )(using ec: ExecutionContext
 ) extends BackendController(controllerComponents)
-  with Logging {
+  with Logging:
 
   def getById(id: String): Action[AnyContent] = Action.async {
     userReportUploadsRepository.getById(id).map(_.fold(
@@ -45,12 +45,11 @@ class UserReportUploadsController @Inject() (
   }
 
   private def parseUserReportUpload(request: Request[JsValue]): Either[Status, UserReportUpload] =
-    request.body.validate[UserReportUploadRest] match {
+    request.body.validate[UserReportUploadRest] match
       case userReportUpload: JsSuccess[UserReportUploadRest @unchecked] => Right(userReportUpload.value.toMongoEntity)
       case _                                                            =>
         logger.error(s"Couldn't parse:\n${request.body.toString}")
         Left(BadRequest)
-    }
 
   private def saveUserReportUpload(userReportUpload: UserReportUpload): Future[Either[Result, Unit]] =
     userReportUploadsRepository.save(userReportUpload).map(_.fold(
@@ -59,11 +58,9 @@ class UserReportUploadsController @Inject() (
     ))
 
   def save: Action[JsValue] = Action.async(parse.tolerantJson) { implicit request =>
-    (for {
+    (for
       userReportUpload <- EitherT.fromEither[Future](parseUserReportUpload(request))
       _                <- EitherT(saveUserReportUpload(userReportUpload))
-    } yield NoContent)
+    yield NoContent)
       .valueOr(_ => InternalServerError)
   }
-
-}

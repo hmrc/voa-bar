@@ -26,29 +26,24 @@ import uk.gov.hmrc.vo.autobars.models.ReportErrorDetailCode as ErrorCode
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite {
+class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite:
 
   "Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation" must {
     "report missing existing entry" in {
-      val ebarsValidator = EbarsValidator()
-      val reports        = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT1_NO_PROPERTIES.xml")))
+      val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT1_NO_PROPERTIES.xml")))
 
       val result = Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply(reports)
 
       result.map(_.errorCode) mustBe Some(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
-      // result.get.value must be("The proposed property address is missing from this report.") //no messages
     }
   }
 
   "Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation" must {
     "report missing existing entry" in {
-      val ebarsValidator = EbarsValidator()
-      val reports        = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT5_NO_PROPERTIES.xml")))
+      val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT5_NO_PROPERTIES.xml")))
 
       val result = Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply(reports)
 
       result.map(_.errorCode) mustBe Some(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
-      // result.get.value must be("The existing property address is missing from this report.") no messages
     }
   }
-}

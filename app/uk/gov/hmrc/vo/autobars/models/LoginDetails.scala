@@ -18,12 +18,10 @@ package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class LoginDetails(username: String, password: String) {
+case class LoginDetails(username: String, password: String):
 
   def baCode: Int =
     username.substring(2).toInt
-}
 
-object LoginDetails {
-  implicit val format: OFormat[LoginDetails] = Json.format[LoginDetails]
-}
+object LoginDetails:
+  implicit val format: OFormat[LoginDetails] = Json.format

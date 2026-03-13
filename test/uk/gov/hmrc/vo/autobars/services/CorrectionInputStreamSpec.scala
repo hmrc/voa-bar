@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 
-class CorrectionInputStreamSpec extends PlaySpec {
+class CorrectionInputStreamSpec extends PlaySpec:
 
   "CorrectionInputStream" should {
     "replace nbsp entity in byte stream" in {
@@ -31,8 +31,5 @@ class CorrectionInputStreamSpec extends PlaySpec {
       val result = IOUtils.toString(in, "UTF-8")
 
       result mustBe "This is text"
-
     }
   }
-
-}

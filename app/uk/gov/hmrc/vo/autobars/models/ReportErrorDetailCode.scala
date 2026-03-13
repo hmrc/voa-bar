@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.vo.autobars.models;
+package uk.gov.hmrc.vo.autobars.models
 
-public enum ReportErrorDetailCode {
-    Cr01AndCr02MissingExistingEntryValidation,
+/**
+  * @author Yuriy Tumakha
+  */
+enum ReportErrorDetailCode:
+
+  case Cr01AndCr02MissingExistingEntryValidation,
     Cr03AndCr04MissingProposedEntryValidation,
     Cr05AndCr12MissingProposedEntryValidation,
     Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation,
@@ -26,15 +30,10 @@ public enum ReportErrorDetailCode {
     Cr13InvalidCodeValidation,
     TextAddressPostcodeValidation,
     OccupierContactAddressesPostcodeValidation,
-    /**
-     * It's automatically corrected. Should never happen.
-     */
     RemarksValidationNotEmpty,
     RemarksValidationTooLong,
     PropertyPlanReferenceNumberValidation,
-
     Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation,
     Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation,
     InvalidNdrCode,
     NoNDRCode
-}

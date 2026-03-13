@@ -42,7 +42,7 @@ class UpscanCallbackController @Inject() (
   controllerComponents: MessagesControllerComponents
 )(using val ec: ExecutionContext
 ) extends BackendController(controllerComponents)
-  with FunctionalRun {
+  with FunctionalRun:
 
   private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -62,11 +62,11 @@ class UpscanCallbackController @Inject() (
     request.body.validate[UploadConfirmationError].asOpt
 
   private def getLoginDetails(id: String): F[LoginDetails] =
-    for {
+    for
       userReportUploadOpt <- fromFuture(userReportUploadsRepository.findById(id))
       userData            <- F.fromOption(userReportUploadOpt, VOBarException(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $id"))))
       decryptedPassword   <- F.fromTry(Try(crypto.decrypt(Crypted(userData.userPassword)).value))
-    } yield LoginDetails(userData.userId, decryptedPassword)
+    yield LoginDetails(userData.userId, decryptedPassword)
 
   private def sendContent(
     login: LoginDetails,
@@ -83,16 +83,16 @@ class UpscanCallbackController @Inject() (
     )
 
   private def saveSubmission(login: LoginDetails, reportStatus: ReportStatus): F[Unit] =
-    for {
+    for
       _ <- fromFuture(submissionStatusRepository.saveOrUpdate(reportStatus, upsert = true))
-    } yield webBarsService.newSubmission(reportStatus, login.username, login.password)
+    yield webBarsService.newSubmission(reportStatus, login.username, login.password)
 
   private def saveReportStatus(
     login: LoginDetails,
     uploadConfirmation: UploadConfirmation,
     errors: Seq[Error] = Seq(),
     status: ReportStatusType
-  ): F[Unit] = {
+  ): F[Unit] =
     val reportStatus = ReportStatus(
       uploadConfirmation.reference,
       baCode = login.username,
@@ -103,14 +103,13 @@ class UpscanCallbackController @Inject() (
       errors = errors
     )
     saveSubmission(login, reportStatus)
-  }
 
   private def saveReportStatus(
     login: LoginDetails,
     reference: String,
     errors: Seq[Error],
     status: ReportStatusType
-  ): F[Unit] = {
+  ): F[Unit] =
     val reportStatus = ReportStatus(
       reference,
       baCode = login.username,
@@ -118,23 +117,22 @@ class UpscanCallbackController @Inject() (
       errors = errors
     )
     saveSubmission(login, reportStatus)
-  }
 
   private def onSuccessfulConfirmation(baLogin: String, uploadConfirmation: UploadConfirmation)(using request: Request[JsValue]): Future[Result] =
     run {
-      (for {
+      (for
         login <- getLoginDetails(uploadConfirmation.reference)
         _     <- saveReportStatus(login, uploadConfirmation, status = Submitted)
         _     <- sendContent(login, uploadConfirmation.downloadUrl, uploadConfirmation)
-      } yield NoContent)
+      yield NoContent)
         .recoverWith(handleError(baLogin, uploadConfirmation.reference))
     }
 
-  private def onFailedConfirmation(baLogin: String, uploadConfirmationError: UploadConfirmationError): Future[Result] = {
+  private def onFailedConfirmation(baLogin: String, uploadConfirmationError: UploadConfirmationError): Future[Result] =
     logger.warn(s"Upload failed on upscan with: $uploadConfirmationError")
     val failureDetails = uploadConfirmationError.failureDetails
     run {
-      (for {
+      (for
         login <- getLoginDetails(uploadConfirmationError.reference)
         _     <- saveReportStatus(
                    login,
@@ -142,27 +140,22 @@ class UpscanCallbackController @Inject() (
                    Seq(Error(UPSCAN_ERROR, Seq(failureDetails.failureReason, failureDetails.message))),
                    status = Failed
                  )
-      } yield NoContent)
+      yield NoContent)
         .recoverWith(handleError(baLogin, uploadConfirmationError.reference))
     }
-  }
 
-  private def handleError(baLogin: String, reference: String): PartialFunction[Throwable, F[Result]] = {
+  private def handleError(baLogin: String, reference: String): PartialFunction[Throwable, F[Result]] =
     case barException: VOBarException =>
       logger.warn(s"VOBarException: ${barException.error}")
       saveError(baLogin, reference, barException.error)
     case exception                    =>
       logger.warn(s"Unknown ${exception.getClass}: ${exception.getMessage}")
       saveError(baLogin, reference, Error(UNKNOWN_ERROR, Seq(exception.getMessage)))
-  }
 
-  private def saveError(baLogin: String, reference: String, error: Error): F[Result] = {
+  private def saveError(baLogin: String, reference: String, error: Error): F[Result] =
     val errorMsg = s"Error: code: ${error.code} detail messages: ${error.values.mkString(", ")}"
     logger.error(errorMsg)
-    for {
+    for
       login <- getLoginDetails(reference).recover(_ => LoginDetails(baLogin, baLogin))
       _     <- saveReportStatus(login, reference, Seq(error), status = Failed)
-    } yield InternalServerError(errorMsg)
-  }
-
-}
+    yield InternalServerError(errorMsg)

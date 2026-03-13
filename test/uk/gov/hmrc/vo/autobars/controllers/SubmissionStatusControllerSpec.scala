@@ -29,7 +29,7 @@ import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.vo.autobars.models.{BarMongoError, ReportStatus}
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepository
@@ -38,7 +38,7 @@ import uk.gov.hmrc.vo.autobars.services.WebBarsService
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
+class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar:
 
   implicit val materializer: Materializer = NoMaterializer
 
@@ -170,7 +170,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
 
     "delete submission and return delete status" in {
-      val reference                      = UUID.randomUUID().toString
+      val reference                      = UUID.randomUUID.toString
       val deleteResult                   = Json.obj(
         "code"              -> Option.empty[String],
         "n"                 -> 1,
@@ -189,7 +189,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
 
     "Reject deletion when BA-Code is not in http header" in {
-      val reference                      = UUID.randomUUID().toString
+      val reference                      = UUID.randomUUID.toString
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       val submissionStatusController     =
         SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
@@ -200,4 +200,3 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
 
   }
-}

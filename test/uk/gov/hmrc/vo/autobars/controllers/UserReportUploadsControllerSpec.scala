@@ -33,7 +33,7 @@ import uk.gov.hmrc.vo.autobars.repositories.{UserReportUpload, UserReportUploads
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
+class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
 
   implicit val materializer: Materializer = NoMaterializer
 
@@ -93,4 +93,3 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
   }
-}

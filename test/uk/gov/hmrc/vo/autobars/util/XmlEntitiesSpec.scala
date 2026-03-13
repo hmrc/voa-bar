@@ -50,6 +50,5 @@ class XmlEntitiesSpec extends PlaySpec:
 
       doc.getDocumentElement must not be null
       doc.getFirstChild.getFirstChild.getNodeValue mustBe "this is text"
-
     }
   }

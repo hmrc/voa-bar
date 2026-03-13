@@ -18,10 +18,11 @@ package uk.gov.hmrc.vo.autobars.services
 
 import org.scalatestplus.play.PlaySpec
 
-class ResourceResolverSpec extends PlaySpec {
-  val resolver        = ResourceResolver()
-  val existingFile    = "BS7666-v2-0.xsd"
-  val nonExistingFile = "file.xsd"
+class ResourceResolverSpec extends PlaySpec:
+
+  private val resolver        = ResourceResolver()
+  private val existingFile    = "BS7666-v2-0.xsd"
+  private val nonExistingFile = "file.xsd"
 
   "The resource resolver " must {
 
@@ -35,4 +36,3 @@ class ResourceResolverSpec extends PlaySpec {
         resolver.resolveResource("type", "namespace", "publicID", nonExistingFile, "publicURI")
       }
   }
-}

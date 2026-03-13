@@ -26,7 +26,7 @@ import uk.gov.hmrc.vo.autobars.util.ErrorCode.INVALID_XML_XSD
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML
 
-class XmlValidatorSpec extends PlaySpec with EitherValues {
+class XmlValidatorSpec extends PlaySpec with EitherValues:
 
   private val validator = XmlValidator()
   private val xmlParser = XmlParser()
@@ -142,5 +142,3 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
     }
 
   }
-
-}

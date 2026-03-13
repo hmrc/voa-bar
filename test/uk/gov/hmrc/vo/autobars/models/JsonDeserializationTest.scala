@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.{Instant, ZoneOffset}
 
-class JsonDeserializationTest extends PlaySpec {
+class JsonDeserializationTest extends PlaySpec:
 
   val createdAt = 1669496113080L
 
@@ -49,12 +49,10 @@ class JsonDeserializationTest extends PlaySpec {
 
   "Formatters" should {
     "deserialize old version of data from database and populate missing values with defaults" in {
-      val x = Json.parse(reportDataWithoutReportErrors)
-
-      val report = x.as[ReportStatus]
+      val json   = Json.parse(reportDataWithoutReportErrors)
+      val report = json.as[ReportStatus]
 
       report.id must be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
-
       report.createdAt mustBe Instant.ofEpochMilli(createdAt)
 
       val createdAtZoned = report.createdAt.atZone(ZoneOffset.UTC)
@@ -64,5 +62,3 @@ class JsonDeserializationTest extends PlaySpec {
       report.reportErrors mustBe empty
     }
   }
-
-}

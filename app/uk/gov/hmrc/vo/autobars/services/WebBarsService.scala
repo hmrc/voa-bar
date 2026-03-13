@@ -18,35 +18,33 @@ package uk.gov.hmrc.vo.autobars.services
 
 import com.google.inject.ImplementedBy
 import ebars.xml.BAreports
-
-import javax.inject.{Inject, Singleton}
-import jakarta.xml.bind.{JAXBContext, JAXBException}
-import play.api.Logger
+import jakarta.xml.bind.{JAXBContext, JAXBException, Marshaller}
+import play.api.Logging
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.vo.autobars.models.{Cr01Cr03Submission, Cr05Submission, CrSubmission, LoginDetails, ReportStatus}
+import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.util.{BillingAuthorities, XmlSubmissionGenerator}
 
+import java.io.StringWriter
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[DefaultWebBarsService])
-trait WebBarsService {
+trait WebBarsService:
   def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit
-}
 
 @Singleton
 class DefaultWebBarsService @Inject() (
   reportUploadService: ReportUploadService
 )(using ec: ExecutionContext
-) extends WebBarsService {
-
-  val log = Logger(this.getClass)
+) extends WebBarsService
+  with Logging:
 
   def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit =
     if reportStatus.report.isDefined then
       processReport(reportStatus, username, password)
 
-  def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
+  private def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
     val submission = DefaultWebBarsService.readReport(reportStatus)
 
     submission.foreach { submission =>
@@ -55,48 +53,40 @@ class DefaultWebBarsService @Inject() (
       val submissionGenerator =
         XmlSubmissionGenerator(submission, username.substring(2).toInt, BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
-      val areports = submissionGenerator.generateXml()
-      log.debug("Generated report")
-      logReports(areports)
-      reportUploadService.upload(LoginDetails(username, password), areports, reportStatus.id)
+      val reports = submissionGenerator.generateXml()
+      logger.debug("Generated report")
+      logReports(reports)
+      reportUploadService.upload(LoginDetails(username, password), reports, reportStatus.id)
     }
   }.recover {
     case ex: Exception =>
-      log.warn(s"Unable to process webBars report : ${reportStatus.redacted}", ex)
+      logger.warn(s"Unable to process webBars report : ${reportStatus.redacted}", ex)
   }
-
-  import jakarta.xml.bind.Marshaller
-  import java.io.StringWriter
 
   // Temporary methods to help validate the ticket generation
   private def logReports(employee: BAreports): Unit =
-    try {
+    try
       val jaxbContext    = JAXBContext.newInstance(classOf[BAreports])
       val jaxbMarshaller = jaxbContext.createMarshaller
       jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, java.lang.Boolean.TRUE)
       val sw             = StringWriter()
       jaxbMarshaller.marshal(employee, sw)
       val xmlContent     = sw.toString
-      log.debug(xmlContent)
-    } catch {
+      logger.debug(xmlContent)
+    catch
       case e: JAXBException =>
-        log.warn(e.getMessage, e)
-    }
+        logger.warn(e.getMessage, e)
 
-}
-
-object DefaultWebBarsService {
+object DefaultWebBarsService:
 
   def readReport(reportStatus: ReportStatus): Option[CrSubmission] =
     reportStatus.report
       .map(_.value)
       .filter(x => x.contains("type") && x.contains("submission"))
       .flatMap { x =>
-        x("type") match {
+        x("type") match
           case JsString("Cr03Submission")                     => Cr01Cr03Submission.format.reads(x("submission")).asOpt
           case JsString("Cr01Cr03Submission")                 => Cr01Cr03Submission.format.reads(x("submission")).asOpt
           case JsString(Cr05Submission.REPORT_SUBMISSION_KEY) => Cr05Submission.format.reads(x("submission")).asOpt
           case _                                              => None
-        }
       }
-}

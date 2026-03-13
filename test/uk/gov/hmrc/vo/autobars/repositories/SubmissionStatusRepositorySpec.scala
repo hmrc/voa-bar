@@ -26,7 +26,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.vo.autobars.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR, UNKNOWN_TYPE_OF_TAX}
@@ -45,19 +45,18 @@ class SubmissionStatusRepositorySpec
   with DefaultAwaitTimeout
   with FutureAwaits
   with GuiceOneAppPerSuite
-  with MockitoSugar {
+  with MockitoSugar
+  with Injecting:
 
-  implicit class NormalizedInstant(instant: Instant) {
+  implicit class NormalizedInstant(instant: Instant):
     def normalize: Instant = Instant.ofEpochMilli(instant.toEpochMilli)
-  }
 
   override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
+    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID.toString))
     .build()
 
-  private val mongoComponent = app.injector.instanceOf[MongoComponent]
-
-  private val repo = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
+  private val mongoComponent = inject[MongoComponent]
+  private val repo           = inject[SubmissionStatusRepositoryImpl]
 
   "repository" should {
 
@@ -66,8 +65,7 @@ class SubmissionStatusRepositorySpec
       await(repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER, Seq("message", "detail"))
-
-      val dbResult = await(repo.addError(submissionId, reportStatusError))
+      val dbResult          = await(repo.addError(submissionId, reportStatusError))
 
       dbResult mustBe Symbol("right")
 
@@ -79,8 +77,7 @@ class SubmissionStatusRepositorySpec
       await(repo.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption())
 
       val reportStatusError = Error(CHARACTER, List())
-
-      val dbResult = await(repo.addError("ggggg", reportStatusError))
+      val dbResult          = await(repo.addError("ggggg", reportStatusError))
 
       dbResult mustBe Symbol("right")
     }
@@ -101,9 +98,7 @@ class SubmissionStatusRepositorySpec
     }
 
     "serialise and deserialize ReportStatus" in {
-
-      val guid = UUID.randomUUID().toString
-
+      val guid         = UUID.randomUUID.toString
       val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Failed.value, createdAt = Instant.now.normalize)
 
       await(repo.collection.insertOne(reportStatus).toFutureOption())
@@ -111,7 +106,6 @@ class SubmissionStatusRepositorySpec
       val res = await(repo.getByReference(guid))
 
       res mustBe Symbol("right")
-
       res.value mustBe reportStatus
     }
 
@@ -125,12 +119,12 @@ class SubmissionStatusRepositorySpec
       val reportFromDb = await(repo.getByReference(report.id))
 
       reportFromDb.value.status mustBe Failed.value
-
       reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
     }
 
     "Not change status or anything else for final submission state" in {
       import org.scalatest.prop.TableDrivenPropertyChecks.*
+
       val finalStates =
         Table(("Final state", "errors"), (Submitted.value, Seq()), (Done.value, Seq()), (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
 
@@ -144,9 +138,7 @@ class SubmissionStatusRepositorySpec
         val reportFromDb = await(repo.getByReference(report.id))
 
         reportFromDb.value.status mustBe finalState
-
         reportFromDb.value.errors mustBe errors
-
         reportFromDb.value mustBe report
       }
     }
@@ -154,8 +146,8 @@ class SubmissionStatusRepositorySpec
     "Save baCode when saving or updating submission" in {
 
       val submissionToStore = ReportStatus(
-        UUID.randomUUID().toString,
-        url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
+        UUID.randomUUID.toString,
+        url = Option(s"http://localhost:2211/${UUID.randomUUID}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         baCode = "BA2020",
@@ -175,8 +167,8 @@ class SubmissionStatusRepositorySpec
       val daysToSubtract = 91
 
       val submissionToStore = ReportStatus(
-        UUID.randomUUID().toString,
-        url = Option(s"http://localhost:2211/${UUID.randomUUID()}"),
+        UUID.randomUUID.toString,
+        url = Option(s"http://localhost:2211/${UUID.randomUUID}"),
         checksum = Option("RandomCheckSum"),
         errors = Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters"))),
         baCode = "BA2020",
@@ -187,7 +179,7 @@ class SubmissionStatusRepositorySpec
       )
       await(repo.saveOrUpdate(submissionToStore, upsert = true))
       await(repo.saveOrUpdate(
-        submissionToStore.copy(id = UUID.randomUUID().toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS)),
+        submissionToStore.copy(id = UUID.randomUUID.toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS)),
         upsert = true
       ))
 
@@ -206,11 +198,8 @@ class SubmissionStatusRepositorySpec
   }
 
   def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID().toString, baCode = "BA1010", status = Pending.value)
+    ReportStatus(UUID.randomUUID.toString, baCode = "BA1010", status = Pending.value)
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll(): Unit =
     await(mongoComponent.database.drop().toFutureOption())
     mongoComponent.client.close()
-  }
-
-}

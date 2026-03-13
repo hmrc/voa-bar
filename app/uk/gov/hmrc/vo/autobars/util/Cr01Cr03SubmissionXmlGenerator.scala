@@ -31,25 +31,23 @@ import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 
 @deprecated("Have bug for CR01, replaced by XmlSubmissionGenerator", "April 2021")
-class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
+class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String):
 
   val OF                        = ebars.xml.ObjectFactory()
   val transactionIdentityLength = 25
 
   implicit val dataFactory: DatatypeFactory = DatatypeFactory.newInstance()
 
-  def generateXml(): BAreports = {
+  def generateXml(): BAreports =
     val report = BAreports()
     report.setBAreportHeader(generateHeader())
     report.setBAreportTrailer(generateReportTrailer())
     report.getBApropertyReport.add(generateBody())
     report.setSchemaId("VbBAtoVOA")
     report.setSchemaVersion("4-0")
-
     report
-  }
 
-  def generateBody(): BAreportBodyStructure = {
+  private def generateBody(): BAreportBodyStructure =
     val body = BAreportBodyStructure()
 
     val bodyElements = ListBuffer(
@@ -83,9 +81,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
 
     body.getContent.addAll(bodyElements.asJavaCollection)
     body
-  }
 
-  private def proposedEntries(): JAXBElement[BApropertySplitMergeStructure] = {
+  private def proposedEntries(): JAXBElement[BApropertySplitMergeStructure] =
     val assessmentProperties = AssessmentProperties()
     assessmentProperties.setPropertyIdentity(propertyIdentification())
     assessmentProperties.setOccupierContact(occupierContact())
@@ -95,9 +92,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
 
     OF.createBAreportBodyStructureProposedEntries(proposed)
 
-  }
-
-  def occupierContact(): OccupierContactStructure = {
+  private def occupierContact(): OccupierContactStructure =
     val person  = PersonNameStructure()
     person.getPersonGivenName.add(submission.propertyContactDetails.firstName)
     person.setPersonFamilyName(submission.propertyContactDetails.lastName)
@@ -132,9 +127,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
       contact.setOccupierContactNos(nos)
 
     contact
-  }
 
-  def propertyIdentification(): BApropertyIdentificationStructure = {
+  private def propertyIdentification(): BApropertyIdentificationStructure =
     val uprn        = submission.uprn.map { uprn =>
       OF.createUniquePropertyReferenceNumber(uprn.toLong)
     }
@@ -155,9 +149,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val propertyIdentity = BApropertyIdentificationStructure()
     propertyIdentity.getContent.addAll(List(uprn, Option(jaxbTextAddress), Option(baReference)).flatten.asJava)
     propertyIdentity
-  }
 
-  private def typeOfTax = {
+  private def typeOfTax =
     val reasonForReportCode                                = CtaxReasonForReportCodeStructure()
     val (reasonForReportValue, reasonForReportDescription) =
       submission.reasonReport.fold(
@@ -173,25 +166,19 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     typeOfTax.setCtaxReasonForReport(cTaxReport)
 
     OF.createBAreportBodyStructureTypeOfTax(typeOfTax)
-  }
 
-  def generateHeader(): ReportHeaderStructure = {
+  private def generateHeader(): ReportHeaderStructure =
     val header = ReportHeaderStructure()
     header.setBillingAuthority(baName)
     header.setBillingAuthorityIdentityCode(baCode)
     header.setProcessDate(LocalDate.now().toXml)
     header.setEntryDateTime(Instant.now().toXml)
     header
-  }
 
-  def generateReportTrailer(): ReportTrailerStructure = {
+  private def generateReportTrailer(): ReportTrailerStructure =
     val trailer = ReportTrailerStructure()
     trailer.setRecordCount(BigInteger.ONE)
     trailer.setTotalCtaxReportCount(BigInteger.ONE)
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
     trailer.setEntryDateTime(Instant.now().toXml)
-
     trailer
-  }
-
-}

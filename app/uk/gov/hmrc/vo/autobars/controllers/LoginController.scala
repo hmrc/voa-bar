@@ -36,27 +36,22 @@ class LoginController @Inject() (
   controllerComponents: ControllerComponents
 )(using ec: ExecutionContext
 ) extends BackendController(controllerComponents)
-  with Logging {
+  with Logging:
 
   private val crypto = applicationCrypto.JsonCrypto
 
   def verifyLogin(json: Option[JsValue]): Either[String, LoginDetails] =
-    json match {
+    json match
       case Some(value) =>
-        val model = Json.fromJson[LoginDetails](value)
-        model match {
-          case JsSuccess(loginDetails, _) =>
-            Right(loginDetails.copy(password = crypto.decrypt(Crypted(loginDetails.password)).value))
+        Json.fromJson[LoginDetails](value) match
+          case JsSuccess(loginDetails, _) => Right(loginDetails.copy(password = crypto.decrypt(Crypted(loginDetails.password)).value))
           case JsError(_)                 => Left(s"Unable to parse $value")
-        }
       case None        => Left("No Json available")
-    }
 
   def login: Action[AnyContent] = Action.async { implicit request =>
-    verifyLogin(request.body.asJson) match {
+    verifyLogin(request.body.asJson) match
       case Right(loginDetails) =>
-        val result = voEbarsConnector.validate(loginDetails)
-        result map {
+        voEbarsConnector.validate(loginDetails) map {
           case Success(_)  =>
             audit.userLogin(loginDetails.username)
             Ok
@@ -67,7 +62,4 @@ class LoginController @Inject() (
       case Left(error)         =>
         logger.warn(error)
         Future.successful(BadRequest(error))
-    }
   }
-
-}

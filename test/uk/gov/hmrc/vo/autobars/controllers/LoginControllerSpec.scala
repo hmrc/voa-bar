@@ -33,13 +33,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
-  val fakeRequest = FakeRequest("GET", "/")
+class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite:
 
-  private def fakeRequestWithJson(jsonStr: String) = {
+  private def fakeRequestWithJson(jsonStr: String) =
     val json = Json.parse(jsonStr)
     FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> "1234").withJsonBody(json)
-  }
 
   private val mockVOEbarsConnector = mock[VOEbarsConnector]
   when(mockVOEbarsConnector.validate(any[LoginDetails])).thenReturn(Future.successful(Success(OK)))
@@ -85,7 +83,6 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
 
   "Given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
     val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
-
     result.isLeft mustBe true
   }
 
@@ -94,5 +91,3 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
       val result = controller.login()(fakeRequestWithJson(goodJson))
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
-
-}

@@ -20,18 +20,17 @@ import java.io.Reader
 
 import org.scalatestplus.play.PlaySpec
 
-class InputSpec extends PlaySpec {
-  val input      = Input()
-  val encoding   = "some encoding"
-  val stringData = "some data"
+class InputSpec extends PlaySpec:
 
-  class FakeReader extends Reader {
+  private val input      = Input()
+  private val encoding   = "some encoding"
+  private val stringData = "some data"
+  private val reader     = FakeReader()
+
+  class FakeReader extends Reader:
     override def read(cbuf: Array[Char], off: Int, len: Int): Int = 1
 
     override def close(): Unit = ()
-  }
-
-  val reader = FakeReader()
 
   "An input class " must {
 
@@ -64,5 +63,3 @@ class InputSpec extends PlaySpec {
       input.getCharacterStream.hashCode mustBe reader.hashCode
     }
   }
-
-}

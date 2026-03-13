@@ -23,17 +23,11 @@ import uk.gov.hmrc.vo.autobars.services.XmlParser
 import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
 
-object XmlTestParser {
+object XmlTestParser:
 
-  def parseXml(xml: String): Document = {
-    val xmlParser = XmlParser()
-
-    val docBuilder = xmlParser.documentBuilderFactory.newDocumentBuilder()
+  def parseXml(xml: String): Document =
+    val docBuilder = XmlParser().documentBuilderFactory.newDocumentBuilder()
     docBuilder.parse(ReaderInputStream.builder()
       .setReader(StringReader(xml))
       .setCharset(UTF_8)
       .get())
-
-  }
-
-}

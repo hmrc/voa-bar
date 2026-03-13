@@ -24,7 +24,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import play.api.http.Status.OK
-import play.api.inject.Injector
+import play.api.test.Injecting
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,11 +35,9 @@ import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
 
-class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
+class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar with Injecting:
 
-  private def injector: Injector = app.injector
-
-  private val configuration = injector.instanceOf[Configuration]
+  private val configuration = inject[Configuration]
   private val crypto        = ApplicationCrypto(configuration.underlying)
   private val utils         = Utils(crypto.JsonCrypto)
   private val username      = "username"
@@ -50,7 +48,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   private val filename      = "filename.xml"
   private val date          = "2000-01-01"
 
-  def getConfiguration(sendEmail: Boolean = true): Configuration =
+  private def getConfiguration(sendEmail: Boolean = true): Configuration =
     Configuration(
       "microservice.services.email.host"     -> "localhost",
       "microservice.services.email.port"     -> "80",

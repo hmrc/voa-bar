@@ -75,13 +75,12 @@ class EbarsClientV2 @Inject() (
 
   private def processUploadResponse(attempt: Int)(response: HttpResponse): Try[Int] =
     logger.trace(s"Response : $response")
-    response.status match {
+    response.status match
       case OK           => parseUploadOkResponse(response, attempt)
       case UNAUTHORIZED => Failure(UnauthorizedException("UNAUTHORIZED"))
       case status       =>
         logger.warn(s"Couldn't send BA Reports. status: $status\n${response.body}")
         Failure(EbarsApiError(status, s"${response.status}. attempt: $attempt"))
-    }
 
   private def parseUploadOkResponse(response: HttpResponse, attempt: Int): Try[Int] =
     val body = response.body
@@ -91,13 +90,12 @@ class EbarsClientV2 @Inject() (
       Try {
         val responseXML = XML.loadString(body)
         val status      = (responseXML \ "result").text
-        status match {
+        status match
           case "success" => Success(OK)
           case "error"   =>
             val errorDetail = (responseXML \ "message").text
             logger.warn(s"Couldn't send BA Reports. error: $errorDetail")
             Failure(EbarsApiError(INTERNAL_SERVER_ERROR, s"$errorDetail. attempt: $attempt"))
-        }
       } getOrElse {
         logger.warn(s"Parsing eBars response failed. Body:\n$body")
         Failure(EbarsApiError(INTERNAL_SERVER_ERROR, s"Parsing eBars response failed. attempt: $attempt"))
@@ -120,7 +118,7 @@ class EbarsClientV2 @Inject() (
     val html   = response.body
     val errors = extractErrors(html)
 
-    response.status match {
+    response.status match
       case UNAUTHORIZED | FORBIDDEN     =>
         logger.warn(s"Login failed. username: $username, status: ${response.status}\n$html")
         Failure(UnauthorizedException("Invalid credentials"))
@@ -134,6 +132,5 @@ class EbarsClientV2 @Inject() (
       case status                       =>
         logger.warn(s"Login failed. username: $username, status: $status\n$html")
         Failure(EbarsApiError(status, s"$status. Could not login"))
-    }
 
 case class EbarsApiError(status: Int, message: String) extends RuntimeException(s"$status. $message")
