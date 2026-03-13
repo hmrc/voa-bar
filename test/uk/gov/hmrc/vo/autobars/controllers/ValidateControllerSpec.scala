@@ -24,7 +24,7 @@ import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc.*
 import play.api.test.*
 import play.api.test.Helpers.*
-import uk.gov.hmrc.vo.autobars.services.{V1ValidationService, ValidationService, XmlValidator}
+import uk.gov.hmrc.vo.autobars.services.{V1ValidationService, ValidationService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

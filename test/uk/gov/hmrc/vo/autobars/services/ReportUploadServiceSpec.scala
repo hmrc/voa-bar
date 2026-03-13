@@ -27,6 +27,7 @@ import org.scalatest.matchers.must
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.WsScalaTestClient
+import org.w3c.dom.Document
 import play.api.http.Status.OK
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -215,8 +216,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with must.
       .thenAnswer(_ => Future.successful(Right(reportStatus)))
     repository
 
-  private def aJaxbInput(xml: URL) =
-    val doc             = aXmlParser().parse(xml).toOption.get
+  private def aJaxbInput(xml: URL): BAreports =
+    val doc: Document   = aXmlParser().parse(xml).fold(err => throw Exception(err.toString), identity)
     val jaxbContext     = JAXBContext.newInstance("ebars.xml")
     val xmlUnmarshaller = jaxbContext.createUnmarshaller()
     xmlUnmarshaller.unmarshal(doc).asInstanceOf[BAreports]

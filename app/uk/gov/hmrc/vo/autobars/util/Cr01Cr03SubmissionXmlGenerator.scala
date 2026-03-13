@@ -63,7 +63,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     )
 
     if submission.planningRef.isDefined then
-      bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
+      bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.getOrElse(""))
 
     if submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined then
       val reasonForRemoval = submission.removalReason.map {
@@ -99,29 +99,26 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val contact = OccupierContactStructure()
     contact.setOccupierName(person)
     if !submission.sameContactAddress then
-      val address        = submission.contactAddress.get
-      val contactAddress = UKPostalAddressStructure()
-      contactAddress.getLine.add(address.line1)
-      contactAddress.getLine.add(address.line2)
-      if address.line3.isDefined then
-        contactAddress.getLine.add(address.line3.get)
-
-      if address.line4.isDefined then
-        contactAddress.getLine.add(address.line4.get)
-
-      contactAddress.setPostCode(address.postcode)
-      contact.setContactAddress(contactAddress)
+      submission.contactAddress.foreach { address =>
+        val contactAddress = UKPostalAddressStructure()
+        contactAddress.getLine.add(address.line1)
+        contactAddress.getLine.add(address.line2)
+        address.line3.foreach(line3 => contactAddress.getLine.add(line3))
+        address.line4.foreach(line4 => contactAddress.getLine.add(line4))
+        contactAddress.setPostCode(address.postcode)
+        contact.setContactAddress(contactAddress)
+      }
 
     if submission.propertyContactDetails.email.isDefined || submission.propertyContactDetails.phoneNumber.isDefined then
       val nos = ContactDetailsStructure()
       if submission.propertyContactDetails.email.isDefined then
         val email = EmailStructure()
-        email.setEmailAddress(submission.propertyContactDetails.email.get)
+        email.setEmailAddress(submission.propertyContactDetails.email.getOrElse(""))
         nos.getEmail.add(email)
 
       if submission.propertyContactDetails.phoneNumber.isDefined then
         val tel = TelephoneStructure()
-        tel.setTelNationalNumber(submission.propertyContactDetails.phoneNumber.get)
+        tel.setTelNationalNumber(submission.propertyContactDetails.phoneNumber.getOrElse(""))
         nos.getTelephone.add(tel)
 
       contact.setOccupierContactNos(nos)
@@ -135,11 +132,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val textAddress = TextAddressStructure()
     textAddress.getAddressLine.add(submission.address.line1)
     textAddress.getAddressLine.add(submission.address.line2)
-    if submission.address.line3.isDefined then
-      textAddress.getAddressLine.add(submission.address.line3.get)
-
-    if submission.address.line4.isDefined then
-      textAddress.getAddressLine.add(submission.address.line4.get)
+    submission.address.line3.foreach(line3 => textAddress.getAddressLine.add(line3))
+    submission.address.line4.foreach(line4 => textAddress.getAddressLine.add(line4))
 
     textAddress.setPostcode(submission.address.postcode)
     val jaxbTextAddress = OF.createBApropertyIdentificationStructureTextAddress(textAddress)

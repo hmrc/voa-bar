@@ -186,7 +186,7 @@ class SubmissionStatusRepositorySpec
       val reports = await(repo.collection.countDocuments().toFutureOption())
       reports.value mustBe 2
 
-      println("Wait for removing expired submission by Mongo background process")
+      println("Waiting while expired submissions are removed by the MongoDB background process.")
       eventually(timeout(60 seconds), interval(2 seconds)) {
         await(repo.getByUser("BA2020", None)).value must have size 1
       }

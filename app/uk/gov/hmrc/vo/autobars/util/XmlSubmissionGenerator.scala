@@ -60,7 +60,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
         if submission.planningRef.isDefined then
-          bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
+          bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.getOrElse(""))
 
         if submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined then
           bodyElements += OF.createBAreportBodyStructureRemarks(
@@ -73,7 +73,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
         if submission.planningRef.isDefined then
-          bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
+          bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.getOrElse(""))
 
         if submission.comments.isDefined || submission.noPlanningReference.isDefined then
           bodyElements += OF.createBAreportBodyStructureRemarks(
@@ -129,11 +129,8 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
       val contactAddress = UKPostalAddressStructure()
       contactAddress.getLine.add(address.line1)
       contactAddress.getLine.add(address.line2)
-      if address.line3.isDefined then
-        contactAddress.getLine.add(address.line3.get)
-
-      if address.line4.isDefined then
-        contactAddress.getLine.add(address.line4.get)
+      address.line3.foreach(line3 => contactAddress.getLine.add(line3))
+      address.line4.foreach(line4 => contactAddress.getLine.add(line4))
 
       contactAddress.setPostCode(address.postcode)
       contact.setContactAddress(contactAddress)
@@ -143,12 +140,12 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
       val nos = ContactDetailsStructure()
       if propertyContactDetails.email.isDefined then
         val email = EmailStructure()
-        email.setEmailAddress(propertyContactDetails.email.get)
+        email.setEmailAddress(propertyContactDetails.email.getOrElse(""))
         nos.getEmail.add(email)
 
       if propertyContactDetails.phoneNumber.isDefined then
         val tel = TelephoneStructure()
-        tel.setTelNationalNumber(propertyContactDetails.phoneNumber.get)
+        tel.setTelNationalNumber(propertyContactDetails.phoneNumber.getOrElse(""))
         nos.getTelephone.add(tel)
 
       contact.setOccupierContactNos(nos)
@@ -162,11 +159,8 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     val textAddress = TextAddressStructure()
     textAddress.getAddressLine.add(address.line1)
     textAddress.getAddressLine.add(address.line2)
-    if address.line3.isDefined then
-      textAddress.getAddressLine.add(address.line3.get)
-
-    if address.line4.isDefined then
-      textAddress.getAddressLine.add(address.line4.get)
+    address.line3.foreach(line3 => textAddress.getAddressLine.add(line3))
+    address.line4.foreach(line4 => textAddress.getAddressLine.add(line4))
 
     textAddress.setPostcode(address.postcode)
     val jaxbTextAddress = OF.createBApropertyIdentificationStructureTextAddress(textAddress)

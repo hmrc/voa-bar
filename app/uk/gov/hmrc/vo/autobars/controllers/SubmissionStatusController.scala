@@ -20,7 +20,7 @@ import cats.data.EitherT
 import cats.implicits.*
 
 import javax.inject.{Inject, Singleton}
-import play.api.{Configuration, Logger, Logging}
+import play.api.{Configuration, Logging}
 import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController

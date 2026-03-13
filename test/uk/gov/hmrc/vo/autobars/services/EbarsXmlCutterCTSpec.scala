@@ -243,11 +243,11 @@ class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionV
       val reports              = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/Cornwall_CTax_Valid_ExistingEntries.json")))
       val assessmentProperties = EbarsXmlCutter.getAssessmentProperties(reports)(0)
 
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonFamilyName        should be("FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonRequestedName     should be("MR M FINNIMORE")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonGivenName.get(0)  should be("M")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameTitle.get(0)  should be("MR")
-      EbarsXmlCutter.getOccupierContacts(assessmentProperties).get.getOccupierName.getPersonNameSuffix.get(0) should be("P")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).fold("")(_.getOccupierName.getPersonFamilyName)        should be("FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).fold("")(_.getOccupierName.getPersonRequestedName)     should be("MR M FINNIMORE")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).fold("")(_.getOccupierName.getPersonGivenName.get(0))  should be("M")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).fold("")(_.getOccupierName.getPersonNameTitle.get(0))  should be("MR")
+      EbarsXmlCutter.getOccupierContacts(assessmentProperties).fold("")(_.getOccupierName.getPersonNameSuffix.get(0)) should be("P")
     }
   }
 
