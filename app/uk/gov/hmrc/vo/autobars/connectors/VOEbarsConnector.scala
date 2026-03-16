@@ -50,7 +50,7 @@ class DefaultVOEbarsConnector @Inject() (
     Try(ebarsValidator.fromJson(baReportRequest.propertyReport)) map { reports =>
       val xml = ebarsValidator.toXml(reports)
       (reports, xml, ebarsValidator.validate(xml))
-    } match {
+    } match
       case Success((reports, _, errors)) if errors.hasErrors =>
         import models.EbarsBAreports.*
         Future.failed(RuntimeException(s"propertyReferenceNumbers: ${reports.uniquePropertyReferenceNumbers}. errors: $errors"))
@@ -58,7 +58,6 @@ class DefaultVOEbarsConnector @Inject() (
         sendXML(baReportRequest, reports, xml)
       case Failure(e) if e.getCause != null                  => Future.failed(e.getCause)
       case Failure(e)                                        => Future.failed(e)
-    }
 
   private def sendXML(baReportRequest: BAReportRequest, reports: BAreports, xml: String)(using ec: ExecutionContext, headerCarrier: HeaderCarrier)
     : Future[Int] =

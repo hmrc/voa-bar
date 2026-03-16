@@ -22,17 +22,11 @@ import uk.gov.hmrc.vo.autobars.repositories.UserReportUpload
 /**
   * @author Yuriy Tumakha
   */
-case class UserReportUploadRest(id: String, userId: String, userPassword: String) {
-
+case class UserReportUploadRest(id: String, userId: String, userPassword: String):
   def toMongoEntity: UserReportUpload = UserReportUpload(id, userId, userPassword)
 
-}
-
-object UserReportUploadRest {
-
+object UserReportUploadRest:
   implicit val format: OFormat[UserReportUploadRest] = Json.format
 
   def apply(userReportUpload: UserReportUpload): UserReportUploadRest =
     UserReportUploadRest(userReportUpload._id, userReportUpload.userId, userReportUpload.userPassword)
-
-}
