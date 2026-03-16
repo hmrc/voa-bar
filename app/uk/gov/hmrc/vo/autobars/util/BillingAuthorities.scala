@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.vo.autobars.util
 
-object BillingAuthorities {
+object BillingAuthorities:
 
   def find(baCode: String): Option[String] = billingAuthorities.get(baCode.toUpperCase)
 
@@ -376,4 +376,3 @@ object BillingAuthorities {
     "BA3515" -> "Ipswich",
     "BA3520" -> "Mid Suffolk"
   )
-}

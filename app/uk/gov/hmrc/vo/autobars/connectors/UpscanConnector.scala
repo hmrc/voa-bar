@@ -17,27 +17,23 @@
 package uk.gov.hmrc.vo.autobars.connectors
 
 import com.google.inject.ImplementedBy
-import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderNames.*
 import uk.gov.hmrc.vo.autobars.models.{BarError, UnknownError}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[DefaultUpscanConnector])
-trait UpscanConnector {
-  def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]]
-}
+trait UpscanConnector:
+  def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]]
 
 @Singleton
-class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: ExecutionContext) extends UpscanConnector {
+class DefaultUpscanConnector @Inject() (httpClient: WSClient)(using ec: ExecutionContext) extends UpscanConnector with Logging:
 
-  val logger = Logger(this.getClass)
-
-  def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
-    import uk.gov.hmrc.http.HeaderNames._
-
+  def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     httpClient.url(url)
       .withHttpHeaders(hc.headers(Seq(xRequestId, deviceID))*)
       .get().map { wsResponse =>
@@ -48,5 +44,3 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: Execu
           logger.warn("Unable to download file from upscan", e)
           Left(UnknownError("Unable to download file, please try later"))
       }
-  }
-}

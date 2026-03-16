@@ -24,11 +24,10 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.xmlunit.builder.DiffBuilder
+import org.xmlunit.builder.{DiffBuilder, Input}
 import org.xmlunit.diff.{Comparison, ComparisonResult, DifferenceEvaluator}
-import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, BandedTooSoon, CaravanRemoved, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, Disrepair, Duplicate, NoPlanningApplicationSubmitted, NoPlanningReferenceType, NotApplicablePlanningPermission, NotComplete, NotRequiredPlanningPermission, OtherReason, PermittedDevelopment, RemovalReasonType, RemoveProperty, Renovating, WithoutPlanningPermission}
-import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
 import uk.gov.hmrc.vo.autobars.models.*
+import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
 
 import java.io.StringWriter
 import java.nio.file.Files
@@ -37,12 +36,12 @@ import java.util.UUID
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
-class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
+class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 500)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -206,10 +205,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     )
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR03 submissions" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -224,10 +223,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   }
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR01 submissions" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -242,10 +241,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   }
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR05 submissions" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(genCr05Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -261,10 +260,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
   "XmlSubmissionGenerator" should "generate generate same valid XML for both implementation for CR03" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(genCr03Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -273,11 +272,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
-      import org.xmlunit.builder.Input
       val diff = DiffBuilder.compare(Input.fromString(xml))
         .withTest(Input.fromString(oldXml))
         .withDifferenceEvaluator(evaluator).build()
@@ -289,10 +287,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
   // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
   // Cr01Cr03SubmissionXmlGenerator have for CR01 and doesn't use proposed entries.
   "XmlSubmissionGenerator" should "generate generate different valid XML for both implementation for CR01" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(genCr01Submission) { submission =>
       val jaxbStructure =
-        new XmlSubmissionGenerator(
+        XmlSubmissionGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -301,11 +299,10 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val xml           = printXml(jaxbStructure)
       validateXml(xml)
 
-      val oldXmlJaxbStructure = new Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
       val oldXml              = printXml(oldXmlJaxbStructure)
       validateXml(oldXml)
 
-      import org.xmlunit.builder.Input
       val diff = DiffBuilder.compare(Input.fromString(xml))
         .withTest(Input.fromString(oldXml))
         .withDifferenceEvaluator(evaluator).build()
@@ -315,27 +312,23 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       val differences = diff.getDifferences.asScala.toList
       differences must have length 1
       differences.head.getComparison.getControlDetails.getTarget.getNodeName mustBe "ExistingEntries"
-
     }
   }
 
   private val evaluator =
-    new DifferenceEvaluator {
-
+    new DifferenceEvaluator:
       override def evaluate(comparison: Comparison, outcome: ComparisonResult): ComparisonResult =
         if outcome != ComparisonResult.EQUAL && comparison.getControlDetails.getTarget.getParentNode.getNodeName == "EntryDateTime" then
           ComparisonResult.EQUAL
         else
           outcome
-    }
 
-  def printXml(report: BAreports): String = {
-    val sw = new StringWriter()
+  def printXml(report: BAreports): String =
+    val sw = StringWriter()
     jaxbMarshaller.marshal(report, sw)
     sw.toString
-  }
 
-  def validateXml(xml: String): Unit = {
+  def validateXml(xml: String): Unit =
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
 
@@ -345,6 +338,3 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
     validation mustBe Right(true)
-  }
-
-}

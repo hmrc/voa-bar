@@ -24,7 +24,7 @@ import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
 
 import javax.xml.transform.stream.StreamSource
 
-class ValidationServiceSpec extends PlaySpec with EitherValues {
+class ValidationServiceSpec extends PlaySpec with EitherValues:
 
   private def batchWith1Report                = aXml("/xml/CTValid1.xml")
   private def batchWith4Reports               = aXml("/xml/CTValid2.xml")
@@ -34,9 +34,9 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
 
   private val BA_LOGIN = LoginDetails("BA5090", "BA5090")
 
-  private val ebarsValidator = new EbarsValidator()
+  private val ebarsValidator = EbarsValidator()
 
-  private def validationService = new ValidationService()
+  private def validationService = ValidationService()
 
   "Validation service" must {
 
@@ -143,6 +143,4 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
   }
 
   private def aXml(path: String) =
-    ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream(path)))
-
-}
+    ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream(path)))

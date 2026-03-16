@@ -43,15 +43,14 @@ enum ErrorCode(val errorCode: String):
   case UNKNOWN_ERROR extends ErrorCode("5000")
 end ErrorCode
 
-object ErrorCode {
+object ErrorCode:
 
   private val errorCodeMap: Map[String, ErrorCode] =
     ErrorCode.values.map(e => e.errorCode -> e).toMap
 
-  implicit val reader: Reads[ErrorCode] = (json: JsValue) => {
+  implicit val reader: Reads[ErrorCode] = (json: JsValue) =>
     val value = json.validate[String].get
     JsSuccess(errorCodeMap.getOrElse(value, UNKNOWN_ERROR))
-  }
 
   implicit val writer: Writes[ErrorCode] =
     (o: ErrorCode) => Json.toJson[String](o.errorCode)
@@ -65,4 +64,3 @@ object ErrorCode {
   //  }
   //
   //  implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
-}

@@ -27,17 +27,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 
-class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
+class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
 
   private val username  = "ba0121"
   private val password  = "wibble"
   private val goodLogin = LoginDetails(username, password)
+
   "Utils" must {
     "have decryptPassword method that"   must {
       "Decrypt the  encrypted password and return it in plain text" in {
         val cryptoMock        = mock[Encrypter & Decrypter]
         when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
-        val utils             = new Utils(cryptoMock)
+        val utils             = Utils(cryptoMock)
         val decryptedPassword = utils.decryptPassword(password)
         decryptedPassword mustBe password
       }
@@ -46,36 +47,33 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
       "include some basic authorization in the header" in {
         val cryptoMock = mock[Encrypter & Decrypter]
-        val utils      = new Utils(cryptoMock)
+        val utils      = Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
 
         val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
-        hc.authorization match {
+        hc.authorization match
           case Some(s) =>
             hc.authorization.isDefined mustBe true
             s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
           case _       => assert(false)
-        }
       }
 
       "include some basic authorization in the header for existing header carrier" in {
         val cryptoMock    = mock[Encrypter & Decrypter]
-        val utils         = new Utils(cryptoMock)
+        val utils         = Utils(cryptoMock)
         val headerCarrier = HeaderCarrier()
 
         val hc = utils.generateHeader(goodLogin, headerCarrier)
 
         val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:$password".getBytes("UTF-8"))
 
-        hc.authorization match {
+        hc.authorization match
           case Some(s) =>
             hc.authorization.isDefined mustBe true
             s.toString.equals(s"Authorization(Basic $encodedAuthHeader)") mustBe true
           case _       => assert(false)
-        }
       }
     }
   }
-}

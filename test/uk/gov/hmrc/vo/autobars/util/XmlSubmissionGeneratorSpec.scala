@@ -31,14 +31,14 @@ import java.util.UUID
 import jakarta.xml.bind.{JAXBContext, Marshaller}
 import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, RemoveProperty}
 import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
-class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
+class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -47,16 +47,16 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   "submission generator" should "generate CR05 XML" in {
     val submission = aCr05Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
@@ -77,22 +77,21 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "2"
 
     xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber", source) mustBe "1234"
-
   }
 
   it should "generate CR01 XML" in {
     val submission = aCr01Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
@@ -111,22 +110,21 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "1"
 
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "0"
-
   }
 
   it should "generate CR03 XML" in {
     val submission = aCr03Submission
 
-    val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
+    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
 
-    val sw = new StringWriter()
+    val sw = StringWriter()
     jaxbMarshaller.marshal(baReport, sw)
 
     validateXml(sw.toString)
 
     val source = Input.fromString(sw.toString).build()
 
-    val xPath = new JAXPXPathEngine()
+    val xPath = JAXPXPathEngine()
     // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
     xPath.setNamespaceContext(Map(
       "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
@@ -145,7 +143,6 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "1"
 
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "0"
-
   }
 
   def aCr03Submission: Cr01Cr03Submission =
@@ -207,7 +204,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
       contactAddress = Some(Address(s"$prefix line 1", s"$prefix line 2", None, None, "BN12 4AX"))
     )
 
-  def validateXml(xml: String): Unit = {
+  def validateXml(xml: String): Unit =
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
 
@@ -217,6 +214,3 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
     validation mustBe Right(true)
-  }
-
-}

@@ -25,9 +25,9 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, CaravanRemoved, ContactDetails, Cr01Cr03Submission, RemoveProperty, ReportStatus}
 import uk.gov.hmrc.vo.autobars.models.Cr01Cr03Submission.format
 
-class WebBarsServiceSpec extends PlaySpec with EitherValues {
+class WebBarsServiceSpec extends PlaySpec with EitherValues:
 
-  private val legacyCr03Submission = {
+  private val legacyCr03Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -47,7 +47,6 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
       None,
       Option("comment")
     )
-  }
 
   private val legacyCr03Report =
     Json.obj(
@@ -56,12 +55,12 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
 
   val legacyCr03ReportStatus = ReportStatus(
-    UUID.randomUUID().toString,
+    UUID.randomUUID.toString,
     baCode = "BA1010",
     report = Some(legacyCr03Report)
   )
 
-  private val newCr03Submission = {
+  private val newCr03Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -81,7 +80,6 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
       None,
       Option("comment")
     )
-  }
 
   private val newCr03Report =
     Json.obj(
@@ -90,12 +88,12 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
 
   val newCr03ReportStatus = ReportStatus(
-    UUID.randomUUID().toString,
+    UUID.randomUUID.toString,
     baCode = "BA1010",
     report = Some(newCr03Report)
   )
 
-  private val cr01Submission = {
+  private val cr01Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -115,7 +113,6 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
       None,
       Option("comment")
     )
-  }
 
   private val cr01Report =
     Json.obj(
@@ -124,7 +121,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     )
 
   private val cr01ReportStatus = ReportStatus(
-    UUID.randomUUID().toString,
+    UUID.randomUUID.toString,
     baCode = "BA1010",
     report = Some(cr01Report)
   )
@@ -142,4 +139,3 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
       DefaultWebBarsService.readReport(cr01ReportStatus) mustBe Some(cr01Submission)
     }
   }
-}

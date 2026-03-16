@@ -23,7 +23,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
 import uk.gov.hmrc.mongo.MongoComponent
 
 import java.time.Instant
@@ -37,21 +37,19 @@ class UserReportUploadsRepositorySpec
   with DefaultAwaitTimeout
   with FutureAwaits
   with GuiceOneAppPerSuite
-  with MockitoSugar {
+  with MockitoSugar
+  with Injecting:
 
-  override def fakeApplication(): Application = new GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
+  override def fakeApplication(): Application = GuiceApplicationBuilder()
+    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID.toString))
     .build()
 
-  private val mongoComponent = app.injector.instanceOf[MongoComponent]
-
-  private val repo = app.injector.instanceOf(classOf[UserReportUploadsRepository])
+  private val mongoComponent = inject[MongoComponent]
+  private val repo           = inject[UserReportUploadsRepository]
 
   "repository " should {
-
     "save to mongo" in {
-
-      val id  = UUID.randomUUID().toString
+      val id  = UUID.randomUUID.toString
       val now = Instant.ofEpochMilli(Instant.now.toEpochMilli)
 
       val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
@@ -71,9 +69,6 @@ class UserReportUploadsRepositorySpec
     }
   }
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll(): Unit =
     await(mongoComponent.database.drop().toFutureOption())
     mongoComponent.client.close()
-  }
-
-}

@@ -19,17 +19,23 @@ package uk.gov.hmrc.vo.autobars.models
 import java.time.LocalDate
 import play.api.libs.json.{Format, Json, OFormat}
 
-sealed trait CrSubmission {
+sealed trait CrSubmission:
   def baReport: String
   def baRef: String
   def effectiveDate: LocalDate
-}
 
-object Address { implicit val format: OFormat[Address] = Json.format[Address] }
+object Address:
+  implicit val format: OFormat[Address] = Json.format
+
 case class Address(line1: String, line2: String, line3: Option[String], line4: Option[String], postcode: String)
-object ContactDetails { implicit val format: OFormat[ContactDetails] = Json.format[ContactDetails] }
+
+object ContactDetails:
+  implicit val format: OFormat[ContactDetails] = Json.format
+
 case class ContactDetails(firstName: String, lastName: String, email: Option[String], phoneNumber: Option[String])
-object Cr01Cr03Submission { val format: OFormat[Cr01Cr03Submission] = Json.format[Cr01Cr03Submission] }
+
+object Cr01Cr03Submission:
+  implicit val format: OFormat[Cr01Cr03Submission] = Json.format
 
 final case class Cr01Cr03Submission(
   reasonReport: Option[ReasonReportType],
@@ -57,7 +63,8 @@ case class Cr05AddProperty(
   contactAddress: Option[Address]
 )
 
-object Cr05AddProperty { implicit val format: OFormat[Cr05AddProperty] = Json.format[Cr05AddProperty] }
+object Cr05AddProperty:
+  implicit val format: OFormat[Cr05AddProperty] = Json.format
 
 final case class Cr05Submission(
   baReport: String,
@@ -70,9 +77,8 @@ final case class Cr05Submission(
   comments: Option[String]
 ) extends CrSubmission
 
-object Cr05Submission {
+object Cr05Submission:
 
   val REPORT_SUBMISSION_KEY = "Cr05Submission"
 
-  implicit val format: Format[Cr05Submission] = Json.format[Cr05Submission]
-}
+  implicit val format: Format[Cr05Submission] = Json.format

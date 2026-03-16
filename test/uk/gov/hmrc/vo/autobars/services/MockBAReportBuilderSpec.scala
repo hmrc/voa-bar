@@ -20,11 +20,11 @@ import java.nio.charset.StandardCharsets.UTF_8
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 
-import scala.xml._
+import scala.xml.*
 
-class MockBAReportBuilderSpec extends PlaySpec {
+class MockBAReportBuilderSpec extends PlaySpec:
 
-  val reportBuilder = new MockBAReportBuilder
+  val reportBuilder = MockBAReportBuilder()
 
   "A mock BA property report" must {
 
@@ -76,4 +76,3 @@ class MockBAReportBuilderSpec extends PlaySpec {
       }
     }
   }
-}

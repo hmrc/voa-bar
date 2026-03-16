@@ -28,18 +28,15 @@ import java.nio.file.Files
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
 @Singleton
-class ValidateController @Inject() (controllerComponents: ControllerComponents, v1ValidationService: V1ValidationService)(implicit ec: ExecutionContext)
-  extends BackendController(controllerComponents) {
+class ValidateController @Inject() (controllerComponents: ControllerComponents, v1ValidationService: V1ValidationService)(using ec: ExecutionContext)
+  extends BackendController(controllerComponents):
 
   val logger = Logger("v2-validation")
 
   def validate(baLogin: String): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
     Future {
-
-      val headerCarrier = HeaderCarrierConverter.fromRequest(request)
-
-      val requestId = headerCarrier.requestId.map(_.value).getOrElse("None")
-
+      val headerCarrier      = HeaderCarrierConverter.fromRequest(request)
+      val requestId          = headerCarrier.requestId.map(_.value).getOrElse("None")
       val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
 
       val rawXmlData = blocking {
@@ -47,10 +44,6 @@ class ValidateController @Inject() (controllerComponents: ControllerComponents, 
       }
 
       v1ValidationService.fixAndValidateAsV2(rawXmlData, baLogin, requestId, v1ProcessingStatus)
-
       Ok("")
     }
-
   }
-
-}

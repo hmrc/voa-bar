@@ -50,8 +50,8 @@ class ReportUploadService @Inject() (
 )(using executionContext: ExecutionContext
 ) extends Logging:
 
-  private val eBarsValidator = new EbarsValidator
-  private val xmlValidator   = new XmlValidator
+  private val eBarsValidator = EbarsValidator()
+  private val xmlValidator   = XmlValidator()
 
   def upload(baLogin: LoginDetails, xmlUrl: String, uploadReference: String)(using headerCarrier: HeaderCarrier): Future[String] =
     val processingResult =
@@ -97,7 +97,7 @@ class ReportUploadService @Inject() (
       }
 
   private def downloadAndFixXml(url: String)(using hc: HeaderCarrier): EitherT[Future, BarError, BAreports] =
-    val correctionEngine = new RulesCorrectionEngine
+    val correctionEngine = RulesCorrectionEngine()
 
     def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] =
       for

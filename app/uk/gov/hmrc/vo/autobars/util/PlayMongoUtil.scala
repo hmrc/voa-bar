@@ -28,30 +28,25 @@ import java.util.concurrent.TimeUnit
 /**
   * @author Yuriy Tumakha
   */
-object PlayMongoUtil {
+object PlayMongoUtil:
 
   val _id = "_id"
 
   def byId(id: String): Bson = Filters.equal(_id, Codecs.toBson(id))
 
-  def handleMongoError(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] = {
+  def handleMongoError(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] =
     logger.error(errorMsg, ex)
     Left(BarMongoError(errorMsg))
-  }
 
-  def handleMongoWarn(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] = {
+  def handleMongoWarn(errorMsg: String, ex: Throwable, logger: Logger): Left[BarMongoError, Nothing] =
     logger.warn(s"$errorMsg\n${ex.getMessage}")
     Left(BarMongoError(errorMsg))
-  }
 
   def indexOptionsWithTTL(indexName: String, collectionName: String, config: Configuration): IndexOptions =
     IndexOptions().name(indexName)
       .expireAfter(ttlSeconds(collectionName, config), TimeUnit.SECONDS)
 
-  private def ttlSeconds(collectionName: String, config: Configuration): Long = {
+  private def ttlSeconds(collectionName: String, config: Configuration): Long =
     val ttlPath = s"$collectionName.timeToLiveInSeconds"
     config.getOptional[Long](ttlPath)
-      .getOrElse(throw new ConfigException.Missing(ttlPath))
-  }
-
-}
+      .getOrElse(throw ConfigException.Missing(ttlPath))

@@ -24,18 +24,18 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
+import play.api.{Application, Configuration}
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
+import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.vo.autobars.connectors.{UpscanConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.byId
 
 import java.net.URI
@@ -52,14 +52,15 @@ class UploadControllerIntSpec
   with DefaultAwaitTimeout
   with FutureAwaits
   with GuiceOneAppPerSuite
-  with MockitoSugar {
+  with Injecting
+  with MockitoSugar:
 
   private val voEbarsConnector = mock[VOEbarsConnector]
 
   when(voEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
     .thenAnswer(_ => Future.successful(OK))
 
-  override def fakeApplication(): Application = new GuiceApplicationBuilder()
+  override def fakeApplication(): Application = GuiceApplicationBuilder()
     .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
     .bindings(
       bind[VOEbarsConnector].to(voEbarsConnector),
@@ -67,15 +68,14 @@ class UploadControllerIntSpec
     )
     .build()
 
-  private val controller           = app.injector.instanceOf[UploadController]
-  private val mongoComponent       = app.injector.instanceOf[MongoComponent]
-  private val submissionRepository = app.injector.instanceOf[SubmissionStatusRepositoryImpl]
-  private val configuration        = app.injector.instanceOf[play.api.Configuration]
+  private val controller           = inject[UploadController]
+  private val mongoComponent       = inject[MongoComponent]
+  private val submissionRepository = inject[SubmissionStatusRepositoryImpl]
+  private val configuration        = inject[Configuration]
 
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  private def fakeRequestWithXML = {
-
+  private def fakeRequestWithXML =
     val xmlURL = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
 
     FakeRequest("POST", "/voa-bar/upload")
@@ -84,7 +84,6 @@ class UploadControllerIntSpec
         "password" -> crypto.encrypt(PlainText("BA5090")).value
       )
       .withBody(UploadDetails("1234", xmlURL))
-  }
 
   "Upload controller " must {
 
@@ -113,11 +112,8 @@ class UploadControllerIntSpec
   override protected def afterAll(): Unit =
     mongoComponent.client.close()
 
-}
-
 @Singleton
-class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector {
+class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector:
 
-  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
-    Future(Right(IOUtils.toByteArray(new URI(url).toURL.openStream())))
-}
+  override def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
+    Future(Right(IOUtils.toByteArray(URI(url).toURL.openStream())))

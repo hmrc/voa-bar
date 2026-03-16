@@ -18,51 +18,41 @@ package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
 
-sealed trait NoPlanningReferenceType {
+sealed trait NoPlanningReferenceType:
   def xmlValue: String
-}
 
-case object WithoutPlanningPermission extends NoPlanningReferenceType {
+case object WithoutPlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-BWPP."
-}
 
-case object NotApplicablePlanningPermission extends NoPlanningReferenceType {
+case object NotApplicablePlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PPNA."
-}
 
-case object NotRequiredPlanningPermission extends NoPlanningReferenceType {
+case object NotRequiredPlanningPermission extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PPNR."
-}
 
-case object PermittedDevelopment extends NoPlanningReferenceType {
+case object PermittedDevelopment extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-PD."
-}
 
-case object NoPlanningApplicationSubmitted extends NoPlanningReferenceType {
+case object NoPlanningApplicationSubmitted extends NoPlanningReferenceType:
   override def xmlValue: String = "No plan-NPAS."
-}
 
-object NoPlanningReferenceType {
+object NoPlanningReferenceType:
 
-  implicit val format: Format[NoPlanningReferenceType] = new Format[NoPlanningReferenceType] {
+  implicit val format: Format[NoPlanningReferenceType] =
+    new Format[NoPlanningReferenceType]:
+      override def reads(json: JsValue): JsResult[NoPlanningReferenceType] =
+        json match
+          case JsString("WithoutPlanningPermission")       => JsSuccess(WithoutPlanningPermission)
+          case JsString("NotApplicablePlanningPermission") => JsSuccess(NotApplicablePlanningPermission)
+          case JsString("NotRequiredPlanningPermission")   => JsSuccess(NotRequiredPlanningPermission)
+          case JsString("PermittedDevelopment")            => JsSuccess(PermittedDevelopment)
+          case JsString("NoPlanningApplicationSubmitted")  => JsSuccess(NoPlanningApplicationSubmitted)
+          case x                                           => JsError(s"Unable to deserialize NoPlanningReferenceType $x")
 
-    override def reads(json: JsValue): JsResult[NoPlanningReferenceType] =
-      json match {
-        case JsString("WithoutPlanningPermission")       => JsSuccess(WithoutPlanningPermission)
-        case JsString("NotApplicablePlanningPermission") => JsSuccess(NotApplicablePlanningPermission)
-        case JsString("NotRequiredPlanningPermission")   => JsSuccess(NotRequiredPlanningPermission)
-        case JsString("PermittedDevelopment")            => JsSuccess(PermittedDevelopment)
-        case JsString("NoPlanningApplicationSubmitted")  => JsSuccess(NoPlanningApplicationSubmitted)
-        case x                                           => JsError(s"Unable to deserialize NoPlanningReferenceType $x")
-      }
-
-    override def writes(o: NoPlanningReferenceType): JsValue =
-      o match {
-        case WithoutPlanningPermission       => JsString("WithoutPlanningPermission")
-        case NotApplicablePlanningPermission => JsString("NotApplicablePlanningPermission")
-        case NotRequiredPlanningPermission   => JsString("NotRequiredPlanningPermission")
-        case PermittedDevelopment            => JsString("PermittedDevelopment")
-        case NoPlanningApplicationSubmitted  => JsString("NoPlanningApplicationSubmitted")
-      }
-  }
-}
+      override def writes(o: NoPlanningReferenceType): JsValue =
+        o match
+          case WithoutPlanningPermission       => JsString("WithoutPlanningPermission")
+          case NotApplicablePlanningPermission => JsString("NotApplicablePlanningPermission")
+          case NotRequiredPlanningPermission   => JsString("NotRequiredPlanningPermission")
+          case PermittedDevelopment            => JsString("PermittedDevelopment")
+          case NoPlanningApplicationSubmitted  => JsString("NoPlanningApplicationSubmitted")

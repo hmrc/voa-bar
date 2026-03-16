@@ -18,7 +18,7 @@ package uk.gov.hmrc.vo.autobars.controllers
 
 import cats.MonadThrow
 import cats.effect.IO
-import cats.effect.unsafe.implicits._
+import cats.effect.unsafe.implicits.*
 import play.api.Logging
 import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
@@ -29,7 +29,7 @@ import scala.concurrent.Future
 /**
   * @author Yuriy Tumakha
   */
-trait FunctionalRun extends Logging {
+trait FunctionalRun extends Logging:
 
   type F[A] = IO[A]
 
@@ -49,5 +49,3 @@ trait FunctionalRun extends Logging {
         logger.error(s"Exception: $ex")
         InternalServerError(ex.getMessage)
     }.unsafeToFuture()
-
-}

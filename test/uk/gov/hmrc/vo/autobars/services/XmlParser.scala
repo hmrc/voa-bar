@@ -38,7 +38,6 @@ class XmlParser:
   documentBuilderFactory.setExpandEntityReferences(false) // XXE vulnerable fix
 
   def parse(xml: URL): Either[BarError, Document] =
-
     Try {
       val docBuilder = documentBuilderFactory.newDocumentBuilder()
       blocking { // downloading and parsing XML is blocking operation, maybe we can buffer it to byte[] and then parse to avoid blocking IO

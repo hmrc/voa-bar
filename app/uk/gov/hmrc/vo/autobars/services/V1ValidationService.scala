@@ -17,34 +17,28 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import java.io.ByteArrayInputStream
-
 import ebars.xml.BAreports
+
 import javax.inject.{Inject, Singleton}
 import javax.xml.transform.stream.StreamSource
-import play.api.Logger
+import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 @Singleton
-class V1ValidationService @Inject() (validationService: ValidationService) {
+class V1ValidationService @Inject() (validationService: ValidationService) extends Logging:
 
-  val log = Logger(getClass)
-
-  val correctionEngine = new RulesCorrectionEngine
-
-  val rulesValidationEngine = new RulesValidationEngine
-
-  val xmlValidator = new EbarsValidator
+  val correctionEngine      = RulesCorrectionEngine()
+  val rulesValidationEngine = RulesValidationEngine()
+  val xmlValidator          = EbarsValidator()
 
   def fixAndValidateAsV2(xml: Array[Byte], baLogin: String, requestId: String, v1Status: String): Boolean =
     Try {
-      val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(xml)))
-
+      val source     = StreamSource(CorrectionInputStream(ByteArrayInputStream(xml)))
       val submission = xmlValidator.fromXml(source)
-
       val allReports = xmlValidator.split(submission)
 
       allReports.foreach { report =>
@@ -61,18 +55,15 @@ class V1ValidationService @Inject() (validationService: ValidationService) {
 
     }.recover {
       case e: Exception =>
-        log.warn("Unable to validate XML from V1", e)
+        logger.warn("Unable to validate XML from V1", e)
         false
     }.getOrElse(false)
 
-  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1Status: String): Boolean =
-    validationService.validate(correctedXml, LoginDetails(baLogin, "")) match {
+  private def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1Status: String): Boolean =
+    validationService.validate(correctedXml, LoginDetails(baLogin, "")) match
       case Left(errors) =>
-        log.info(s"Validation of fixed XML, baLogin: $baLogin, requestId: $requestId, v1Status: $v1Status, errors: $errors")
+        logger.info(s"Validation of fixed XML, baLogin: $baLogin, requestId: $requestId, v1Status: $v1Status, errors: $errors")
         false
       case Right(_)     =>
-        log.info(s"Validation of fixed XML successful, baLogin: $baLogin requestId: $requestId, v1Status: $v1Status")
+        logger.info(s"Validation of fixed XML successful, baLogin: $baLogin requestId: $requestId, v1Status: $v1Status")
         true
-    }
-
-}

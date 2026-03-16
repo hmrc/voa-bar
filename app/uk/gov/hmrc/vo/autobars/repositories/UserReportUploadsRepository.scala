@@ -32,19 +32,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 final case class UserReportUpload(_id: String, userId: String, userPassword: String, createdAt: Instant = Instant.now)
 
-object UserReportUpload {
+object UserReportUpload:
 
   import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.*
 
-  implicit val format: OFormat[UserReportUpload] = Json.format[UserReportUpload]
+  implicit val format: OFormat[UserReportUpload] = Json.format
   val collectionName                             = "userreportupload"
-}
 
 @Singleton
 class DefaultUserReportUploadsRepository @Inject() (
   mongo: MongoComponent,
   config: Configuration
-)(implicit ec: ExecutionContext
+)(using ec: ExecutionContext
 ) extends PlayMongoRepository[UserReportUpload](
     collectionName = UserReportUpload.collectionName,
     mongoComponent = mongo,
@@ -54,7 +53,7 @@ class DefaultUserReportUploadsRepository @Inject() (
     )
   )
   with UserReportUploadsRepository
-  with Logging {
+  with Logging:
 
   override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit]] =
     collection.insertOne(userReportUpload).toFuture()
@@ -74,11 +73,8 @@ class DefaultUserReportUploadsRepository @Inject() (
         case ex: Throwable => handleMongoError(s"Error getting user report upload entry for $id", ex, logger)
       }
 
-}
-
 @ImplementedBy(classOf[DefaultUserReportUploadsRepository])
-trait UserReportUploadsRepository {
+trait UserReportUploadsRepository:
   def findById(id: String): Future[Option[UserReportUpload]]
   def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]]
   def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit]]
-}

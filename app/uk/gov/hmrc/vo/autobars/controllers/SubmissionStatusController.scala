@@ -20,7 +20,7 @@ import cats.data.EitherT
 import cats.implicits.*
 
 import javax.inject.{Inject, Singleton}
-import play.api.{Configuration, Logger}
+import play.api.{Configuration, Logging}
 import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -39,11 +39,11 @@ class SubmissionStatusController @Inject() (
   controllerComponents: ControllerComponents,
   webBarsService: WebBarsService,
   configuration: Configuration
-)(implicit ec: ExecutionContext
-) extends BackendController(controllerComponents) {
+)(using ec: ExecutionContext
+) extends BackendController(controllerComponents)
+  with Logging:
 
-  val logger         = Logger("SubmissionStatusController")
-  private val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] =
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(
@@ -52,24 +52,24 @@ class SubmissionStatusController @Inject() (
     ))
 
   private def getAllReportStatuses: Future[Either[Result, Seq[ReportStatus]]] =
-    submissionStatusRepository.getAll().map(_.fold(
+    submissionStatusRepository.getAll.map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
 
   def getByUser(filter: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
-    (for {
+    (for
       userId         <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusesByUser(userId, filter))
-    } yield Ok(Json.toJson(reportStatuses)))
+    yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
   def getAll: Action[AnyContent] = Action.async { implicit request =>
-    (for {
+    (for
       _              <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getAllReportStatuses)
-    } yield Ok(Json.toJson(reportStatuses)))
+    yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
@@ -80,26 +80,24 @@ class SubmissionStatusController @Inject() (
     ))
 
   def getByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
-    (for {
+    (for
       _              <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(getReportStatusByReference(reference))
-    } yield Ok(Json.toJson(reportStatuses)))
+    yield Ok(Json.toJson(reportStatuses)))
       .valueOr(_ => InternalServerError)
   }
 
   private def parseReportStatus(request: Request[JsValue]): Either[Result, ReportStatus] =
-    request.body.validate[ReportStatus] match {
+    request.body.validate[ReportStatus] match
       case result: JsSuccess[ReportStatus] => Right(result.get)
       case _                               => Left(BadRequest)
-    }
 
-  private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit]] = {
+  private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit]] =
     logger.debug(s"Save submission ${reportStatus.redacted} upsert $upsert")
     submissionStatusRepository.saveOrUpdate(reportStatus, upsert).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(())
     ))
-  }
 
   private def saveSubmissionUserInfo(userId: String, reference: String): Future[Either[Result, Unit]] =
     submissionStatusRepository.saveOrUpdate(userId, reference).map(_.fold(
@@ -112,34 +110,33 @@ class SubmissionStatusController @Inject() (
 
     logger.info(s"Saving submission upsert $upsert")
 
-    (for {
+    (for
       baCode            <- EitherT.fromEither[Future](headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")))
       encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
       password          <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
       reportStatus      <- EitherT.fromEither[Future](parseReportStatus(request))
       _                 <- EitherT(saveSubmission(reportStatus.copy(baCode = baCode), upsert))
       _                  = webBarsService.newSubmission(reportStatus, baCode, password)
-    } yield NoContent)
+    yield NoContent)
       .valueOr(_ => InternalServerError)
   }
 
   def saveUserInfo: Action[JsValue] = Action.async(parse.tolerantJson) { request =>
-    (for {
+    (for
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
       _            <- EitherT(saveSubmissionUserInfo(reportStatus.baCode, reportStatus.id))
-    } yield NoContent)
+    yield NoContent)
       .valueOr(_ => InternalServerError)
   }
 
   private def decryptPassword(encryptedPassword: String): Either[Result, String] =
     Try {
       crypto.decrypt(Crypted(encryptedPassword))
-    } match {
+    } match
       case Success(password)  => Right(password.value)
       case Failure(exception) =>
         logger.warn("Unable to decrypt password", exception)
         Left(Unauthorized("Unable to decrypt password"))
-    }
 
   private def deleteByReferenceQuery(reference: String, user: String): Future[Either[Result, JsValue]] =
     submissionStatusRepository.deleteByReference(reference, user).map { deleteResult =>
@@ -150,11 +147,9 @@ class SubmissionStatusController @Inject() (
     }
 
   def deleteByReference(reference: String): Action[AnyContent] = Action.async { implicit request =>
-    (for {
+    (for
       baCode         <- EitherT.fromOption[Future](request.headers.toMap.get("BA-Code").flatMap(_.headOption), Unauthorized("BA-Code missing"))
       reportStatuses <- EitherT(deleteByReferenceQuery(reference, baCode))
-    } yield Ok(Json.toJson(reportStatuses)))
+    yield Ok(Json.toJson(reportStatuses)))
       .valueOr(x => x)
   }
-
-}

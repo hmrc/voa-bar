@@ -24,33 +24,29 @@ import ebars.xml.BAreports
   * Monad style baby!
   */
 
-sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
+sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports]:
 
   def get: Seq[ReportErrorDetail]
 
   infix def map(f: B => Option[A]): ExceptionsAccumulator[A, B]
 
   def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B]
-}
 
-final case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() extends ExceptionsAccumulator[A, B] {
+final case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() extends ExceptionsAccumulator[A, B]:
 
   override def get: Seq[ReportErrorDetail] = Seq.empty[ReportErrorDetail]
 
   override def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 
   override def map(f: B => Option[A]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
-}
 
-final case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
+final case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B]:
 
   override def get: Seq[ReportErrorDetail] = errors
 
   override infix def map(f: B => Option[A]): ExceptionsAccumulator[A, B] =
-    f(report) match {
+    f(report) match
       case Some(newErrors) => copy(errors = errors :+ newErrors)
       case _               => this
-    }
 
   override def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = f(report)
-}

@@ -22,7 +22,7 @@ import uk.gov.hmrc.vo.autobars.models.Error
 import uk.gov.hmrc.vo.autobars.util.ErrorCode
 import ErrorCode.*
 
-class ErrorSpec extends PlaySpec {
+class ErrorSpec extends PlaySpec:
 
   private val code       = CHARACTER
   private val errorValue = Seq("testing error")
@@ -36,22 +36,16 @@ class ErrorSpec extends PlaySpec {
 
   "return same instance after deserialization" in {
     val res = ErrorCode.errorCodeReader(BsonString("1010"))
-
     res mustBe theSameInstanceAs(BA_CODE_MATCH)
-
     res.hashCode() mustBe BA_CODE_MATCH.hashCode()
   }
 
   "serialize ErrorCode to appropriate code" in {
     val res = ErrorCode.errorCodeWriter(UNSUPPORTED_TAX_TYPE)
-
     res mustBe BsonString("1020")
   }
 
   "return UNKNOWN_ERROR on deserialization for unknown code" in {
     val res = ErrorCode.errorCodeReader(BsonString("13777666"))
-
     res mustBe UNKNOWN_ERROR
   }
-
-}

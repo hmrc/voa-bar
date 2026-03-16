@@ -34,12 +34,12 @@ import java.time.LocalDate
 import java.util.UUID
 import scala.annotation.nowarn
 
-class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks {
+class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
-  private val parser    = new XmlParser()
-  private val validator = new XmlValidator()
+  private val parser    = XmlParser()
+  private val validator = XmlValidator()
 
   private val jaxb           = JAXBContext.newInstance(classOf[BAreports])
   private val jaxbMarshaller = jaxb.createMarshaller()
@@ -170,11 +170,11 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   "CR01 CR03 generator" should "generate valid xml" in {
     val jaxbStructure =
-      new Cr01Cr03SubmissionXmlGenerator(
+      Cr01Cr03SubmissionXmlGenerator(
         aCR03Submission(),
         1010,
         "Brighton and Hove",
-        UUID.randomUUID().toString
+        UUID.randomUUID.toString
       ).generateXml(): @nowarn
     val xml           = printXml(jaxbStructure)
 
@@ -184,10 +184,10 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
   }
 
   it should "generate valid XML for all generated CR03 submissions" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(getCr03Submission) { submission =>
       val jaxbStructure =
-        new Cr01Cr03SubmissionXmlGenerator(
+        Cr01Cr03SubmissionXmlGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -202,10 +202,10 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
   }
 
   it should "generate valid XML for all generated CR01 submissions" in {
-    val id = UUID.randomUUID().toString
+    val id = UUID.randomUUID.toString
     forAll(getCr01Submission) { submission =>
       val jaxbStructure =
-        new Cr01Cr03SubmissionXmlGenerator(
+        Cr01Cr03SubmissionXmlGenerator(
           submission,
           1010,
           "Brighton and Hove",
@@ -219,7 +219,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     }
   }
 
-  def validateXml(xml: String): Unit = {
+  def validateXml(xml: String): Unit =
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
 
@@ -229,15 +229,13 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
     validation mustBe Right(true)
-  }
 
-  def printXml(report: BAreports): String = {
-    val sw = new StringWriter()
+  def printXml(report: BAreports): String =
+    val sw = StringWriter()
     jaxbMarshaller.marshal(report, sw)
     sw.toString
-  }
 
-  def aCR03Submission(): Cr01Cr03Submission = {
+  def aCR03Submission(): Cr01Cr03Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -257,6 +255,3 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       None,
       Option("comment")
     )
-  }
-
-}

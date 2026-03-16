@@ -20,7 +20,8 @@ import java.io.{InputStream, Reader}
 
 import org.w3c.dom.ls.LSInput
 
-class Input extends LSInput {
+class Input extends LSInput:
+
   private var systemId, baseURI, publicId: String = scala.compiletime.uninitialized
 
   private var reader: Reader               = scala.compiletime.uninitialized
@@ -59,4 +60,3 @@ class Input extends LSInput {
   override def setCharacterStream(characterStream: Reader): Unit = this.reader = characterStream
 
   override def setStringData(stringData: String): Unit = this.stringData = stringData
-}

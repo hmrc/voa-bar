@@ -18,22 +18,18 @@ package uk.gov.hmrc.vo.autobars.services
 
 import org.w3c.dom.ls.{LSInput, LSResourceResolver}
 
-class ResourceResolver extends LSResourceResolver {
+class ResourceResolver extends LSResourceResolver:
 
-  override def resolveResource(`type`: String, namespaceURI: String, publicId: String, systemId: String, baseURI: String): LSInput = {
-    val input = new Input
-
+  override def resolveResource(`type`: String, namespaceURI: String, publicId: String, systemId: String, baseURI: String): LSInput =
+    val input = Input()
     input.setSystemId(systemId)
     input.setBaseURI(baseURI)
     input.setPublicId(publicId)
 
     val resourceAsStream = getClass.getResourceAsStream(s"/xsd/$systemId")
 
-    resourceAsStream match {
-      case null => throw new IllegalArgumentException(s"Classpath resource /xsd/$systemId not found")
+    resourceAsStream match
+      case null => throw IllegalArgumentException(s"Classpath resource /xsd/$systemId not found")
       case _    =>
         input.setByteStream(resourceAsStream)
         input
-    }
-  }
-}

@@ -20,7 +20,7 @@ import ebars.xml.BAreports
 import jakarta.xml.bind.JAXBContext
 import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.vo.autobars.models.{BarError, BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.INVALID_XML_XSD
 
@@ -33,41 +33,35 @@ import javax.xml.validation.SchemaFactory
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-class XmlErrorHandler extends ErrorHandler {
+class XmlErrorHandler extends ErrorHandler:
+
   val errors = mutable.Map[Int, Error]()
 
-  private def addError(exception: SAXParseException): Unit = {
+  private def addError(exception: SAXParseException): Unit =
     val split = exception.getMessage.split(":", 2) map (_.trim)
     if split.length == 1 then
       errors.put(-1, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(0)}")))
     else
       errors.put(exception.getLineNumber, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(1)}")))
-  }
 
-  override def warning(exception: SAXParseException): Unit =
-    addError(exception)
+  override def warning(exception: SAXParseException): Unit = addError(exception)
 
-  override def error(exception: SAXParseException): Unit =
-    addError(exception)
+  override def error(exception: SAXParseException): Unit = addError(exception)
 
-  override def fatalError(exception: SAXParseException): Unit =
-    addError(exception)
-}
+  override def fatalError(exception: SAXParseException): Unit = addError(exception)
 
-class XmlValidator {
+class XmlValidator extends Logging:
 
-  private val log = Logger(this.getClass)
-
-  private val schemaFile1 = new StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
+  private val schemaFile1 = StreamSource(getClass.getResourceAsStream("/xsd/ValuebillBAtoVOA-v3-1d.xsd"))
   private val factory     = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
   factory.setResourceResolver(new ResourceResolver)
 
   private val schema = factory.newSchema(schemaFile1)
 
-  def validate(document: Document): Either[BarError, Boolean] = {
+  def validate(document: Document): Either[BarError, Boolean] =
 
-    val source       = new DOMSource(document)
-    val errorHandler = new XmlErrorHandler
+    val source       = DOMSource(document)
+    val errorHandler = XmlErrorHandler()
 
     Try {
       val validator = schema.newValidator
@@ -75,32 +69,27 @@ class XmlValidator {
       validator.setFeature("http://xml.org/sax/features/validation", true)
       validator.setFeature("http://apache.org/xml/features/validation/schema", true)
       validator.validate(source)
-    } match {
+    } match
       case Success(_)         =>
         if errorHandler.errors.isEmpty then Right(true) else Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
       case Failure(exception) => Left(BarXmlError("XML Schema validation error"))
-    }
-  }
 
-  def validateAsDomAgainstSchema(baReports: BAreports): Either[BarError, Unit] = {
+  def validateAsDomAgainstSchema(baReports: BAreports): Either[BarError, Unit] =
     val jc  = JAXBContext.newInstance("ebars.xml")
     val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
     jc.createMarshaller.marshal(baReports, doc)
 
     validate(doc).map(_ => ())
 
-  }
-
   /**
     * This method is used ONLY to try parse XML to DOM tree and check if it is well formated XML document.
     * @param xmlInput XML input
     * @return
     */
-  def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] = {
+  def validateInputXmlForXEE(xmlInput: InputStream): Either[BarError, Boolean] =
+    val errorHandler = XmlErrorHandler()
 
-    val errorHandler = new XmlErrorHandler
-
-    val maybeInvalid = Try {
+    Try {
       val documentBuilderFactory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", null)
       documentBuilderFactory.setNamespaceAware(true) // without it fails reconciling the xml with xsd's namespace
       documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) // XXE vulnerable fix
@@ -110,18 +99,12 @@ class XmlValidator {
       documentBuilderFactory.setExpandEntityReferences(false) // XXE vulnerable fix
 
       val parser = documentBuilderFactory.newDocumentBuilder
-
       parser.setErrorHandler(errorHandler)
-      val _ = parser.parse(xmlInput)
+      val _      = parser.parse(xmlInput)
 
-    }
-
-    maybeInvalid match {
+    } match
       case Success(_)         =>
         if errorHandler.errors.isEmpty then Right(true) else Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
       case Failure(exception) =>
-        log.warn("XML read error, invalid XML document", exception)
+        logger.warn("XML read error, invalid XML document", exception)
         Left(BarXmlError(s"XML read error, invalid XML document, ${exception.getMessage}"))
-    }
-  }
-}

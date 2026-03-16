@@ -46,10 +46,10 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return optional CR code enum CtaxReasonForReportCodeContentType
     */
-  def extractCR(baReports: BAreports) = {
-    import models.EbarsBAreports._
+  def extractCR(baReports: BAreports) =
+    import models.EbarsBAreports.*
 
-    (baReports.purpose: @unchecked) match {
+    (baReports.purpose: @unchecked) match
       case Purpose.CT  =>
         content(baReports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax" && !e.isNil)
           .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))
@@ -63,8 +63,6 @@ object EbarsXmlCutter:
           .map(e => e.getReasonForReportCode)
           .filter(_ != null)
           .map(e => e.getValue).filter(_ != "")
-    }
-  }
 
   /**
     * Returns <AssessmentProperties> elements from both <ExistingEntries> and <ProposedEntries>
@@ -72,16 +70,13 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return Seq of ebars.xml.AssessmentProperties
     */
-  def getAssessmentProperties(baReports: BAreports): Seq[AssessmentProperties] = {
+  def getAssessmentProperties(baReports: BAreports): Seq[AssessmentProperties] =
     val proposedEntries = findProposedEntriesIdx(baReports)
     val existingEntries = findExistingEntriesIdx(baReports)
-
     val propertyEntries = existingEntries ++: proposedEntries
-
-    val properties = propertyEntries map (idx => content(baReports).get(idx))
+    val properties      = propertyEntries map (idx => content(baReports).get(idx))
 
     properties.map(_.getValue.asInstanceOf[BApropertySplitMergeStructure]).flatMap(_.getAssessmentProperties.asScala)
-  }
 
   /**
     * Returns <CurrentTax> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -89,8 +84,8 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return Seq of ebars.xml.CurrentTax
     */
-  def getCurrentTaxes(baReports: BAreports): Seq[AssessmentProperties.CurrentTax] = getAssessmentProperties(baReports) map (_.getCurrentTax) filterNot
-    (_ == null)
+  def getCurrentTaxes(baReports: BAreports): Seq[AssessmentProperties.CurrentTax] =
+    getAssessmentProperties(baReports) map (_.getCurrentTax) filterNot (_ == null)
 
   /**
     * Removes all <CurrentTax>  elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -100,11 +95,10 @@ object EbarsXmlCutter:
     */
   def removeNullCurrentTax(baReports: BAreports): Unit =
     getAssessmentProperties(baReports) foreach { assessmentProperties =>
-      assessmentProperties.getCurrentTax match {
+      assessmentProperties.getCurrentTax match
         case null                                               => // nothing
         case currentTax if currentTax.getCouncilTaxBand == null => assessmentProperties.setCurrentTax(null)
         case _                                                  => // nothing
-      }
     }
 
   /**
@@ -113,7 +107,8 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return Seq of ebars.xml.BApropertyIdentificationStructure
     */
-  def getPropertyIdentities(baReports: BAreports): Seq[BApropertyIdentificationStructure] = getAssessmentProperties(baReports) map (_.getPropertyIdentity)
+  def getPropertyIdentities(baReports: BAreports): Seq[BApropertyIdentificationStructure] =
+    getAssessmentProperties(baReports) map (_.getPropertyIdentity)
 
   /**
     * Returns <PropertyDescription> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -121,8 +116,8 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return Seq of ebars.xml.PropertyDescription
     */
-  def getPropertyDescriptions(baReports: BAreports): Seq[AssessmentProperties.PropertyDescription] = getAssessmentProperties(baReports) map
-    (_.getPropertyDescription) filterNot (_ == null)
+  def getPropertyDescriptions(baReports: BAreports): Seq[AssessmentProperties.PropertyDescription] =
+    getAssessmentProperties(baReports) map (_.getPropertyDescription) filterNot (_ == null)
 
   /**
     * Returns <OccupierContact> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -133,42 +128,37 @@ object EbarsXmlCutter:
   def getOccupierContacts(baReports: BAreports): Seq[OccupierContactStructure] = getAssessmentProperties(baReports).flatMap(getOccupierContacts)
 
   def getOccupierContacts(assessmentProperties: AssessmentProperties): Option[OccupierContactStructure] =
-    assessmentProperties.getOccupierContact match {
+    assessmentProperties.getOccupierContact match
       case null => None
       case v    => Some(v)
-    }
 
   /**
     * Removes BS7666Address elements from XML
     *
     * @param baReports the XML report
     */
-  def removeBS7666Address(baReports: BAreports): Unit = {
+  def removeBS7666Address(baReports: BAreports): Unit =
     val propertyIdentities = getPropertyIdentities(baReports)
 
-    propertyIdentities foreach { bApropertyIdentificationStructure =>
-      bApropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "BS7666Address") map (_._2) match {
-        case Some(index) => bApropertyIdentificationStructure.getContent.remove(index)
+    propertyIdentities foreach { baPropertyIdentificationStructure =>
+      baPropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "BS7666Address") map (_._2) match
+        case Some(index) => baPropertyIdentificationStructure.getContent.remove(index)
         case _           => // nothing
-      }
     }
-  }
 
   /**
     * Removes PropertyGridCoords elements from XML
     *
     * @param baReports the XML report
     */
-  def removePropertyGridCoords(baReports: BAreports): Unit = {
+  def removePropertyGridCoords(baReports: BAreports): Unit =
     val propertyIdentities = getPropertyIdentities(baReports)
 
-    propertyIdentities foreach { bApropertyIdentificationStructure =>
-      bApropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "PropertyGridCoords") map (_._2) match {
-        case Some(index) => bApropertyIdentificationStructure.getContent.remove(index)
+    propertyIdentities foreach { baPropertyIdentificationStructure =>
+      baPropertyIdentificationStructure.getContent.asScala.zipWithIndex find (_._1.getName.getLocalPart == "PropertyGridCoords") map (_._2) match
+        case Some(index) => baPropertyIdentificationStructure.getContent.remove(index)
         case _           => // nothing
-      }
     }
-  }
 
   /**
     * Returns <TextAddress> elements from all <AssessmentProperties> in both <ExistingEntries> and <ProposedEntries>
@@ -211,10 +201,9 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @return Seq of ebars.xml.UKPostalAddressStructure
     */
-  def getOccupierContactAddresses(baReports: BAreports): Seq[UKPostalAddressStructure] = {
+  def getOccupierContactAddresses(baReports: BAreports): Seq[UKPostalAddressStructure] =
     val occupierContactAddresses = getOccupierContacts(baReports)
     occupierContactAddresses map (_.getContactAddress) filterNot (_ == null)
-  }
 
   /**
     * Returns the <Remarks> element in <BApropertyReport>
@@ -277,22 +266,14 @@ object EbarsXmlCutter:
     *
     * @param baReports the XML report
     */
-  def removeProposedEntries(baReports: BAreports): Unit = {
-    val indices = findProposedEntriesIdx(baReports)
-
-    indices foreach content(baReports).remove
-  }
+  def removeProposedEntries(baReports: BAreports): Unit = findProposedEntriesIdx(baReports) foreach content(baReports).remove
 
   /**
     * Removes <ExistingEntries>
     *
     * @param baReports the XML report
     */
-  def removeExistingEntries(baReports: BAreports): Unit = {
-    val indices = findExistingEntriesIdx(baReports)
-
-    indices foreach content(baReports).remove
-  }
+  def removeExistingEntries(baReports: BAreports): Unit = findExistingEntriesIdx(baReports) foreach content(baReports).remove
 
   /**
     * Performs a shallow copy of all <ExistingEntries>/<AssessmentProperties> into <ProposedEntries>
@@ -302,25 +283,25 @@ object EbarsXmlCutter:
     *
     * @param baReports the XML report
     */
-  def copyExistingEntriesToProposed(baReports: BAreports): Unit = {
+  def copyExistingEntriesToProposed(baReports: BAreports): Unit =
     removeProposedEntries(baReports)
 
     findFirstExistingEntriesIdx(baReports) foreach { index =>
       val existingPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
 
-      val proposedPropertiesValue = new BApropertySplitMergeStructure // the destination <ProposedEntries>/<AssessmentProperties>
+      val proposedPropertiesValue = BApropertySplitMergeStructure() // the destination <ProposedEntries>/<AssessmentProperties>
 
       existingPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
         val existingTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
         proposedPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         existingTextAddressStructures.zipWithIndex foreach { case (existingTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           existingTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
 
@@ -342,7 +323,6 @@ object EbarsXmlCutter:
         */
       content(baReports).add(index + 1, createProposedEntries(proposedPropertiesValue))
     }
-  }
 
   /**
     * Performs a shallow copy of all <ProposedEntries>/<AssessmentProperties> into <ExistingEntries>
@@ -352,25 +332,25 @@ object EbarsXmlCutter:
     *
     * @param baReports the XML report
     */
-  def copyProposedEntriesToExisting(baReports: BAreports): Unit = {
+  def copyProposedEntriesToExisting(baReports: BAreports): Unit =
     removeExistingEntries(baReports)
 
     findFirstProposedEntriesIdx(baReports) foreach { index =>
       val proposedPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
 
-      val existingPropertiesValue = new BApropertySplitMergeStructure
+      val existingPropertiesValue = BApropertySplitMergeStructure()
 
       proposedPropertiesValue.getAssessmentProperties.asScala foreach { assessmentProperties =>
         val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
         existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           proposedTextAddressStructure.getAddressLine.asScala foreach textAddressStructureCopy.getAddressLine.add
 
@@ -386,27 +366,22 @@ object EbarsXmlCutter:
         */
       content(baReports).add(index, createExistingEntries(existingPropertiesValue))
     }
-  }
 
-  private def createProposedEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ProposedEntries")
-    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
-  }
+  private def createProposedEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) =
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "ProposedEntries")
+    JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
 
-  private def createExistingEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "ExistingEntries")
-    new JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
-  }
+  private def createExistingEntries(baPropertySplitMergeStructure: BApropertySplitMergeStructure) =
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "ExistingEntries")
+    JAXBElement(qName, classOf[BApropertySplitMergeStructure], classOf[BApropertyIdentificationStructure], baPropertySplitMergeStructure)
 
-  private def createTextAddress(textAddressStructure: TextAddressStructure) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "TextAddress")
-    new JAXBElement(qName, classOf[TextAddressStructure], classOf[BApropertyIdentificationStructure], textAddressStructure)
-  }
+  private def createTextAddress(textAddressStructure: TextAddressStructure) =
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "TextAddress")
+    JAXBElement(qName, classOf[TextAddressStructure], classOf[BApropertyIdentificationStructure], textAddressStructure)
 
-  private def createBAreference(baReference: String) = {
-    val qName = new QName("http://www.govtalk.gov.uk/LG/Valuebill", "BAreference")
-    new JAXBElement(qName, classOf[String], classOf[BApropertyIdentificationStructure], baReference)
-  }
+  private def createBAreference(baReference: String) =
+    val qName = QName("http://www.govtalk.gov.uk/LG/Valuebill", "BAreference")
+    JAXBElement(qName, classOf[String], classOf[BApropertyIdentificationStructure], baReference)
 
   /**
     * Loops through all <ProposedEntries>/<AssessmentProperties>, edits the <TextAddress>/<AddressLine> elements
@@ -419,17 +394,15 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @param prefix    The value that serves as a prefix.
     */
-  def appendProposedEntriesToExisting(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit = {
-    val existingPropertiesValue = findFirstExistingEntriesIdx(baReports) match {
+  def appendProposedEntriesToExisting(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit =
+    val existingPropertiesValue = findFirstExistingEntriesIdx(baReports) match
       case Some(index) => content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure]
       case None        =>
-        val newExistingPropertiesValue = new BApropertySplitMergeStructure
+        val newExistingPropertiesValue = BApropertySplitMergeStructure()
         findLastTypeOfTaxIdx(baReports) foreach { typeOfTaxIndex =>
           content(baReports).add(typeOfTaxIndex, createExistingEntries(newExistingPropertiesValue))
         }
-
         newExistingPropertiesValue
-    }
 
     findFirstProposedEntriesIdx(baReports) foreach { index =>
       val proposedPropertiesValue = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // proposed entry's data
@@ -438,14 +411,14 @@ object EbarsXmlCutter:
         val proposedTextAddressStructures = getTextAddressStructures(assessmentProperties.getPropertyIdentity)
         val baReferences                  = getBAreferences(assessmentProperties.getPropertyIdentity)
 
-        val copyPropertyIdentity   = new BApropertyIdentificationStructure
-        val copyAssessmentProperty = new AssessmentProperties
+        val copyPropertyIdentity   = BApropertyIdentificationStructure()
+        val copyAssessmentProperty = AssessmentProperties()
         copyAssessmentProperty.setPropertyIdentity(copyPropertyIdentity)
 
         existingPropertiesValue.getAssessmentProperties.add(copyAssessmentProperty)
 
         proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
-          val textAddressStructureCopy = new TextAddressStructure
+          val textAddressStructureCopy = TextAddressStructure()
 
           // TODO - What is address is too long
           // should we trip proposet od addres?? I don't know
@@ -458,7 +431,6 @@ object EbarsXmlCutter:
         }
       }
     }
-  }
 
   /**
     * Loops through all <ProposedEntries>/<AssessmentProperties>, edits the <TextAddress>/<AddressLine> elements
@@ -468,15 +440,14 @@ object EbarsXmlCutter:
     * @param baReports the XML report
     * @param prefix    The value that serves as a prefix.
     */
-  def appendProposedEntriesToRemarks(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit = {
+  def appendProposedEntriesToRemarks(baReports: BAreports, prefix: String = "[PROPOSED] "): Unit =
     val existingRemarks = getRemarks(baReports) // current Remarks value
 
     // all <ProposedEntries>/<AssessmentProperties>
-    val g = findFirstProposedEntriesIdx(baReports) match {
+    val g = findFirstProposedEntriesIdx(baReports) match
       case Some(proposedEntriesIndex) =>
         content(baReports).get(proposedEntriesIndex).getValue.asInstanceOf[BApropertySplitMergeStructure].getAssessmentProperties.asScala.toList
       case _                          => Nil
-    }
 
     // producing a []-enclosed value with AddressLine and Postcode
     val addressLines = g map (_.getPropertyIdentity) filterNot (_ == null) flatMap getTextAddressStructures map { textAddressStructure =>
@@ -487,13 +458,12 @@ object EbarsXmlCutter:
     findRemarksIdx(baReports) map content(baReports).remove // removing existing remarks element
 
     // creating and adding a new <Remarks> element
-    val proposedQName   = new QName(content(baReports).get(0).getName.getNamespaceURI, "Remarks")
+    val proposedQName   = QName(content(baReports).get(0).getName.getNamespaceURI, "Remarks")
     val newRemarksValue = existingRemarks.map(_ + " - ").getOrElse("") + s"$prefix- " + addressLines.mkString(",").trim // TODO - What if remarks are too long?
     // should we remove rest of address?
     // fix bug in ebars
-    val newRemarks      = new JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
+    val newRemarks      = JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
     content(baReports).add(newRemarks) // Remarks element must be last
-  }
 
   /**
     * Converts <ExistingEntries> into <ProposedEntries>
@@ -502,12 +472,11 @@ object EbarsXmlCutter:
     *
     * @param baReports the report
     */
-  def convertExistingEntriesIntoProposedEntries(baReports: BAreports): Unit = {
+  def convertExistingEntriesIntoProposedEntries(baReports: BAreports): Unit =
     removeProposedEntries(baReports)
 
     findFirstExistingEntriesIdx(baReports) foreach { index =>
-      val value = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
-
+      val value                            = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
       val newBApropertySplitMergeStructure = createProposedEntries(value)
 
       removeExistingEntries(baReports)
@@ -516,7 +485,6 @@ object EbarsXmlCutter:
         content(baReports).add(typeOfTaxIndex + 1, newBApropertySplitMergeStructure)
       }
     }
-  }
 
   /**
     * Converts <ProposedEntries> into <ExistingEntries>
@@ -525,12 +493,11 @@ object EbarsXmlCutter:
     *
     * @param baReports BA reports
     */
-  def convertProposedEntriesIntoExistingEntries(baReports: BAreports): Unit = {
+  def convertProposedEntriesIntoExistingEntries(baReports: BAreports): Unit =
     removeExistingEntries(baReports)
 
     findFirstProposedEntriesIdx(baReports) foreach { index =>
-      val value = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
-
+      val value                            = content(baReports).get(index).getValue.asInstanceOf[BApropertySplitMergeStructure] // existing entry's data
       val newBApropertySplitMergeStructure = createExistingEntries(value)
 
       removeProposedEntries(baReports)
@@ -539,4 +506,3 @@ object EbarsXmlCutter:
         content(baReports).add(typeOfTaxIndex + 1, newBApropertySplitMergeStructure)
       }
     }
-  }

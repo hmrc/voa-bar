@@ -25,19 +25,15 @@ import uk.gov.hmrc.vo.autobars.models.LoginDetails
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class Utils @Inject() (crypto: Encrypter & Decrypter) {
+class Utils @Inject() (crypto: Encrypter & Decrypter):
   def decryptPassword(password: String): String = crypto.decrypt(Crypted(password)).value
 
-  def generateHeader(loginDetails: LoginDetails): HeaderCarrier = {
+  def generateHeader(loginDetails: LoginDetails): HeaderCarrier =
     val decryptedPassword = loginDetails.password // TODO - should be encrypted. In next version.
     val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:$decryptedPassword".getBytes("UTF-8"))
     HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
-  }
 
-  def generateHeader(loginDetails: LoginDetails, headerCarrier: HeaderCarrier): HeaderCarrier = {
+  def generateHeader(loginDetails: LoginDetails, headerCarrier: HeaderCarrier): HeaderCarrier =
     val decryptedPassword = loginDetails.password // TODO - should be encrypted. In next version.
     val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:$decryptedPassword".getBytes("UTF-8"))
     headerCarrier.copy(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
-  }
-
-}

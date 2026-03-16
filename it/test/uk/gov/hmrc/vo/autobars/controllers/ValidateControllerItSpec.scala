@@ -27,15 +27,11 @@ import java.util.UUID
 
 class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with DefaultAwaitTimeout with FutureAwaits with Injecting:
 
-  private val BA_LOGIN = "BA5090"
-
-  private val requestId = "mdtp-request-" + UUID.randomUUID().toString.replaceAll("-", "")
-
-  private val path = Paths.get("test/resources/xml/CTValid1.xml")
-
+  private val BA_LOGIN   = "BA5090"
+  private val requestId  = "mdtp-request-" + UUID.randomUUID.toString.replaceAll("-", "")
+  private val path       = Paths.get("test/resources/xml/CTValid1.xml")
   private val invalidXml = Paths.get("test/resources/xml/CTInvalid1.xml")
-
-  private def wsClient = inject[WSClient]
+  private def wsClient   = inject[WSClient]
 
   "Validate controller" should {
     "validate correct xml" in {

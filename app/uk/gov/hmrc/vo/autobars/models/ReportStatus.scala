@@ -17,19 +17,17 @@
 package uk.gov.hmrc.vo.autobars.models
 
 import java.time.Instant
-import play.api.libs.json._
+import play.api.libs.json.*
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats.mongoEntity
 
 import scala.annotation.nowarn
 
-sealed trait ReportStatusType {
+sealed trait ReportStatusType:
 
-  val value: String = {
+  val value: String =
     val a: Class[? <: ReportStatusType] = getClass.asSubclass(getClass)
     val u: String                       = a.getSimpleName.replace("$", "")
     u
-  }
-}
 
 case object Pending extends ReportStatusType
 case object Verified extends ReportStatusType
@@ -51,20 +49,16 @@ final case class ReportStatus(
   filename: Option[String] = None,
   totalReports: Option[Int] = None,
   report: Option[JsObject] = None
-) {
+):
 
   def redacted: ReportStatus =
-    this.copy(url = this.url.map(_ => "***redacted***"))
+    copy(url = this.url.map(_ => "***redacted***"))
 
-}
+object ReportStatus:
 
-object ReportStatus {
-
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits.*
 
   @nowarn
   implicit val format: Format[ReportStatus] = mongoEntity {
     Json.using[Json.WithDefaultValues].format[ReportStatus]
   }
-
-}

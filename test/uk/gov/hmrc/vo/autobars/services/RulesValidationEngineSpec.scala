@@ -25,15 +25,14 @@ import uk.gov.hmrc.vo.autobars.models.ReportErrorDetailCode as ErrorCode
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
+class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite:
 
   "RulesValidationEngine" must {
 
     "not have postcode errors" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ShouldNotHavePostcodeErrors.xml")))
+      val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ShouldNotHavePostcodeErrors.xml")))
 
-      val result = new RulesValidationEngine().applyRules(reports)
+      val result = RulesValidationEngine().applyRules(reports)
 
       result must have size 0
     }
@@ -41,27 +40,23 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "TextAddressPostcodeValidation" must {
     "valid postcode" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       val result = TextAddressPostcodeValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "have no error" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/SingleReport_Postcodeerror.xml")))
+      val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/SingleReport_Postcodeerror.xml")))
 
       val result = TextAddressPostcodeValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "invalid postcode" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        =
-        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_InvalidPostcode.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_InvalidPostcode.json")))
 
       val result = TextAddressPostcodeValidation.apply(reports)
 
@@ -71,49 +66,42 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "OccupierContactAddressesPostcodeValidation" must {
     "valid postcode" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       val result = OccupierContactAddressesPostcodeValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "have no error" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/SingleReport_Postcodeerror.xml")))
+      val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/SingleReport_Postcodeerror.xml")))
 
       val result = OccupierContactAddressesPostcodeValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "invalid postcode" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        =
-        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_InvalidPostcode.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_InvalidPostcode.json")))
 
       val result = OccupierContactAddressesPostcodeValidation.apply(reports)
 
       result.map(_.errorCode) mustBe Some(ErrorCode.OccupierContactAddressesPostcodeValidation)
-      // result.get.value must be("Postcode CropCrop in this report is invalid.") //We don't have messages in place
     }
   }
 
   "RemarksValidation" must {
     "valid remarks" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       val result = RemarksValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "invalid remarks - too long" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        =
-        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription1.json")))
+      val reports =
+        EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription1.json")))
 
       val result = RemarksValidation.apply(reports)
 
@@ -121,9 +109,8 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
     }
 
     "invalid remarks - too short" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        =
-        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
+      val reports =
+        EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
 
       val result = RemarksValidation.apply(reports)
 
@@ -133,23 +120,19 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "PropertyPlanReferenceNumberValidation" must {
     "valid remarks" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
+      val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       val result = PropertyPlanReferenceNumberValidation.apply(reports)
 
-      result must be(None)
+      result mustBe None
     }
 
     "invalid PropertyPlanReferenceNumber - too long" in {
-      val ebarsValidator = new EbarsValidator
-      val reports        =
-        ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription1.json")))
+      val reports =
+        EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription1.json")))
 
       val result = PropertyPlanReferenceNumberValidation.apply(reports)
 
       result.map(_.errorCode) mustBe Some(ErrorCode.PropertyPlanReferenceNumberValidation)
-
     }
   }
-}

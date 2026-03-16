@@ -26,16 +26,16 @@ import uk.gov.hmrc.vo.autobars.util.ErrorCode.INVALID_XML_XSD
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML
 
-class XmlValidatorSpec extends PlaySpec with EitherValues {
+class XmlValidatorSpec extends PlaySpec with EitherValues:
 
-  private val validator = new XmlValidator
-  private val xmlParser = new XmlParser()
+  private val validator = XmlValidator()
+  private val xmlParser = XmlParser()
 
-  private val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).toOption.get
+  private val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).fold(err => throw Exception(err.toString), identity)
   private def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
-  private val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).toOption.get
-  private val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).toOption.get
-  private val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).toOption.get
+  private val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).fold(err => throw Exception(err.toString), identity)
+  private val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).fold(err => throw Exception(err.toString), identity)
+  private val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).fold(err => throw Exception(err.toString), identity)
   private def withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
   private def wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
   private def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
@@ -142,5 +142,3 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
     }
 
   }
-
-}
