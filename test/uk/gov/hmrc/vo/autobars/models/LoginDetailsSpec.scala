@@ -16,17 +16,19 @@
 
 package uk.gov.hmrc.vo.autobars.models
 
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-class LoginDetailsSpec extends PlaySpec:
+class LoginDetailsSpec extends BaseSpec:
 
   val username = "BA1234"
   val password = "pass"
 
-  "Given a username and password produce a login model" in {
-    val result = LoginDetails(username, password)
+  "LoginDetails model" should {
+    "Given a username and password produce a login model" in {
+      val result = LoginDetails(username, password)
 
-    result.username mustBe username
-    result.password mustBe password
-    result.baCode mustBe 1234
+      result.username shouldBe username
+      result.password shouldBe password
+      result.baCode   shouldBe 1234
+    }
   }

@@ -16,24 +16,18 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-
-import org.apache.pekko.stream.testkit.NoMaterializer
 import org.apache.pekko.stream.Materializer
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import org.apache.pekko.stream.testkit.NoMaterializer
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.vo.autobars.models.{BarMongoError, UserReportUploadRest}
 import uk.gov.hmrc.vo.autobars.repositories.{UserReportUpload, UserReportUploadsRepository}
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
+class UserReportUploadsControllerSpec extends BaseAppSpec:
 
   implicit val materializer: Materializer = NoMaterializer
 
@@ -62,8 +56,9 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
 
       val response = userReportUploadsController.save()(fakeRequest)
 
-      status(response) mustBe NO_CONTENT
+      status(response) shouldBe NO_CONTENT
     }
+
     "return an error status when saving fails" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.save(any[UserReportUpload])).thenReturn(Future.successful(Left(error)))
@@ -71,8 +66,9 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
 
       val response = userReportUploadsController.save()(fakeRequest)
 
-      status(response) mustBe INTERNAL_SERVER_ERROR
+      status(response) shouldBe INTERNAL_SERVER_ERROR
     }
+
     "get by id returns user data correctly" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.getById(any[String])).thenReturn(Future.successful(Right(Some(userReportUpload))))
@@ -80,9 +76,10 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
 
       val response = userReportUploadsController.getById(id)(fakeRequest)
 
-      status(response) mustBe OK
-      contentAsJson(response) mustBe json
+      status(response)        shouldBe OK
+      contentAsJson(response) shouldBe json
     }
+
     "return bad status if an error occurs" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.getById(any[String])).thenReturn(Future.successful(Left(error)))
@@ -90,6 +87,6 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar:
 
       val response = userReportUploadsController.getById(id)(fakeRequest)
 
-      status(response) mustBe INTERNAL_SERVER_ERROR
+      status(response) shouldBe INTERNAL_SERVER_ERROR
     }
   }

@@ -17,35 +17,37 @@
 package uk.gov.hmrc.vo.autobars.models.errors
 
 import org.mongodb.scala.bson.BsonString
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.vo.autobars.models.Error
 import uk.gov.hmrc.vo.autobars.util.ErrorCode
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 import ErrorCode.*
 
-class ErrorSpec extends PlaySpec:
+class ErrorSpec extends BaseSpec:
 
   private val code       = CHARACTER
   private val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)
 
-  "Given an error code and an error value produce an Error model" in {
-    error.code mustBe code
-    error.values mustBe errorValue
-  }
+  "Error model" should {
+    "Given an error code and an error value produce an Error model" in {
+      error.code   shouldBe code
+      error.values shouldBe errorValue
+    }
 
-  "return same instance after deserialization" in {
-    val res = ErrorCode.errorCodeReader(BsonString("1010"))
-    res mustBe theSameInstanceAs(BA_CODE_MATCH)
-    res.hashCode() mustBe BA_CODE_MATCH.hashCode()
-  }
+    "return same instance after deserialization" in {
+      val res = ErrorCode.errorCodeReader(BsonString("1010"))
+      res            shouldBe theSameInstanceAs(BA_CODE_MATCH)
+      res.hashCode() shouldBe BA_CODE_MATCH.hashCode()
+    }
 
-  "serialize ErrorCode to appropriate code" in {
-    val res = ErrorCode.errorCodeWriter(UNSUPPORTED_TAX_TYPE)
-    res mustBe BsonString("1020")
-  }
+    "serialize ErrorCode to appropriate code" in {
+      val res = ErrorCode.errorCodeWriter(UNSUPPORTED_TAX_TYPE)
+      res shouldBe BsonString("1020")
+    }
 
-  "return UNKNOWN_ERROR on deserialization for unknown code" in {
-    val res = ErrorCode.errorCodeReader(BsonString("13777666"))
-    res mustBe UNKNOWN_ERROR
+    "return UNKNOWN_ERROR on deserialization for unknown code" in {
+      val res = ErrorCode.errorCodeReader(BsonString("13777666"))
+      res shouldBe UNKNOWN_ERROR
+    }
   }

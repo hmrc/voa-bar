@@ -16,24 +16,18 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.test.FakeRequest
 import play.api.libs.json.Json
+import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.vo.autobars.connectors.{VOBarAuditConnector, VOEbarsConnector}
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite:
+class LoginControllerSpec extends BaseAppSpec:
 
   private def fakeRequestWithJson(jsonStr: String) =
     val json = Json.parse(jsonStr)
@@ -57,37 +51,39 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPer
 
   private def controller = LoginController(mockVOEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
 
-  "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
-    val result = controller.verifyLogin(Some(Json.parse(goodJson)))
+  "LoginController" should {
+    "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
+      val result = controller.verifyLogin(Some(Json.parse(goodJson)))
 
-    result.isRight mustBe true
-    result.toOption mustBe Some(LoginDetails("ba0121", "xxxdyyy"))
-  }
-
-  "return 200 for a POST carrying login details" in {
-    val result = controller.login()(fakeRequestWithJson(goodJson))
-    status(result) mustBe OK
-  }
-
-  "return 400 (badrequest) when given no json" in {
-    val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json")
-    val result      = controller.login()(fakeRequest)
-    status(result) mustBe BAD_REQUEST
-  }
-
-  "return 400 (badrequest) when given garbled json" in {
-    val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withTextBody("{")
-    val result      = controller.login()(fakeRequest)
-    status(result) mustBe BAD_REQUEST
-  }
-
-  "Given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
-    val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
-    result.isLeft mustBe true
-  }
-
-  "return a Failure when the backend service call fails" in
-    intercept[Exception] {
-      val result = controller.login()(fakeRequestWithJson(goodJson))
-      status(result) mustBe INTERNAL_SERVER_ERROR
+      result.isRight  shouldBe true
+      result.toOption shouldBe Some(LoginDetails("ba0121", "xxxdyyy"))
     }
+
+    "return 200 for a POST carrying login details" in {
+      val result = controller.login()(fakeRequestWithJson(goodJson))
+      status(result) shouldBe OK
+    }
+
+    "return 400 when given no json" in {
+      val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json")
+      val result      = controller.login()(fakeRequest)
+      status(result) shouldBe BAD_REQUEST
+    }
+
+    "return 400 when given garbled json" in {
+      val fakeRequest = FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withTextBody("{")
+      val result      = controller.login()(fakeRequest)
+      status(result) shouldBe BAD_REQUEST
+    }
+
+    "Given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
+      val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
+      result.isLeft shouldBe true
+    }
+
+    "return a Failure when the backend service call fails" in
+      intercept[Exception] {
+        val result = controller.login()(fakeRequestWithJson(goodJson))
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      }
+  }

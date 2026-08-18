@@ -16,28 +16,17 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import org.scalatest.matchers.should
-import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.client.HttpClientV2
+import play.api.test.Helpers.POST
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import org.mockito.ArgumentMatchers.any
-
-import java.net.URL
-import scala.concurrent.ExecutionContext.Implicits.*
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
-import play.api.http.Status.OK
-import uk.gov.hmrc.vo.autobars.connectors.RequestBuilderStub
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
 import scala.util.Failure
 
 /**
   * @author Yuriy Tumakha
   */
-class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwaitTimeout with FutureAwaits with MockitoSugar:
+class EbarsClientV2Spec extends BaseAppSpec:
 
   "EbarsClientV2" should {
     "start with only proxy and voa-ebars service configuration" in {
@@ -53,14 +42,11 @@ class EbarsClientV2Spec extends AnyWordSpec with should.Matchers with DefaultAwa
       )
       val servicesConfig = ServicesConfig(configuration)
 
-      val httpClientV2Mock = mock[HttpClientV2]
-      when(
-        httpClientV2Mock.post(any[URL])(using any[HeaderCarrier])
-      ).thenReturn(RequestBuilderStub(Right(OK)))
+      val httpClientV2Mock = httpClientMock(POST, responseBody = "")
 
       val eBarsClient = EbarsClientV2(httpClientV2Mock, servicesConfig)
 
-      await(eBarsClient.uploadXML("user", "pass", "<xml/>", 1)) shouldBe Failure(
+      eBarsClient.uploadXML("user", "pass", "<xml/>", 1).futureValue shouldBe Failure(
         EbarsApiError(500, "Parsing eBars response failed. attempt: 1")
       )
     }

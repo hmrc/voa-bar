@@ -16,17 +16,15 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
-import play.api.test.Helpers.stubControllerComponents
 import uk.gov.hmrc.vo.autobars.models.UploadDetails
 import uk.gov.hmrc.vo.autobars.services.ReportUploadService
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
-class UploadControllerSpec extends PlaySpec with MockitoSugar:
+class UploadControllerSpec extends BaseAppSpec:
 
   private val reportUploadService = mock[ReportUploadService]
 
@@ -57,17 +55,19 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar:
       )
       .withBody(UploadDetails("1234", "url"))
 
-  "Return status 200 (OK) for a post carrying xml" in {
-    val result = controller.upload()(fakeRequestWithXML)
-    status(result) mustBe 200
-  }
+  "UploadController" should {
+    "return status 200 (OK) for a post carrying xml" in {
+      val result = controller.upload()(fakeRequestWithXML)
+      status(result) shouldBe 200
+    }
 
-  "A request must contain a Billing Authority Code in the header" in {
-    val result = controller.upload()(fakeRequestWithXMLButNoBACode)
-    status(result) mustBe UNAUTHORIZED
-  }
+    "contain a Billing Authority Code in the request header" in {
+      val result = controller.upload()(fakeRequestWithXMLButNoBACode)
+      status(result) shouldBe UNAUTHORIZED
+    }
 
-  "A request must contain a password in the header" in {
-    val result = controller.upload()(fakeRequestWithXMLButNoPassword)
-    status(result) mustBe UNAUTHORIZED
+    "contain a password in the request header" in {
+      val result = controller.upload()(fakeRequestWithXMLButNoPassword)
+      status(result) shouldBe UNAUTHORIZED
+    }
   }
