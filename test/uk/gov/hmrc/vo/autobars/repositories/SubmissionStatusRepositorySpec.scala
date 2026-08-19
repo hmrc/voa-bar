@@ -44,7 +44,7 @@ class SubmissionStatusRepositorySpec extends BaseAppSpec with Eventually with Sp
   private val mongoComponent = inject[MongoComponent]
   private val repo           = inject[SubmissionStatusRepositoryImpl]
 
-  "repository" should {
+  "SubmissionStatusRepository" should {
     "add error" in {
       val submissionId = "111"
       repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption().futureValue

@@ -34,7 +34,7 @@ class UserReportUploadsRepositorySpec extends BaseAppSpec:
   private val mongoComponent = inject[MongoComponent]
   private val repo           = inject[UserReportUploadsRepository]
 
-  "repository " should {
+  "UserReportUploadsRepository" should {
     "save to mongo" in {
       val id  = UUID.randomUUID.toString
       val now = Instant.ofEpochMilli(Instant.now.toEpochMilli)

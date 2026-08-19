@@ -16,45 +16,45 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import javax.xml.transform.stream.StreamSource
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
-import CtValidationRules.{Cr01AndCr02MissingExistingEntryValidation, Cr03AndCr04MissingProposedEntryValidation, Cr05AndCr12MissingProposedEntryValidation, Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation, Cr08InvalidCodeValidation}
 import uk.gov.hmrc.vo.autobars.models.ReportErrorDetailCode as ErrorCode
+import uk.gov.hmrc.vo.autobars.services.CtValidationRules.*
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
+
+import javax.xml.transform.stream.StreamSource
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite:
+class RulesValidationEngineCtSpec extends BaseAppSpec:
 
-  "Cr01AndCr02MissingExistingEntryValidation" must {
+  "Cr01AndCr02MissingExistingEntryValidation" should {
     "report missing existing entry" in {
       val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_NoEntry.json")))
 
       val result = Cr01AndCr02MissingExistingEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr01AndCr02MissingExistingEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr01AndCr02MissingExistingEntryValidation)
     }
   }
 
-  "Cr03AndCr04MissingProposedEntryValidation" must {
+  "Cr03AndCr04MissingProposedEntryValidation" should {
     "report missing existing entry" in {
       val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR03_NoEntry.json")))
 
       val result = Cr03AndCr04MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr03AndCr04MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr03AndCr04MissingProposedEntryValidation)
     }
   }
 
-  "Cr05AndCr12MissingProposedEntryValidation" must {
+  "Cr05AndCr12MissingProposedEntryValidation" should {
     "report missing both entries" in {
       val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR05_NoEntry.json")))
 
       val result = Cr05AndCr12MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
     }
 
     "report missing existing entry" in {
@@ -62,17 +62,17 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite:
 
       val result = Cr05AndCr12MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr05AndCr12MissingProposedEntryValidation)
     }
   }
 
-  "Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation" must {
+  "Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation" should {
     "report missing existing entry - CR06" in {
       val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/CR06_NEITHEREXISTING_OR_PROPOSED.xml")))
 
       val result = Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
     }
 
     "report missing existing entry - CR14" in {
@@ -80,16 +80,16 @@ class RulesValidationEngineCtSpec extends PlaySpec with GuiceOneAppPerSuite:
 
       val result = Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr06AndCr07AndCr09AndCr10AndCr14MissingProposedEntryValidation)
     }
   }
 
-  "Cr08InvalidCodeValidation" must {
+  "Cr08InvalidCodeValidation" should {
     "report missing existing entry" in {
       val reports = EbarsValidator().fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       val result = Cr08InvalidCodeValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Cr08InvalidCodeValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Cr08InvalidCodeValidation)
     }
   }

@@ -17,57 +17,53 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import org.apache.commons.io.IOUtils
-import org.scalatest.EitherValues
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.vo.autobars.models.{BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.vo.autobars.util.XmlTestParser
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.INVALID_XML_XSD
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.xml.XML
 
-class XmlValidatorSpec extends PlaySpec with EitherValues:
+class XmlValidatorSpec extends BaseSpec:
 
   private val validator = XmlValidator()
   private val xmlParser = XmlParser()
 
   private val valid1           = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).fold(err => throw Exception(err.toString), identity)
-  private def valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
+  private val valid1AsStream   = getClass.getResourceAsStream("/xml/CTValid1.xml")
   private val valid2           = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).fold(err => throw Exception(err.toString), identity)
   private val invalid1         = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).fold(err => throw Exception(err.toString), identity)
   private val invalid2         = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).fold(err => throw Exception(err.toString), identity)
-  private def withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
-  private def wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
-  private def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
+  private val withXXE          = getClass.getResourceAsStream("/xml/WithXXE.xml")
+  private val wellFormatted    = getClass.getResourceAsStream("/xml/WellFormatted.xml")
+  private val notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
 
-  "A valid ba batch submission xml file (valid1)" must {
+  "A valid ba batch submission xml file (valid1)" should {
     "validate successfully" in {
-      validator.validate(valid1) mustBe Symbol("right")
+      validator.validate(valid1) shouldBe Symbol("right")
     }
   }
 
-  "An invalid ba batch submission xml file (invalid1)" must {
+  "An invalid ba batch submission xml file (invalid1)" should {
     "not validate successfully" in {
-      validator.validate(invalid1) mustBe Symbol("left")
-      // errors.size mustBe 4
+      validator.validate(invalid1) shouldBe Symbol("left")
     }
   }
 
-  "A valid ba batch submission xml file (valid2)" must {
+  "A valid ba batch submission xml file (valid2)" should {
     "validate successfully" in {
-      validator.validate(valid2) mustBe Symbol("right")
+      validator.validate(valid2) shouldBe Symbol("right")
     }
   }
 
-  "An invalid ba batch submission xml file (invalid2)" must {
+  "An invalid ba batch submission xml file (invalid2)" should {
     "not validate successfully and contain a CouncilTaxBand related error" in {
-      validator.validate(invalid2) mustBe Symbol("left")
-      // errors.size mustBe 18
-      // assert(errors.toString.contains("CouncilTaxBand"))
+      validator.validate(invalid2) shouldBe Symbol("left")
     }
   }
 
-  "A invalid XML " must {
+  "A invalid XML " should {
     "fail for wrong namespace" in {
       val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"), UTF_8)
         .replaceAll("http://www.govtalk.gov.uk/LG/Valuebill", "uri:wrong")
@@ -76,14 +72,12 @@ class XmlValidatorSpec extends PlaySpec with EitherValues:
 
       val result = validator.validate(doc)
 
-      result mustBe Symbol("left")
+      result shouldBe Symbol("left")
 
-      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'BAreports'."))))
-
+      result.left.value shouldBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'BAreports'."))))
     }
 
     "fail for misspelled root element" in {
-
       val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"), UTF_8)
         .replaceAll("BAreports", "bareports")
 
@@ -91,54 +85,48 @@ class XmlValidatorSpec extends PlaySpec with EitherValues:
 
       val result = validator.validate(doc)
 
-      result mustBe Symbol("left")
+      result shouldBe Symbol("left")
 
-      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'bareports'."))))
-
+      result.left.value shouldBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'bareports'."))))
     }
-
   }
 
-  "Xml validator" should {
-
+  "XmlValidator" should {
     "reject not well formatted XML" in {
       val result = validator.validateInputXmlForXEE(notWellFormatted)
-      result.left.value mustBe a[BarXmlError]
-      result mustBe Symbol("left")
+      result.left.value shouldBe a[BarXmlError]
+      result            shouldBe Symbol("left")
     }
 
     "reject xml with XXE" in {
       val result = validator.validateInputXmlForXEE(withXXE)
-      result mustBe Symbol("left")
-      result.left.value mustBe BarXmlError(
+      result            shouldBe Symbol("left")
+      result.left.value shouldBe BarXmlError(
         """XML read error, invalid XML document, DOCTYPE is disallowed when the feature "http://apache.org/xml/features/disallow-doctype-decl" set to true."""
       )
     }
 
     "validate well formatted xml" in {
-      validator.validateInputXmlForXEE(valid1AsStream) mustBe Symbol("right")
+      validator.validateInputXmlForXEE(valid1AsStream) shouldBe Symbol("right")
     }
 
     "validate well formated xml even when it doesn't follow BARS xml schema" in {
-      validator.validateInputXmlForXEE(wellFormatted) mustBe Symbol("right")
+      validator.validateInputXmlForXEE(wellFormatted) shouldBe Symbol("right")
     }
-
   }
 
-//TODO - we are getting only one error. Should we validate with original file?
-  "another test" should {
-    val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"), UTF_8)
-
+  "Batch with 32 reports" should {
     "return a list of errors when a batch containing 32 reports has multiple errors" in {
+      val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"), UTF_8)
+
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors).toString()
 
-      val validationResutl = validator.validate(XmlTestParser.parseXml(invalidBatch))
+      val validationResult = validator.validate(XmlTestParser.parseXml(invalidBatch))
 
-      validationResutl mustBe Symbol("left")
+      validationResult shouldBe Symbol("left")
 
-      validationResutl.left.value mustBe a[BarXmlValidationError]
-      validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only
+      validationResult.left.value                                          shouldBe a[BarXmlValidationError]
+      validationResult.left.value.asInstanceOf[BarXmlValidationError].errors should contain only
         Error(INVALID_XML_XSD, List("Error on line -1: The value '0£' of element 'TotalNNDRreportCount' is not valid."))
     }
-
   }

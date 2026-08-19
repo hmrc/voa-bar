@@ -20,17 +20,17 @@ import org.apache.poi.util.ReplacingInputStream
 
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 /**
   * This code was used to replicate problem with XML where we have nbsp entity.
   * nbsp is not declared as default XML entity. Also we doesn't permit no-breakable
   * space anywhere in code, so it's better to replace with normal space.
   */
-class XmlEntitiesSpec extends PlaySpec:
+class XmlEntitiesSpec extends BaseSpec:
 
-  "docBuilder" should {
-    "parse xml wht nbsp entity" in {
+  "DocumentBuilder" should {
+    "parse xml with &nbsp; entity" in {
       val xml =
         """<?xml version="1.0" encoding="UTF-8" ?>
           |<root>this is&nbsp;text</root>
@@ -48,7 +48,7 @@ class XmlEntitiesSpec extends PlaySpec:
 
       val doc = docBuilder.parse(ReplacingInputStream(ByteArrayInputStream(xml), "&nbsp;", " "))
 
-      doc.getDocumentElement must not be null
-      doc.getFirstChild.getFirstChild.getNodeValue mustBe "this is text"
+      doc.getDocumentElement                         should not be null
+      doc.getFirstChild.getFirstChild.getNodeValue shouldBe "this is text"
     }
   }

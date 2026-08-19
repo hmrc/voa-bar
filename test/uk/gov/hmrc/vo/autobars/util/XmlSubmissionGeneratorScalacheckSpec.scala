@@ -20,14 +20,11 @@ import ebars.xml.BAreports
 import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen
 import org.scalacheck.Gen.frequency
-import org.scalatest.EitherValues
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import org.xmlunit.builder.{DiffBuilder, Input}
 import org.xmlunit.diff.{Comparison, ComparisonResult, DifferenceEvaluator}
 import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.io.StringWriter
 import java.nio.file.Files
@@ -36,7 +33,7 @@ import java.util.UUID
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
-class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
+class XmlSubmissionGeneratorScalacheckSpec extends BaseSpec:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 500)
 
@@ -53,14 +50,14 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
   private def genRestrictedString(min: Int = 1, max: Int = 8) =
     for
-      lenght <- Gen.chooseNum(min, max)
-      str    <- Gen.containerOfN[List, Char](lenght, restrictedChar)
+      length <- Gen.chooseNum(min, max)
+      str    <- Gen.containerOfN[List, Char](length, restrictedChar)
     yield str.mkString
 
   private def genNum(min: Int = 1, max: Int) =
     for
-      lenght <- Gen.chooseNum(min, max)
-      str    <- Gen.containerOfN[List, Char](lenght, Gen.numChar)
+      length <- Gen.chooseNum(min, max)
+      str    <- Gen.containerOfN[List, Char](length, Gen.numChar)
     yield str.mkString
 
   private def genEffectiveDate =
@@ -191,127 +188,129 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
       effectiveDate                <- genEffectiveDate
       commentValue                 <- Gen.option(genRestrictedString(max = 150))
       proposedProperties           <- genProperties
-      existingPropertis            <- genProperties
+      existingProperties           <- genProperties
       (planningRef, noPlanningRef) <- genPlanningReference
     yield Cr05Submission(
       baReport = baReport,
       baRef = baRef,
       effectiveDate = effectiveDate,
       proposedProperties = proposedProperties,
-      existingPropertis = existingPropertis,
+      existingPropertis = existingProperties,
       planningRef = planningRef,
       noPlanningReference = noPlanningRef,
       comments = commentValue
     )
 
-  "XmlSubmissionGenerator" should "generate valid XML for all generated CR03 submissions" in {
-    val id = UUID.randomUUID.toString
-    forAll(genCr03Submission) { submission =>
-      val jaxbStructure =
-        XmlSubmissionGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml()
-      val xml           = printXml(jaxbStructure)
+  "XmlSubmissionGenerator" should {
+    "generate valid XML for all generated CR03 submissions" in {
+      val id = UUID.randomUUID.toString
+      forAll(genCr03Submission) { submission =>
+        val jaxbStructure =
+          XmlSubmissionGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml()
+        val xml           = printXml(jaxbStructure)
 
-      validateXml(xml)
+        validateXml(xml)
 
-      true must be(true)
+        true should be(true)
+      }
     }
-  }
 
-  "XmlSubmissionGenerator" should "generate valid XML for all generated CR01 submissions" in {
-    val id = UUID.randomUUID.toString
-    forAll(genCr01Submission) { submission =>
-      val jaxbStructure =
-        XmlSubmissionGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml()
-      val xml           = printXml(jaxbStructure)
+    "generate valid XML for all generated CR01 submissions" in {
+      val id = UUID.randomUUID.toString
+      forAll(genCr01Submission) { submission =>
+        val jaxbStructure =
+          XmlSubmissionGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml()
+        val xml           = printXml(jaxbStructure)
 
-      validateXml(xml)
+        validateXml(xml)
 
-      true must be(true)
+        true should be(true)
+      }
     }
-  }
 
-  "XmlSubmissionGenerator" should "generate valid XML for all generated CR05 submissions" in {
-    val id = UUID.randomUUID.toString
-    forAll(genCr05Submission) { submission =>
-      val jaxbStructure =
-        XmlSubmissionGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml()
-      val xml           = printXml(jaxbStructure)
+    "generate valid XML for all generated CR05 submissions" in {
+      val id = UUID.randomUUID.toString
+      forAll(genCr05Submission) { submission =>
+        val jaxbStructure =
+          XmlSubmissionGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml()
+        val xml           = printXml(jaxbStructure)
 
-      validateXml(xml)
+        validateXml(xml)
 
-      true must be(true)
+        true should be(true)
+      }
     }
-  }
 
-  // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
-  "XmlSubmissionGenerator" should "generate generate same valid XML for both implementation for CR03" in {
-    val id = UUID.randomUUID.toString
-    forAll(genCr03Submission) { submission =>
-      val jaxbStructure =
-        XmlSubmissionGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml()
-      val xml           = printXml(jaxbStructure)
-      validateXml(xml)
+    // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
+    "generate generate same valid XML for both implementation for CR03" in {
+      val id = UUID.randomUUID.toString
+      forAll(genCr03Submission) { submission =>
+        val jaxbStructure =
+          XmlSubmissionGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml()
+        val xml           = printXml(jaxbStructure)
+        validateXml(xml)
 
-      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
-      val oldXml              = printXml(oldXmlJaxbStructure)
-      validateXml(oldXml)
+        val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+        val oldXml              = printXml(oldXmlJaxbStructure)
+        validateXml(oldXml)
 
-      val diff = DiffBuilder.compare(Input.fromString(xml))
-        .withTest(Input.fromString(oldXml))
-        .withDifferenceEvaluator(evaluator).build()
+        val diff = DiffBuilder.compare(Input.fromString(xml))
+          .withTest(Input.fromString(oldXml))
+          .withDifferenceEvaluator(evaluator).build()
 
-      diff.hasDifferences mustBe false
+        diff.hasDifferences shouldBe false
+      }
     }
-  }
 
-  // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
-  // Cr01Cr03SubmissionXmlGenerator have for CR01 and doesn't use proposed entries.
-  "XmlSubmissionGenerator" should "generate generate different valid XML for both implementation for CR01" in {
-    val id = UUID.randomUUID.toString
-    forAll(genCr01Submission) { submission =>
-      val jaxbStructure =
-        XmlSubmissionGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml()
-      val xml           = printXml(jaxbStructure)
-      validateXml(xml)
+    // This code can be removed after Cr01Cr03SubmissionXmlGenerator is removed
+    // Cr01Cr03SubmissionXmlGenerator have for CR01 and doesn't use proposed entries.
+    "generate generate different valid XML for both implementation for CR01" in {
+      val id = UUID.randomUUID.toString
+      forAll(genCr01Submission) { submission =>
+        val jaxbStructure =
+          XmlSubmissionGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml()
+        val xml           = printXml(jaxbStructure)
+        validateXml(xml)
 
-      val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
-      val oldXml              = printXml(oldXmlJaxbStructure)
-      validateXml(oldXml)
+        val oldXmlJaxbStructure = Cr01Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml(): @nowarn
+        val oldXml              = printXml(oldXmlJaxbStructure)
+        validateXml(oldXml)
 
-      val diff = DiffBuilder.compare(Input.fromString(xml))
-        .withTest(Input.fromString(oldXml))
-        .withDifferenceEvaluator(evaluator).build()
+        val diff = DiffBuilder.compare(Input.fromString(xml))
+          .withTest(Input.fromString(oldXml))
+          .withDifferenceEvaluator(evaluator).build()
 
-      diff.hasDifferences mustBe true
+        diff.hasDifferences shouldBe true
 
-      val differences = diff.getDifferences.asScala.toList
-      differences must have length 1
-      differences.head.getComparison.getControlDetails.getTarget.getNodeName mustBe "ExistingEntries"
+        val differences = diff.getDifferences.asScala.toList
+        differences                                                              should have length 1
+        differences.head.getComparison.getControlDetails.getTarget.getNodeName shouldBe "ExistingEntries"
+      }
     }
   }
 
@@ -337,4 +336,4 @@ class XmlSubmissionGeneratorScalacheckSpec extends AnyFlatSpec with must.Matcher
 
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
-    validation mustBe Right(true)
+    validation shouldBe Right(true)

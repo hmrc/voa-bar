@@ -16,24 +16,24 @@
 
 package uk.gov.hmrc.vo.autobars.util
 
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import ErrorCode.*
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-class ErrorCodeSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar:
+class ErrorCodeSpec extends BaseSpec:
+
   "ErrorCode" should {
     "return valid ErrorCode from String" in {
       val value: JsValue = Json.toJson(NOT_IN_USE.errorCode)
 
       val errorCode = ErrorCode.reader.reads(value)
-      errorCode mustBe JsSuccess(NOT_IN_USE)
+      errorCode shouldBe JsSuccess(NOT_IN_USE)
     }
+
     "return valid String from ErrorCode" in {
       val value: JsValue = Json.toJson(NOT_IN_USE.errorCode)
 
       val errorCode = ErrorCode.writer.writes(NOT_IN_USE)
-      errorCode mustBe value
+      errorCode shouldBe value
     }
   }

@@ -16,19 +16,17 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import javax.xml.transform.stream.StreamSource
-import org.scalatest.OptionValues
-import org.scalatest.matchers.should
-import org.scalatest.wordspec.AnyWordSpec
 import services.EbarsValidator
-import NdrRules.*
+import uk.gov.hmrc.vo.autobars.services.NdrRules.*
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
+import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters.*
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with OptionValues:
+class RulesCorrectionEngineNdrSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
 
@@ -77,7 +75,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 1" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT1_EXISTING_PROPERTIES.xml")))
 
@@ -88,7 +85,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 2" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT2_EXISTING_PROPERTIES.xml")))
 
@@ -99,7 +95,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 3" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT3_EXISTING_PROPERTIES.xml")))
 
@@ -110,7 +105,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 4" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT4_EXISTING_PROPERTIES.xml")))
 
@@ -121,7 +115,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
       Rt01AndRt02AndRt03AndRt04MissingProposedEntry.apply(reports)
@@ -137,7 +130,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 5" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT5_PROPOSED_PROPERTIES.xml")))
 
@@ -148,7 +140,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 6" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT6_PROPOSED_PROPERTIES.xml")))
 
@@ -159,7 +150,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 7" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT7_PROPOSED_PROPERTIES.xml")))
 
@@ -170,7 +160,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 8" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT8_PROPOSED_PROPERTIES.xml")))
 
@@ -181,7 +170,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 9" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT9_PROPOSED_PROPERTIES.xml")))
 
@@ -192,7 +180,6 @@ class RulesCorrectionEngineNdrSpec extends AnyWordSpec with should.Matchers with
     }
 
     "remove ProposedEntries with 11" in {
-
       val reports =
         ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_RT11_PROPOSED_PROPERTIES.xml")))
 

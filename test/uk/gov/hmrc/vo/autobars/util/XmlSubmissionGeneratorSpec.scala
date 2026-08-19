@@ -17,23 +17,20 @@
 package uk.gov.hmrc.vo.autobars.util
 
 import ebars.xml.BAreports
-import org.scalatest.EitherValues
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.xmlunit.builder.Input
 import org.xmlunit.xpath.JAXPXPathEngine
+import uk.gov.hmrc.vo.autobars.models.*
+import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.io.StringWriter
 import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
-import jakarta.xml.bind.{JAXBContext, Marshaller}
-import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, RemoveProperty}
-import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
 import scala.jdk.CollectionConverters.*
 
-class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
+class XmlSubmissionGeneratorSpec extends BaseSpec:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
@@ -44,108 +41,111 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
   private val jaxbMarshaller = jaxb.createMarshaller()
   jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
-  "submission generator" should "generate CR05 XML" in {
-    val submission = aCr05Submission
+  "XmlSubmissionGenerator" should {
+    "generate CR05 XML" in {
+      val submission = aCr05Submission
 
-    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
+      val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
 
-    val sw = StringWriter()
-    jaxbMarshaller.marshal(baReport, sw)
+      val sw = StringWriter()
+      jaxbMarshaller.marshal(baReport, sw)
 
-    validateXml(sw.toString)
+      validateXml(sw.toString)
 
-    val source = Input.fromString(sw.toString).build()
+      val source = Input.fromString(sw.toString).build()
 
-    val xPath = JAXPXPathEngine()
-    // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
-    xPath.setNamespaceContext(Map(
-      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
-      "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
-    ).asJava)
+      val xPath = JAXPXPathEngine()
+      // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
+      xPath.setNamespaceContext(Map(
+        "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
+        "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
+        "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+        "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
+      ).asJava)
 
-    xPath.evaluate(
-      "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source
-    ) mustBe "ex1 line 1"
+      xPath.evaluate(
+        "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+        source
+      ) shouldBe "ex1 line 1"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR05"
+      xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) shouldBe "CR05"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "2"
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) shouldBe "2"
 
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "2"
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) shouldBe "2"
 
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber", source) mustBe "1234"
+      xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber", source) shouldBe "1234"
+    }
+
+    "generate CR01 XML" in {
+      val submission = aCr01Submission
+
+      val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
+
+      val sw = StringWriter()
+      jaxbMarshaller.marshal(baReport, sw)
+
+      validateXml(sw.toString)
+
+      val source = Input.fromString(sw.toString).build()
+
+      val xPath = JAXPXPathEngine()
+      // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
+      xPath.setNamespaceContext(Map(
+        "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
+        "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
+        "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+        "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
+      ).asJava)
+
+      xPath.evaluate(
+        "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+        source
+      ) shouldBe "line 1"
+
+      xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) shouldBe "CR01"
+
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) shouldBe "1"
+
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) shouldBe "0"
+    }
+
+    "generate CR03 XML" in {
+      val submission = aCr03Submission
+
+      val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
+
+      val sw = StringWriter()
+
+      jaxbMarshaller.marshal(baReport, sw)
+
+      validateXml(sw.toString)
+
+      val source = Input.fromString(sw.toString).build()
+
+      val xPath = JAXPXPathEngine()
+      // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
+      xPath.setNamespaceContext(Map(
+        "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
+        "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
+        "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
+        "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
+      ).asJava)
+
+      xPath.evaluate(
+        "/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
+        source
+      ) shouldBe "line 1"
+
+      xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) shouldBe "CR03"
+
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) shouldBe "1"
+
+      xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) shouldBe "0"
+    }
   }
 
-  it should "generate CR01 XML" in {
-    val submission = aCr01Submission
-
-    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
-
-    val sw = StringWriter()
-    jaxbMarshaller.marshal(baReport, sw)
-
-    validateXml(sw.toString)
-
-    val source = Input.fromString(sw.toString).build()
-
-    val xPath = JAXPXPathEngine()
-    // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
-    xPath.setNamespaceContext(Map(
-      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
-      "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
-    ).asJava)
-
-    xPath.evaluate(
-      "/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source
-    ) mustBe "line 1"
-
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR01"
-
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "1"
-
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "0"
-  }
-
-  it should "generate CR03 XML" in {
-    val submission = aCr03Submission
-
-    val baReport = XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID.toString).generateXml()
-
-    val sw = StringWriter()
-    jaxbMarshaller.marshal(baReport, sw)
-
-    validateXml(sw.toString)
-
-    val source = Input.fromString(sw.toString).build()
-
-    val xPath = JAXPXPathEngine()
-    // XML is produce with namespace, we MUST define namespace and used them, otherwise it doesn't work
-    xPath.setNamespaceContext(Map(
-      "ba"     -> "http://www.govtalk.gov.uk/LG/Valuebill",
-      "bs7666" -> "http://www.govtalk.gov.uk/people/bs7666",
-      "apd"    -> "http://www.govtalk.gov.uk/people/AddressAndPersonalDetails",
-      "ns2"    -> "http://www.govtalk.gov.uk/people/PersonDescriptives"
-    ).asJava)
-
-    xPath.evaluate(
-      "/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties[1]/ba:PropertyIdentity/ba:TextAddress/ba:AddressLine[1]/text()",
-      source
-    ) mustBe "line 1"
-
-    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:TypeOfTax/ba:CtaxReasonForReport/ba:ReasonForReportCode", source) mustBe "CR03"
-
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)", source) mustBe "1"
-
-    xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)", source) mustBe "0"
-  }
-
-  def aCr03Submission: Cr01Cr03Submission =
+  private def aCr03Submission: Cr01Cr03Submission =
     Cr01Cr03Submission(
       baReport = "baReport",
       baRef = "baRef",
@@ -164,7 +164,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
       comments = Option("comment")
     )
 
-  def aCr01Submission: Cr01Cr03Submission =
+  private def aCr01Submission: Cr01Cr03Submission =
     Cr01Cr03Submission(
       baReport = "baReport",
       baRef = "baRef",
@@ -183,7 +183,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
       comments = Option("comment")
     )
 
-  def aCr05Submission: Cr05Submission =
+  private def aCr05Submission: Cr05Submission =
     Cr05Submission(
       baReport = "baReport",
       baRef = "baRef",
@@ -195,7 +195,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
       comments = Option("comments")
     )
 
-  def aProperty(prefix: String): Cr05AddProperty =
+  private def aProperty(prefix: String): Cr05AddProperty =
     Cr05AddProperty(
       uprn = Option("112331"),
       address = Address(s"$prefix line 1", s"$prefix line 2", None, None, "BN12 4AX"),
@@ -204,7 +204,7 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
       contactAddress = Some(Address(s"$prefix line 1", s"$prefix line 2", None, None, "BN12 4AX"))
     )
 
-  def validateXml(xml: String): Unit =
+  private def validateXml(xml: String): Unit =
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
 
@@ -213,4 +213,4 @@ class XmlSubmissionGeneratorSpec extends AnyFlatSpec with must.Matchers with Eit
 
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
-    validation mustBe Right(true)
+    validation shouldBe Right(true)

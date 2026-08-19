@@ -121,7 +121,7 @@ class VOEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneA
         .withHeader("Content-Type", equalTo(requestContentType)))
     }
 
-  "VOEbarsConnector" must {
+  "VO eBars сonnector" must {
     "send reports as application/x-www-form-urlencoded content" in
       testSendBAReport(uploadXmlPath, report, uploadContentType, OK, <root><result>success</result></root>.toString)
 

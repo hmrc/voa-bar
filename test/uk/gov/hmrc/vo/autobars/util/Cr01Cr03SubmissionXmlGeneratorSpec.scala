@@ -20,13 +20,10 @@ import ebars.xml.BAreports
 import jakarta.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen
 import org.scalacheck.Gen.frequency
-import org.scalatest.EitherValues
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, BandedTooSoon, CaravanRemoved, ContactDetails, Cr01Cr03Submission, Demolition, Disrepair, Duplicate, NoPlanningApplicationSubmitted, NoPlanningReferenceType, NotApplicablePlanningPermission, NotComplete, NotRequiredPlanningPermission, OtherReason, PermittedDevelopment, RemovalReasonType, RemoveProperty, Renovating, WithoutPlanningPermission}
-import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
+import org.scalatest.Assertion
 import uk.gov.hmrc.vo.autobars.models.*
+import uk.gov.hmrc.vo.autobars.services.{XmlParser, XmlValidator}
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.io.StringWriter
 import java.nio.file.Files
@@ -34,7 +31,7 @@ import java.time.LocalDate
 import java.util.UUID
 import scala.annotation.nowarn
 
-class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers with EitherValues with ScalaCheckPropertyChecks:
+class Cr01Cr03SubmissionXmlGeneratorSpec extends BaseSpec:
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
@@ -51,14 +48,14 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
 
   private def genRestrictedString(min: Int = 1, max: Int = 8) =
     for
-      lenght <- Gen.chooseNum(min, max)
-      str    <- Gen.containerOfN[List, Char](lenght, restrictedChar)
+      length <- Gen.chooseNum(min, max)
+      str    <- Gen.containerOfN[List, Char](length, restrictedChar)
     yield str.mkString
 
   private def genNum(min: Int = 1, max: Int) =
     for
-      lenght <- Gen.chooseNum(min, max)
-      str    <- Gen.containerOfN[List, Char](lenght, Gen.numChar)
+      length <- Gen.chooseNum(min, max)
+      str    <- Gen.containerOfN[List, Char](length, Gen.numChar)
     yield str.mkString
 
   private def genEffectiveDate =
@@ -168,74 +165,22 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       comment
     )
 
-  "CR01 CR03 generator" should "generate valid xml" in {
-    val jaxbStructure =
-      Cr01Cr03SubmissionXmlGenerator(
-        aCR03Submission(),
-        1010,
-        "Brighton and Hove",
-        UUID.randomUUID.toString
-      ).generateXml(): @nowarn
-    val xml           = printXml(jaxbStructure)
-
-    validateXml(xml)
-
-    true must be(true)
-  }
-
-  it should "generate valid XML for all generated CR03 submissions" in {
-    val id = UUID.randomUUID.toString
-    forAll(getCr03Submission) { submission =>
-      val jaxbStructure =
-        Cr01Cr03SubmissionXmlGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml(): @nowarn
-      val xml           = printXml(jaxbStructure)
-
-      validateXml(xml)
-
-      true must be(true)
-    }
-  }
-
-  it should "generate valid XML for all generated CR01 submissions" in {
-    val id = UUID.randomUUID.toString
-    forAll(getCr01Submission) { submission =>
-      val jaxbStructure =
-        Cr01Cr03SubmissionXmlGenerator(
-          submission,
-          1010,
-          "Brighton and Hove",
-          id
-        ).generateXml(): @nowarn
-      val xml           = printXml(jaxbStructure)
-
-      validateXml(xml)
-
-      true must be(true)
-    }
-  }
-
-  def validateXml(xml: String): Unit =
+  private def validateXml(xml: String): Assertion =
     val file = Files.createTempFile("test-xml", ".xml")
     Files.write(file, xml.getBytes("UTF-8"))
 
-    val validation = parser.parse(file.toUri.toURL)
-      .flatMap(validator.validate)
+    val validation = parser.parse(file.toUri.toURL).flatMap(validator.validate)
 
     if validation.isLeft then println(s"\n\n\n${validation.left}\n\n$xml")
 
-    validation mustBe Right(true)
+    validation shouldBe Right(true)
 
-  def printXml(report: BAreports): String =
+  private def printXml(report: BAreports): String =
     val sw = StringWriter()
     jaxbMarshaller.marshal(report, sw)
     sw.toString
 
-  def aCR03Submission(): Cr01Cr03Submission =
+  private def aCR03Submission(): Cr01Cr03Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
     Cr01Cr03Submission(
@@ -255,3 +200,50 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends AnyFlatSpec with must.Matchers 
       None,
       Option("comment")
     )
+
+  "CR01 CR03 generator" should {
+    "generate valid xml" in {
+      val jaxbStructure =
+        Cr01Cr03SubmissionXmlGenerator(
+          aCR03Submission(),
+          1010,
+          "Brighton and Hove",
+          UUID.randomUUID.toString
+        ).generateXml(): @nowarn
+      val xml           = printXml(jaxbStructure)
+
+      validateXml(xml)
+    }
+
+    "generate valid XML for all generated CR03 submissions" in {
+      val id = UUID.randomUUID.toString
+      forAll(getCr03Submission) { submission =>
+        val jaxbStructure =
+          Cr01Cr03SubmissionXmlGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml(): @nowarn
+        val xml           = printXml(jaxbStructure)
+
+        validateXml(xml)
+      }
+    }
+
+    "generate valid XML for all generated CR01 submissions" in {
+      val id = UUID.randomUUID.toString
+      forAll(getCr01Submission) { submission =>
+        val jaxbStructure =
+          Cr01Cr03SubmissionXmlGenerator(
+            submission,
+            1010,
+            "Brighton and Hove",
+            id
+          ).generateXml(): @nowarn
+        val xml           = printXml(jaxbStructure)
+
+        validateXml(xml)
+      }
+    }
+  }

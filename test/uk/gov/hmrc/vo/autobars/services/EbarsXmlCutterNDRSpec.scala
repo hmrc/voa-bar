@@ -28,7 +28,7 @@ class EbarsXmlCutterNDRSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
 
-  "extracting CR code" should {
+  "Extracting CR code" should {
     "return 11" in {
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
@@ -46,7 +46,7 @@ class EbarsXmlCutterNDRSpec extends BaseSpec:
     }
   }
 
-  "working from a file with just a proposed entry" should {
+  "Working from a file with just a proposed entry" should {
     "move first existing entry to proposed" in {
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_EXISTING_PROPERTIES.xml")))
 
