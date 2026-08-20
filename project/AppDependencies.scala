@@ -6,7 +6,6 @@ object AppDependencies {
   private val hmrcMongoVersion          = "2.13.0"
   private val autoBarsXsdVersion        = "9.20.0"
   private val jacksonModuleScalaVersion = "2.22.2"
-  private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 because 7.0.0 is not compatible with play-guice:3.0.11
   private val catsEffectVersion         = "3.7.0"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"
@@ -14,7 +13,7 @@ object AppDependencies {
   private val apachePOIVersion          = "5.5.1"
 
   // Test dependencies
-  private val voTestVersion   = "0.5.0"
+  private val voTestVersion   = "0.6.0"
   private val wiremockVersion = "3.13.2"
   private val xmlunitVersion  = "2.13.0"
 
@@ -23,7 +22,6 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
     "uk.gov.hmrc"                  %% "autobars-xsd"              % autoBarsXsdVersion,
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % jacksonModuleScalaVersion,
-    "net.codingwell"               %% "scala-guice"               % guiceUtilsVersion,
     "org.typelevel"                %% "cats-effect"               % catsEffectVersion,
     "net.htmlparser.jericho"        % "jericho-html"              % jerichoHtmlVersion,
     "org.apache.httpcomponents"     % "httpmime"                  % httpComponentsVersion,

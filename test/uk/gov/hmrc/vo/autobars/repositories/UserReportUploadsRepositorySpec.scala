@@ -16,23 +16,12 @@
 
 package uk.gov.hmrc.vo.autobars.repositories
 
-import org.mongodb.scala.SingleObservableFuture
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.vo.unit.test.BaseAppSpec
+import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 
 import java.time.Instant
 import java.util.UUID
 
-class UserReportUploadsRepositorySpec extends BaseAppSpec:
-
-  override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID.toString))
-    .build()
-
-  private val mongoComponent = inject[MongoComponent]
-  private val repo           = inject[UserReportUploadsRepository]
+class UserReportUploadsRepositorySpec extends MongoDBAppSpec[UserReportUpload, DefaultUserReportUploadsRepository]:
 
   "UserReportUploadsRepository" should {
     "save to mongo" in {
@@ -41,11 +30,11 @@ class UserReportUploadsRepositorySpec extends BaseAppSpec:
 
       val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
 
-      val result = repo.save(userReportUpload).futureValue
+      val result = mongoRepository.save(userReportUpload).futureValue
 
       result shouldBe Symbol("right")
 
-      val resultFromDatabase = repo.getById(id).futureValue
+      val resultFromDatabase = mongoRepository.getById(id).futureValue
 
       resultFromDatabase shouldBe Symbol("right")
 
@@ -55,7 +44,3 @@ class UserReportUploadsRepositorySpec extends BaseAppSpec:
       optionResultFromDatabase shouldBe Some(userReportUpload)
     }
   }
-
-  override protected def afterAll(): Unit =
-    mongoComponent.database.drop().toFutureOption().futureValue
-    mongoComponent.client.close()

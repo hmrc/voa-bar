@@ -31,7 +31,7 @@ import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.byId
-import uk.gov.hmrc.vo.unit.test.BaseAppSpec
+import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 
 import java.net.URI
 import java.nio.file.Paths
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadControllerValidXMLSpec extends BaseAppSpec:
+class UploadControllerValidXMLSpec extends MongoDBAppSpec[ReportStatus, SubmissionStatusRepositoryImpl]:
 
   override def fakeApplication(): Application =
     val voEbarsConnector = mock[VOEbarsConnector]
@@ -48,17 +48,15 @@ class UploadControllerValidXMLSpec extends BaseAppSpec:
       .thenAnswer(_ => Future.successful(OK))
 
     GuiceApplicationBuilder()
-      .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
-      .bindings(
+      .overrides(
+        bind[MongoComponent].toInstance(mongoComponent),
         bind[VOEbarsConnector].to(voEbarsConnector),
         bind[UpscanConnector].to[TestUpscanConnector]
       )
       .build()
 
-  private val controller           = inject[UploadController]
-  private val mongoComponent       = inject[MongoComponent]
-  private val submissionRepository = inject[SubmissionStatusRepositoryImpl]
-  private val configuration        = inject[Configuration]
+  private val controller    = inject[UploadController]
+  private val configuration = inject[Configuration]
 
   private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -74,17 +72,17 @@ class UploadControllerValidXMLSpec extends BaseAppSpec:
 
   "Upload controller " should {
     "properly handle correct XML " in {
-      submissionRepository.collection.deleteOne(byId("1234")).toFutureOption().futureValue
+      mongoRepository.collection.deleteOne(byId("1234")).toFutureOption().futureValue
 
       val reportStatus = ReportStatus("1234", baCode = "BA5090")
 
-      submissionRepository.saveOrUpdate(reportStatus, upsert = true).futureValue
+      mongoRepository.saveOrUpdate(reportStatus, upsert = true).futureValue
 
       controller.upload()(fakeRequestWithXML)
 
       SECONDS.sleep(2)
 
-      val report = submissionRepository.getByReference("1234").futureValue
+      val report = mongoRepository.getByReference("1234").futureValue
 
       report shouldBe Symbol("right")
 
@@ -93,9 +91,6 @@ class UploadControllerValidXMLSpec extends BaseAppSpec:
       report.value.status shouldBe "Done"
     }
   }
-
-  override protected def afterAll(): Unit =
-    mongoComponent.client.close()
 
 @Singleton
 class TestUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector:
