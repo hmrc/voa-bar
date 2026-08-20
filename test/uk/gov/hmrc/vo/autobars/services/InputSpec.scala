@@ -17,10 +17,9 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import java.io.Reader
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-import org.scalatestplus.play.PlaySpec
-
-class InputSpec extends PlaySpec:
+class InputSpec extends BaseSpec:
 
   private val input      = Input()
   private val encoding   = "some encoding"
@@ -32,34 +31,33 @@ class InputSpec extends PlaySpec:
 
     override def close(): Unit = ()
 
-  "An input class " must {
-
+  "An input class " should {
     "setCertifiedText method should set the certifiedText variable to true given a true parameter" in {
       input.setCertifiedText(true)
-      input.getCertifiedText mustBe true
+      input.getCertifiedText shouldBe true
     }
 
     "setCertifiedText method should set the certifiedText variable to false given a false parameter" in {
       input.setCertifiedText(false)
-      input.getCertifiedText mustBe false
+      input.getCertifiedText shouldBe false
     }
 
     "setEncoding method should set the encoding variable to 'some encoding' value" in {
       input.setEncoding(encoding)
-      input.getEncoding mustBe encoding
+      input.getEncoding shouldBe encoding
     }
 
     "getCertifiedText method should return false when certifiedText hasn't been set up" in {
-      input.getCertifiedText mustBe false
+      input.getCertifiedText shouldBe false
     }
 
-    "setStringData method shouls set the stringData variable to 'some data' when calling the method with 'some data' value" in {
+    "setStringData method should set the stringData variable to 'some data' when calling the method with 'some data' value" in {
       input.setStringData(stringData)
-      input.getStringData mustBe stringData
+      input.getStringData shouldBe stringData
     }
 
     "setCharacterStream method should set the variable reader to the given value" in {
       input.setCharacterStream(reader)
-      input.getCharacterStream.hashCode mustBe reader.hashCode
+      input.getCharacterStream.hashCode shouldBe reader.hashCode
     }
   }

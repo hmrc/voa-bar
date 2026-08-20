@@ -16,30 +16,25 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import ebars.xml.CtaxReasonForReportCodeContentType._
-import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.OptionValues
-import org.scalatest.matchers.should
-import org.scalatest.wordspec.AnyWordSpec
-import services.EbarsValidator
-import CtRules.*
-
+import ebars.xml.CtaxReasonForReportCodeContentType.*
 import jakarta.xml.bind.JAXBElement
+import services.EbarsValidator
+import uk.gov.hmrc.vo.autobars.services.CtRules.*
+import uk.gov.hmrc.vo.unit.test.BaseSpec
+
 import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters.*
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with OptionValues with TableDrivenPropertyChecks:
+class RulesCorrectionEngineCtSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
+  private val engine         = RulesCorrectionEngine()
 
   "RulesCorrectionEngine" should {
-    val engine = RulesCorrectionEngine()
-
     "ignore NDR files" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/EASTRIDING_EDITED_NPE.xml")))
       engine.applyRules(reports)
     }
@@ -75,7 +70,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR01" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -85,7 +79,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR02" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR02_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -95,7 +88,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR06" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR06_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -105,7 +97,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR07" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR07_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -115,7 +106,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR09" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR09_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -125,7 +115,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR10" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR10_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -135,7 +124,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "leaves Proposed and Existing entries alone with CR14" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR14_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -145,7 +133,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "use Proposed Entries with CR01" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_ProposedEntries.json")))
 
@@ -156,7 +143,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "use Proposed Entries with CR06" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR06_ProposedEntries.json")))
 
@@ -167,7 +153,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "use Proposed Entries with CR07" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR07_ProposedEntries.json")))
 
@@ -178,7 +163,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "use Proposed Entries with CR09" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR09_ProposedEntries.json")))
 
@@ -189,7 +173,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "use Proposed Entries with CR10" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR10_ProposedEntries.json")))
 
@@ -200,7 +183,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR02 from xml" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS.xml")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -210,7 +192,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR14 from xml" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR14_PROPOSED_ENTRIES.xml")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -220,7 +201,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR03_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14MissingExistingEntry.apply(reports)
@@ -236,7 +216,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR01" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
@@ -246,7 +225,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR14" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR14_BOTH_PROPERTIES.xml")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
@@ -256,7 +234,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR03_BothEntries.json")))
 
       Cr01AndCr02AndCr06AndCr07AndCr09AndCr10AndCr14RemoveProposedEntries.apply(reports)
@@ -272,7 +249,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR01" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR03_BothEntries.json")))
 
       Cr03AndCr04BothProposedAndExistingEntries.apply(reports)
@@ -282,7 +258,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_BothEntries.json")))
 
       Cr03AndCr04BothProposedAndExistingEntries.apply(reports)
@@ -298,7 +273,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove ProposedEntries with CR01" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR03_ExistingEntry.json")))
 
       Cr03AndCr04MissingProposedEntry.apply(reports)
@@ -308,7 +282,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_BothEntries.json")))
 
       Cr03AndCr04MissingProposedEntry.apply(reports)
@@ -324,7 +297,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "copy ProposedEntries with CR05" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR05_ExistingEntry.json")))
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
@@ -334,7 +306,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "copy ExistingEntry with CR05" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR05_ProposedEntry.json")))
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
@@ -344,7 +315,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "not change anything" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_BothEntries.json")))
 
       Cr05AndCr12MissingAnyEntry.apply(reports)
@@ -356,7 +326,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "PostcodesToUppercase" should {
     "uppercase postcodes" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_WITH_SUFFIX.xml")))
 
       PostcodesToUppercase.apply(reports)
@@ -373,7 +342,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "RemarksTrimmer" should {
     "remove all whitespace at beginning and end" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/REMARKS_WITH_WHITESPACE.xml")))
 
       EbarsXmlCutter.findRemarksIdx(reports) should have size 1
@@ -389,7 +357,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove obscure space/whitespace characters and replace multiple space characters with one" in {
-
       val testData = Table(
         ("original string", "expected result"),
         ("""This is test with  space and      space""", "This is test with space and space"),
@@ -432,7 +399,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "RemarksFillDefault" should {
     "leave it alone if present" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_WITH_SUFFIX.xml")))
 
       EbarsXmlCutter.findRemarksIdx(reports) should have size 1
@@ -448,7 +414,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "fill with default if empty" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_EMPTY_REMARKS.xml")))
 
       EbarsXmlCutter.findRemarksIdx(reports) should have size 1
@@ -464,7 +429,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "fill with default if missing" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_MISSING_REMARKS.xml")))
 
       EbarsXmlCutter.findRemarksIdx(reports) should have size 0
@@ -482,7 +446,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "RemovingInvalidTaxBand" should {
     "return C" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED.xml")))
 
       EbarsXmlCutter.getCurrentTaxes(reports) should have size 3
@@ -493,7 +456,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "remove if invalid" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/BEXLEY_UNEDITED_INVALID_TAX_BAND.xml")))
 
       EbarsXmlCutter.getCurrentTaxes(reports) should have size 1
@@ -506,7 +468,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
 
   "PropertyDescriptionTextRemoval" must {
     "valid property description" in {
-
       val reports = ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR08_BothEntries.json")))
 
       EbarsXmlCutter.getPropertyDescriptions(reports)                               should have size 1
@@ -518,7 +479,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "invalid property description - too short" in {
-
       val reports =
         ebarsValidator.fromJson(StreamSource(getClass.getResourceAsStream("/json/RulesValidationEngine/Cornwall_CTax_InvalidStreetDescription2.json")))
 
@@ -537,7 +497,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "have copied proposed entries to existing with prefix" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR05_BOTH_PROPERTIES.xml")))
 
       val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)
@@ -562,7 +521,6 @@ class RulesCorrectionEngineCtSpec extends AnyWordSpec with should.Matchers with 
     }
 
     "have copied proposed entries to existing with prefix" in {
-
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/CR12_BOTH_PROPERTIES.xml")))
 
       val textAddressStructures = EbarsXmlCutter.getTextAddressStructures(reports)

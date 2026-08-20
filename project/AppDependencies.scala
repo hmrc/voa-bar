@@ -2,11 +2,10 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion          = "10.7.0"
-  private val hmrcMongoVersion          = "2.12.0"
-  private val autoBarsXsdVersion        = "9.19.0"
-  private val jacksonModuleScalaVersion = "2.21.1"
-  private val guiceUtilsVersion         = "6.0.0" // Use 6.0.0 because 7.0.0 is not compatible with play-guice:3.0.10
+  private val bootstrapVersion          = "10.8.0"
+  private val hmrcMongoVersion          = "2.13.0"
+  private val autoBarsXsdVersion        = "9.20.0"
+  private val jacksonModuleScalaVersion = "2.22.2"
   private val catsEffectVersion         = "3.7.0"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"
@@ -14,17 +13,15 @@ object AppDependencies {
   private val apachePOIVersion          = "5.5.1"
 
   // Test dependencies
-  private val testPlusScalaCheckVersion   = "3.2.19.0"
-  private val scalaTestPlusMockitoVersion = "3.2.19.0"
-  private val wiremockVersion             = "3.13.2"
-  private val xmlunitVersion              = "2.11.0"
+  private val voTestVersion   = "0.6.0"
+  private val wiremockVersion = "3.13.2"
+  private val xmlunitVersion  = "2.13.0"
 
   private val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
     "uk.gov.hmrc"                  %% "autobars-xsd"              % autoBarsXsdVersion,
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % jacksonModuleScalaVersion,
-    "net.codingwell"               %% "scala-guice"               % guiceUtilsVersion,
     "org.typelevel"                %% "cats-effect"               % catsEffectVersion,
     "net.htmlparser.jericho"        % "jericho-html"              % jerichoHtmlVersion,
     "org.apache.httpcomponents"     % "httpmime"                  % httpComponentsVersion,
@@ -33,17 +30,17 @@ object AppDependencies {
   )
 
   private val commonTests = Seq(
-    "uk.gov.hmrc"       %% "bootstrap-test-play-30" % bootstrapVersion          % Test,
-    "org.scalatestplus" %% "scalacheck-1-18"        % testPlusScalaCheckVersion % Test
+    "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test
   )
 
   private val testOnly = Seq(
-    "org.scalatestplus" %% "mockito-5-12" % scalaTestPlusMockitoVersion % Test,
-    "org.xmlunit"        % "xmlunit-core" % xmlunitVersion              % Test
+    "uk.gov.hmrc" %% "vo-unit-test" % voTestVersion  % Test,
+    "org.xmlunit"  % "xmlunit-core" % xmlunitVersion % Test
   )
 
   private val integrationTestOnly = Seq(
-    "org.wiremock" % "wiremock" % wiremockVersion % Test
+    "uk.gov.hmrc" %% "vo-integration-test" % voTestVersion   % Test,
+    "org.wiremock" % "wiremock"            % wiremockVersion % Test
   )
 
   val appDependencies: Seq[ModuleID] = compile ++ commonTests ++ testOnly

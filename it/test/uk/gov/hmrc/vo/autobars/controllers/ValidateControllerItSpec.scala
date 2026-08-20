@@ -16,45 +16,41 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.http.Status.OK
-import play.api.libs.ws.WSClient
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
+import play.api.test.Helpers.*
+import uk.gov.hmrc.vo.integration.test.BaseServerSpec
 
 import java.nio.file.Paths
 import java.util.UUID
 
-class ValidateControllerItSpec extends PlaySpec with GuiceOneServerPerSuite with DefaultAwaitTimeout with FutureAwaits with Injecting:
+class ValidateControllerItSpec extends BaseServerSpec:
 
   private val BA_LOGIN   = "BA5090"
   private val requestId  = "mdtp-request-" + UUID.randomUUID.toString.replaceAll("-", "")
   private val path       = Paths.get("test/resources/xml/CTValid1.xml")
   private val invalidXml = Paths.get("test/resources/xml/CTInvalid1.xml")
-  private def wsClient   = inject[WSClient]
 
   "Validate controller" should {
     "validate correct xml" in {
-      val url = s"http://localhost:$port/voa-bar/validate-upload/$BA_LOGIN"
+      val url = s"$serverBaseUrl/voa-bar/validate-upload/$BA_LOGIN"
 
-      val response = await(wsClient.url(url)
+      val response = wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)
-        .put(path.toFile))
+        .put(path.toFile).futureValue
 
       Console.println(response.body)
 
-      response.status mustBe OK
+      response.status shouldBe OK
     }
 
     "validate incorrect XML" in {
-      val url = s"http://localhost:$port/voa-bar/validate-upload/7777"
+      val url = s"$serverBaseUrl/voa-bar/validate-upload/7777"
 
-      val response = await(wsClient.url(url)
+      val response = wsClient.url(url)
         .addHttpHeaders("X-Request-ID" -> requestId)
-        .put(invalidXml.toFile))
+        .put(invalidXml.toFile).futureValue
 
       Console.println(response.body)
 
-      response.status mustBe OK
+      response.status shouldBe OK
     }
   }

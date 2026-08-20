@@ -17,11 +17,10 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import java.io.ByteArrayInputStream
-
 import org.apache.commons.io.IOUtils
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-class CorrectionInputStreamSpec extends PlaySpec:
+class CorrectionInputStreamSpec extends BaseSpec:
 
   "CorrectionInputStream" should {
     "replace nbsp entity in byte stream" in {
@@ -30,6 +29,6 @@ class CorrectionInputStreamSpec extends PlaySpec:
 
       val result = IOUtils.toString(in, "UTF-8")
 
-      result mustBe "This is text"
+      result shouldBe "This is text"
     }
   }

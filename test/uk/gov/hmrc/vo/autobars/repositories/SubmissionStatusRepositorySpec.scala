@@ -20,131 +20,110 @@ import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.SpanSugar
-import org.scalatest.{BeforeAndAfterAll, EitherValues}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.vo.autobars.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.{CHARACTER, INVALID_XML_XSD, TIMEOUT_ERROR, UNKNOWN_TYPE_OF_TAX}
+import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import scala.language.postfixOps
 
-class SubmissionStatusRepositorySpec
-  extends PlaySpec
-  with BeforeAndAfterAll
-  with Eventually
-  with SpanSugar
-  with EitherValues
-  with DefaultAwaitTimeout
-  with FutureAwaits
-  with GuiceOneAppPerSuite
-  with MockitoSugar
-  with Injecting:
+class SubmissionStatusRepositorySpec extends MongoDBAppSpec[ReportStatus, SubmissionStatusRepositoryImpl] with Eventually with SpanSugar:
 
   implicit class NormalizedInstant(instant: Instant):
     def normalize: Instant = Instant.ofEpochMilli(instant.toEpochMilli)
 
-  override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID.toString))
-    .build()
+  private def aReport(): ReportStatus =
+    ReportStatus(UUID.randomUUID.toString, baCode = "BA1010", status = Pending.value)
 
-  private val mongoComponent = inject[MongoComponent]
-  private val repo           = inject[SubmissionStatusRepositoryImpl]
-
-  "repository" should {
-
+  "SubmissionStatusRepository" should {
     "add error" in {
       val submissionId = "111"
-      await(repo.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption())
+      mongoRepository.collection.insertOne(ReportStatus(submissionId, baCode = "BA1010")).toFutureOption().futureValue
 
       val reportStatusError = Error(CHARACTER, Seq("message", "detail"))
-      val dbResult          = await(repo.addError(submissionId, reportStatusError))
+      val dbResult          = mongoRepository.addError(submissionId, reportStatusError).futureValue
 
-      dbResult mustBe Symbol("right")
+      dbResult shouldBe Symbol("right")
 
-      val submission = await(repo.getByReference(submissionId))
+      val submission = mongoRepository.getByReference(submissionId).futureValue
       println(submission)
     }
 
     "add error without description" in {
-      await(repo.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption())
+      mongoRepository.collection.insertOne(ReportStatus("ggggg", baCode = "BA1010")).toFutureOption().futureValue
 
       val reportStatusError = Error(CHARACTER, List())
-      val dbResult          = await(repo.addError("ggggg", reportStatusError))
+      val dbResult          = mongoRepository.addError("ggggg", reportStatusError).futureValue
 
-      dbResult mustBe Symbol("right")
+      dbResult shouldBe Symbol("right")
     }
 
     "update status" in {
-      await(repo.collection.insertOne(ReportStatus("222", baCode = "BA1010")).toFutureOption())
+      mongoRepository.collection.insertOne(ReportStatus("222", baCode = "BA1010")).toFutureOption().futureValue
 
-      val dbResult = await(repo.updateStatus("222", Submitted))
+      val dbResult = mongoRepository.updateStatus("222", Submitted).futureValue
 
-      dbResult mustBe Symbol("right")
+      dbResult shouldBe Symbol("right")
     }
 
     "failed for nonExisting UUID" in {
-      val dbResult = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
+      val dbResult = mongoRepository.updateStatus("nonExistingSubmissionID", Submitted).futureValue
 
-      dbResult mustBe Symbol("left")
-      dbResult mustBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
+      dbResult shouldBe Symbol("left")
+      dbResult shouldBe Left(BarMongoError("Report status wasn't updated for nonExistingSubmissionID"))
     }
 
     "serialise and deserialize ReportStatus" in {
       val guid         = UUID.randomUUID.toString
       val reportStatus = ReportStatus(guid, baCode = "BA2220", status = Failed.value, createdAt = Instant.now.normalize)
 
-      await(repo.collection.insertOne(reportStatus).toFutureOption())
+      mongoRepository.collection.insertOne(reportStatus).toFutureOption().futureValue
 
-      val res = await(repo.getByReference(guid))
+      val res = mongoRepository.getByReference(guid).futureValue
 
-      res mustBe Symbol("right")
-      res.value mustBe reportStatus
+      res       shouldBe Symbol("right")
+      res.value shouldBe reportStatus
     }
 
-    "Change status to failed for submission after timeout" in {
+    "change status to failed for submission after timeout" in {
       val minutesToSubtract = 121
 
       val report = aReport().copy(createdAt = Instant.now.minus(minutesToSubtract, ChronoUnit.MINUTES))
 
-      await(repo.saveOrUpdate(report, upsert = true))
+      mongoRepository.saveOrUpdate(report, upsert = true).futureValue
 
-      val reportFromDb = await(repo.getByReference(report.id))
+      val reportFromDb = mongoRepository.getByReference(report.id).futureValue
 
-      reportFromDb.value.status mustBe Failed.value
-      reportFromDb.value.errors mustBe Seq(Error(TIMEOUT_ERROR))
+      reportFromDb.value.status shouldBe Failed.value
+      reportFromDb.value.errors shouldBe Seq(Error(TIMEOUT_ERROR))
     }
 
-    "Not change status or anything else for final submission state" in {
-      import org.scalatest.prop.TableDrivenPropertyChecks.*
-
-      val finalStates =
-        Table(("Final state", "errors"), (Submitted.value, Seq()), (Done.value, Seq()), (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
+    "not change status or anything else for final submission state" in {
+      val finalStates = Table(
+        ("Final state", "errors"),
+        (Submitted.value, Seq()),
+        (Done.value, Seq()),
+        (Failed.value, Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters"))))
+      )
 
       val daysToSubtract = 21
 
       forAll(finalStates) { case (finalState: String, errors: Seq[Error]) =>
         val report = aReport().copy(createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS).normalize, status = finalState, errors = errors)
 
-        await(repo.collection.insertOne(report).toFutureOption())
+        mongoRepository.collection.insertOne(report).toFutureOption().futureValue
 
-        val reportFromDb = await(repo.getByReference(report.id))
+        val reportFromDb = mongoRepository.getByReference(report.id).futureValue
 
-        reportFromDb.value.status mustBe finalState
-        reportFromDb.value.errors mustBe errors
-        reportFromDb.value mustBe report
+        reportFromDb.value.status shouldBe finalState
+        reportFromDb.value.errors shouldBe errors
+        reportFromDb.value        shouldBe report
       }
     }
 
-    "Save baCode when saving or updating submission" in {
-
+    "save baCode when saving or updating submission" in {
       val submissionToStore = ReportStatus(
         UUID.randomUUID.toString,
         url = Option(s"http://localhost:2211/${UUID.randomUUID}"),
@@ -155,14 +134,15 @@ class SubmissionStatusRepositorySpec
         filename = Option("filename.xml"),
         totalReports = Some(10)
       )
-      await(repo.saveOrUpdate(submissionToStore, upsert = true))
-      val submissionFromDb  = await(repo.getByReference(submissionToStore.id)).value
-      submissionFromDb.baCode mustBe submissionToStore.baCode
+
+      mongoRepository.saveOrUpdate(submissionToStore, upsert = true).futureValue
+
+      val submissionFromDb = mongoRepository.getByReference(submissionToStore.id).futureValue.value
+      submissionFromDb.baCode shouldBe submissionToStore.baCode
     }
 
-    "Not return submission older 90 days" in {
-
-      await(repo.collection.deleteMany(Document()).toFutureOption())
+    "not return submission older 90 days" in {
+      mongoRepository.collection.deleteMany(Document()).toFutureOption().futureValue
 
       val daysToSubtract = 91
 
@@ -177,29 +157,22 @@ class SubmissionStatusRepositorySpec
         totalReports = Some(10),
         createdAt = Instant.now.normalize
       )
-      await(repo.saveOrUpdate(submissionToStore, upsert = true))
-      await(repo.saveOrUpdate(
+      mongoRepository.saveOrUpdate(submissionToStore, upsert = true).futureValue
+      mongoRepository.saveOrUpdate(
         submissionToStore.copy(id = UUID.randomUUID.toString, createdAt = Instant.now.minus(daysToSubtract, ChronoUnit.DAYS)),
         upsert = true
-      ))
+      ).futureValue
 
-      val reports = await(repo.collection.countDocuments().toFutureOption())
-      reports.value mustBe 2
+      val reports = mongoRepository.collection.countDocuments().toFutureOption().futureValue
+      reports.getOrElse(0) shouldBe 2
 
       println("Waiting while expired submissions are removed by the MongoDB background process.")
       eventually(timeout(60 seconds), interval(2 seconds)) {
-        await(repo.getByUser("BA2020", None)).value must have size 1
+        mongoRepository.getByUser("BA2020", None).futureValue.value should have size 1
       }
 
-      val submissionsFromDb = await(repo.getByUser("BA2020", None)).value
-      submissionsFromDb must have size 1
-      submissionsFromDb must contain only submissionToStore
+      val submissionsFromDb = mongoRepository.getByUser("BA2020", None).futureValue.value
+      submissionsFromDb should have size 1
+      submissionsFromDb should contain only submissionToStore
     }
   }
-
-  def aReport(): ReportStatus =
-    ReportStatus(UUID.randomUUID.toString, baCode = "BA1010", status = Pending.value)
-
-  override protected def afterAll(): Unit =
-    await(mongoComponent.database.drop().toFutureOption())
-    mongoComponent.client.close()

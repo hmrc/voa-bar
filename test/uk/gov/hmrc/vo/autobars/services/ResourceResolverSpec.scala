@@ -16,19 +16,18 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-class ResourceResolverSpec extends PlaySpec:
+class ResourceResolverSpec extends BaseSpec:
 
   private val resolver        = ResourceResolver()
   private val existingFile    = "BS7666-v2-0.xsd"
   private val nonExistingFile = "file.xsd"
 
-  "The resource resolver " must {
-
+  "ResourceResolver" should {
     "Given a valid systemId representing an existing file in the /resources/xsd/ folder should return an input" in {
       val result = resolver.resolveResource("type", "namespace", "publicID", existingFile, "publicURI")
-      result.isInstanceOf[Input] mustBe true
+      result.isInstanceOf[Input] shouldBe true
     }
 
     "Throw an exception if the given file name doesn't exists in the specified path" in

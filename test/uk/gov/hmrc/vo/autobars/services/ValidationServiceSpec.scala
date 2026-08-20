@@ -16,84 +16,83 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import org.scalatest.EitherValues
-import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
 import uk.gov.hmrc.vo.autobars.models.{BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError, ReportErrorDetail, ReportErrorDetailCode}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import javax.xml.transform.stream.StreamSource
 
-class ValidationServiceSpec extends PlaySpec with EitherValues:
-
-  private def batchWith1Report                = aXml("/xml/CTValid1.xml")
-  private def batchWith4Reports               = aXml("/xml/CTValid2.xml")
-  private def batchWith32Reports              = aXml("/xml/res100.xml")
-  private def batchWithWrongBaCodeInSubreport = aXml("/xml/CTInvalidBAidentityNumber.xml")
-  private def reportWithMultipleErrors        = aXml("/xml/InvalidMultipleErrors.xml")
-
-  private val BA_LOGIN = LoginDetails("BA5090", "BA5090")
+class ValidationServiceSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
 
+  private def aXml(path: String) = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream(path)))
+
+  private val batchWith1Report                = aXml("/xml/CTValid1.xml")
+  private val batchWith4Reports               = aXml("/xml/CTValid2.xml")
+  private val batchWith32Reports              = aXml("/xml/res100.xml")
+  private val batchWithWrongBaCodeInSubreport = aXml("/xml/CTInvalidBAidentityNumber.xml")
+  private val reportWithMultipleErrors        = aXml("/xml/InvalidMultipleErrors.xml")
+  private val ndrReport                       = aXml("/xml/NDRValid1.xml")
+
+  private val BA_LOGIN = LoginDetails("BA5090", "BA5090")
+
   private def validationService = ValidationService()
 
-  "Validation service" must {
-
+  "Validation service" should {
     "sucessfully validate correct XML document" in {
       val xmlBatchSubmissionAsString = aXml("/xml/CTValid1.xml")
       val validationResult           = validationService.validate(xmlBatchSubmissionAsString, BA_LOGIN)
-      validationResult mustBe Symbol("right")
+      validationResult shouldBe Symbol("right")
     }
 
     "return Left for not valid XML" in {
       val xmlBatchSubmissionAsString = aXml("/xml/CTInvalid1.xml")
       val validationResult           = validationService.validate(xmlBatchSubmissionAsString, BA_LOGIN)
-      validationResult mustBe Symbol("left")
+      validationResult shouldBe Symbol("left")
     }
 
     "return an empty list (no errors) when passed a valid batch with one report" in {
-      validationService.validate(batchWith1Report, BA_LOGIN) mustBe Symbol("right")
+      validationService.validate(batchWith1Report, BA_LOGIN) shouldBe Symbol("right")
     }
 
     "return an empty list (no errors) when passed a valid batch with 4 reports" in {
-      validationService.validate(batchWith4Reports, BA_LOGIN) mustBe Symbol("right")
+      validationService.validate(batchWith4Reports, BA_LOGIN) shouldBe Symbol("right")
     }
 
     "return an empty list (no errors) when passed a valid batch with 32 reports" in {
-      validationService.validate(batchWith32Reports, LoginDetails("BA5243", "BA5243")) mustBe Symbol("right")
+      validationService.validate(batchWith32Reports, LoginDetails("BA5243", "BA5243")) shouldBe Symbol("right")
     }
 
     "return a list of 1 error when the BACode in the report header does " +
       "not match that in the HTTP request header" in {
-        validationService.validate(batchWith1Report, LoginDetails("BA0000", "BA0000")).left.value mustBe BarValidationError(List[Error](Error(
+        validationService.validate(batchWith1Report, LoginDetails("BA0000", "BA0000")).left.value shouldBe BarValidationError(List[Error](Error(
           BA_CODE_MATCH,
           Seq("5090")
         )))
       }
 
     "return a list with 2 errors for wrong and missing BAidentityNumber in subreport" in {
-
       val validationResult = validationService.validate(batchWithWrongBaCodeInSubreport, LoginDetails("BA9999", "BA9999"))
-      validationResult mustBe Symbol("left")
-      validationResult.left.value mustBe a[BarValidationError]
-      validationResult.left.value.asInstanceOf[BarValidationError].errors must have size 1
+      validationResult                                                  shouldBe Symbol("left")
+      validationResult.left.value                                       shouldBe a[BarValidationError]
+      validationResult.left.value.asInstanceOf[BarValidationError].errors should have size 1
       // TODO - It is failing already on header. How I should validate each report? Maybe create another XML
-      validationResult.left.value.asInstanceOf[BarValidationError].errors must contain(Error(BA_CODE_MATCH, List("5090"), None))
-      // validationResult.left.value.asInstanceOf[BarValidationError].errors must contain (Error(BA_CODE_MATCH,List("5090"),None))
-
+      validationResult.left.value.asInstanceOf[BarValidationError].errors should contain(Error(BA_CODE_MATCH, List("5090"), None))
+      // validationResult.left.value.asInstanceOf[BarValidationError].errors should contain (Error(BA_CODE_MATCH,List("5090"),None))
     }
 
     "return reports errors with description" in {
       val validationResult = validationService.validate(reportWithMultipleErrors, BA_LOGIN)
-      validationResult mustBe Symbol("left")
-      validationResult.left.value mustBe a[BarSubmissionValidationError]
+      validationResult            shouldBe Symbol("left")
+      validationResult.left.value shouldBe a[BarSubmissionValidationError]
 
       val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
 
-      validationError.errors must have size 3
+      validationError.errors should have size 3
 
-      validationError.errors must contain(ReportError(
+      validationError.errors should contain(ReportError(
         Some("200000"),
         Some("1111111111111"),
         Seq(1L, 2L),
@@ -102,7 +101,7 @@ class ValidationServiceSpec extends PlaySpec with EitherValues:
         )
       ))
 
-      validationError.errors must contain(ReportError(
+      validationError.errors should contain(ReportError(
         None,
         Some("6831841467181"),
         Seq(3L, 4L),
@@ -111,26 +110,23 @@ class ValidationServiceSpec extends PlaySpec with EitherValues:
           ReportErrorDetail(ReportErrorDetailCode.TextAddressPostcodeValidation, List("5554 1AA"))
         )
       ))
-
     }
-
-    val ndrReport = aXml("/xml/NDRValid1.xml")
 
     "validate correct NDR report" in {
       val validationResult = validationService.validate(ndrReport, LoginDetails("BA0835", "BA0835"))
-      validationResult mustBe Symbol("right")
+      validationResult shouldBe Symbol("right")
 
     }
 
     "reject NDR report with CR code in NDR xml element" in {
       val validationResult = validationService.validate(aXml("/xml/RulesCorrectionEngine/EASTRIDING_EDITED_NPE.xml"), LoginDetails("BA6950", "BA6950"))
 
-      validationResult mustBe Symbol("left")
-      validationResult.left.value mustBe a[BarSubmissionValidationError]
+      validationResult            shouldBe Symbol("left")
+      validationResult.left.value shouldBe a[BarSubmissionValidationError]
       val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
 
-      validationError.errors must have size 1
-      validationError.errors must contain only ReportError(
+      validationError.errors should have size 1
+      validationError.errors should contain only ReportError(
         Some("41348"),
         Some("WET012006000N"),
         Seq.empty,
@@ -139,8 +135,4 @@ class ValidationServiceSpec extends PlaySpec with EitherValues:
         )
       )
     }
-
   }
-
-  private def aXml(path: String) =
-    ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream(path)))

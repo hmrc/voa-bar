@@ -17,25 +17,19 @@
 package uk.gov.hmrc.vo.autobars.connectors
 
 import models.Purpose
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
-import play.api.http.Status.OK
-import play.api.test.Injecting
+import play.api.libs.json.Json
+import play.api.test.Helpers.*
 import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.vo.autobars.util.Utils
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
 import java.net.URL
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext
 
-class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar with Injecting:
+class EmailConnectorSpec extends BaseAppSpec:
 
   private val configuration = inject[Configuration]
   private val crypto        = ApplicationCrypto(configuration.underlying)
@@ -57,12 +51,9 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       "email"                                -> "foo@bar.co.uk"
     )
 
-  "EmailConnector" must {
+  "EmailConnector" should {
     "verify that the email service gets called when email needs to be sent" in {
-      val httpClientV2Mock = mock[HttpClientV2]
-      when(
-        httpClientV2Mock.post(any[URL])(using any[HeaderCarrier])
-      ).thenReturn(RequestBuilderStub(Right(OK), "{}"))
+      val httpClientV2Mock = httpClientMock(POST, responseBody = Json.parse("{}"))
 
       val configuration = getConfiguration()
       val connector     = DefaultEmailConnector(httpClientV2Mock, ServicesConfig(configuration), configuration, utils)
@@ -72,6 +63,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       verify(httpClientV2Mock)
         .post(any[URL])(using any[HeaderCarrier])
     }
+
     "verify that the email service doesn't get called when email needn't to be sent" in {
       val httpClientV2Mock = mock[HttpClientV2]
       val configuration    = getConfiguration(sendEmail = false)

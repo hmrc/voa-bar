@@ -18,14 +18,12 @@ package uk.gov.hmrc.vo.autobars.services
 
 import java.time.LocalDate
 import java.util.UUID
-
-import org.scalatest.EitherValues
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import uk.gov.hmrc.vo.autobars.models.{AddProperty, Address, CaravanRemoved, ContactDetails, Cr01Cr03Submission, RemoveProperty, ReportStatus}
 import uk.gov.hmrc.vo.autobars.models.Cr01Cr03Submission.format
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-class WebBarsServiceSpec extends PlaySpec with EitherValues:
+class WebBarsServiceSpec extends BaseSpec:
 
   private val legacyCr03Submission =
     val address        = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
@@ -54,7 +52,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues:
       "submission" -> format.writes(legacyCr03Submission)
     )
 
-  val legacyCr03ReportStatus = ReportStatus(
+  private val legacyCr03ReportStatus = ReportStatus(
     UUID.randomUUID.toString,
     baCode = "BA1010",
     report = Some(legacyCr03Report)
@@ -87,7 +85,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues:
       "submission" -> format.writes(newCr03Submission)
     )
 
-  val newCr03ReportStatus = ReportStatus(
+  private val newCr03ReportStatus = ReportStatus(
     UUID.randomUUID.toString,
     baCode = "BA1010",
     report = Some(newCr03Report)
@@ -126,16 +124,16 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues:
     report = Some(cr01Report)
   )
 
-  "DefaultWebBarsService" must {
+  "DefaultWebBarsService" should {
     "readReport for legacy cr03" in {
-      DefaultWebBarsService.readReport(legacyCr03ReportStatus) mustBe Some(legacyCr03Submission)
+      DefaultWebBarsService.readReport(legacyCr03ReportStatus) shouldBe Some(legacyCr03Submission)
     }
 
     "readReport for new cr03" in {
-      DefaultWebBarsService.readReport(newCr03ReportStatus) mustBe Some(newCr03Submission)
+      DefaultWebBarsService.readReport(newCr03ReportStatus) shouldBe Some(newCr03Submission)
     }
 
     "readReport for new cr01" in {
-      DefaultWebBarsService.readReport(cr01ReportStatus) mustBe Some(cr01Submission)
+      DefaultWebBarsService.readReport(cr01ReportStatus) shouldBe Some(cr01Submission)
     }
   }

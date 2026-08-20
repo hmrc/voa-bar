@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.vo.autobars.models
 
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.{Instant, ZoneOffset}
 
-class JsonDeserializationTest extends PlaySpec:
+class JsonDeserializationTest extends BaseSpec:
 
   val createdAt = 1669496113080L
 
@@ -52,13 +52,13 @@ class JsonDeserializationTest extends PlaySpec:
       val json   = Json.parse(reportDataWithoutReportErrors)
       val report = json.as[ReportStatus]
 
-      report.id must be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
-      report.createdAt mustBe Instant.ofEpochMilli(createdAt)
+      report.id          should be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
+      report.createdAt shouldBe Instant.ofEpochMilli(createdAt)
 
       val createdAtZoned = report.createdAt.atZone(ZoneOffset.UTC)
-      createdAtZoned.format(ISO_DATE_TIME) mustBe "2022-11-26T20:55:13.08Z"
-      createdAtZoned.toString mustBe "2022-11-26T20:55:13.080Z"
+      createdAtZoned.format(ISO_DATE_TIME) shouldBe "2022-11-26T20:55:13.08Z"
+      createdAtZoned.toString              shouldBe "2022-11-26T20:55:13.080Z"
 
-      report.reportErrors mustBe empty
+      report.reportErrors shouldBe empty
     }
   }

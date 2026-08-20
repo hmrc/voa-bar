@@ -17,10 +17,8 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import org.apache.commons.io.IOUtils
-import org.scalatest.EitherValues
-import org.scalatestplus.play.PlaySpec
-import play.api.Logging
 import uk.gov.hmrc.vo.autobars.models.{BarError, BarXmlError}
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.xml.transform.TransformerFactory
@@ -30,9 +28,9 @@ import scala.util.{Failure, Success, Try}
 import scala.xml.*
 import scala.xml.parsing.NoBindingFactoryAdapter
 
-class XmlParserSpec extends PlaySpec with EitherValues with Logging:
+class XmlParserSpec extends BaseSpec:
 
-  val xmlParser = XmlParser()
+  private val xmlParser = XmlParser()
 
   private val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTValid1.xml")
   private val validWithXXE               = getClass.getResource("/xml/CTValidWithXXE.xml")
@@ -59,172 +57,164 @@ class XmlParserSpec extends PlaySpec with EitherValues with Logging:
         logger.error("Transforming DOM to Scala XML Node failed", exception)
         Left(BarXmlError(exception.getMessage))
 
-  "Xml parser " must {
-    "successfuly parse xml to DOM" in {
+  "XmlParser" should {
+    "successfully parse xml to DOM" in {
       val document = xmlParser.parse(xmlBatchSubmissionAsString)
-      document mustBe Symbol("right")
-      document.value.getDocumentElement.getNodeName mustBe "BAreports"
+      document                                      shouldBe Symbol("right")
+      document.value.getDocumentElement.getNodeName shouldBe "BAreports"
     }
+
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
-      document mustBe Symbol("left")
-      document.left.value mustBe BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.")
+      document            shouldBe Symbol("left")
+      document.left.value shouldBe BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.")
     }
+
     "fail for xml with DTD embedded entity" in {
       val document = xmlParser.parse(validWithXXE)
-      document mustBe Symbol("left")
-      document.left.value mustBe BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.")
+      document            shouldBe Symbol("left")
+      document.left.value shouldBe BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.")
     }
-
   }
 
-  "A BatchSubmission" must {
-
+  "A BatchSubmission" should {
     "contain a BatchHeader" in {
-      (batchSubmission \ "BAreportHeader").isEmpty mustBe false
+      (batchSubmission \ "BAreportHeader").isEmpty shouldBe false
     }
 
     "contain a BAReports" in {
-      (batchSubmission \ "BApropertyReport").isEmpty mustBe false
+      (batchSubmission \ "BApropertyReport").isEmpty shouldBe false
     }
 
     "contain a BatchTrailer" in {
-      (batchSubmission \ "BAreportTrailer").isEmpty mustBe false
+      (batchSubmission \ "BAreportTrailer").isEmpty shouldBe false
     }
   }
 
-  "A BatchHeader" must {
-
+  "A BatchHeader" should {
     val batchHeader = batchSubmission \ "BAreportHeader"
 
     "contain a BillingAuthority element value" in {
-      (batchHeader \ "BillingAuthority").text mustBe "VALID COUNCIL"
+      (batchHeader \ "BillingAuthority").text shouldBe "VALID COUNCIL"
     }
 
     "contain a BillingAuthorityIdentityCode element value" in {
-      (batchHeader \ "BillingAuthorityIdentityCode").text mustBe "5090"
+      (batchHeader \ "BillingAuthorityIdentityCode").text shouldBe "5090"
     }
 
     "contain a ProcessDate element value" in {
-      (batchHeader \ "ProcessDate").text mustBe "2018-01-30"
+      (batchHeader \ "ProcessDate").text shouldBe "2018-01-30"
     }
 
     "contain an EntryDateTime element value" in {
-      (batchHeader \ "EntryDateTime").text mustBe "2018-01-30T23:00:22"
+      (batchHeader \ "EntryDateTime").text shouldBe "2018-01-30T23:00:22"
     }
   }
 
-  "A batch with one report" must {
-
+  "A batch with one report" should {
     "contain 1 report" in {
-      (batchSubmission \ "BApropertyReport").size mustBe 1
+      (batchSubmission \ "BApropertyReport").size shouldBe 1
     }
   }
 
-  "A BAPropertyReport" must {
-
+  "A BAPropertyReport" should {
     val propertyReport = batchSubmission \ "BApropertyReport"
 
     "contain a DateSent" in {
-      (propertyReport.head \ "DateSent").text mustBe "2018-01-30"
+      (propertyReport.head \ "DateSent").text shouldBe "2018-01-30"
     }
 
     "contain a TransactionIdentityBA" in {
-      (propertyReport.head \ "TransactionIdentityBA").text mustBe "22121746115111"
+      (propertyReport.head \ "TransactionIdentityBA").text shouldBe "22121746115111"
     }
 
     "contain a BAidentityNumber" in {
-      (propertyReport.head \ "BAidentityNumber").text mustBe "5090"
+      (propertyReport.head \ "BAidentityNumber").text shouldBe "5090"
     }
 
     "contain a BAreportNumber" in {
-      (propertyReport.head \ "BAreportNumber").text mustBe "211909"
+      (propertyReport.head \ "BAreportNumber").text shouldBe "211909"
     }
 
     "contain a ReasonForReportCode" in {
-      (propertyReport.head \ "TypeOfTax" \\ "ReasonForReportCode").text mustBe "CR03"
+      (propertyReport.head \ "TypeOfTax" \\ "ReasonForReportCode").text shouldBe "CR03"
     }
 
     "contain a ReasonForReportDescription" in {
-      (propertyReport.head \ "TypeOfTax" \\ "ReasonForReportDescription").text mustBe "NEW"
+      (propertyReport.head \ "TypeOfTax" \\ "ReasonForReportDescription").text shouldBe "NEW"
     }
 
     "contain a IndicatedDateOfChange" in {
-      (propertyReport.head \ "IndicatedDateOfChange").text mustBe "2018-05-01"
+      (propertyReport.head \ "IndicatedDateOfChange").text shouldBe "2018-05-01"
     }
 
     "contain a Remarks" in {
-      (propertyReport.head \ "Remarks").text mustBe "THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"
+      (propertyReport.head \ "Remarks").text shouldBe "THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"
     }
 
     "contain a UniquePropertyReferenceNumber" in {
-      (propertyReport.head \ "ProposedEntries" \\ "UniquePropertyReferenceNumber").text mustBe "121102276285"
+      (propertyReport.head \ "ProposedEntries" \\ "UniquePropertyReferenceNumber").text shouldBe "121102276285"
     }
   }
 
-  "A BAReportTrailer" must {
-
+  "A BAReportTrailer" should {
     val batchTrailer = batchSubmission \ "BAreportTrailer"
 
     "contain a RecordCount" in {
-      (batchTrailer \ "RecordCount").text mustBe "8"
+      (batchTrailer \ "RecordCount").text shouldBe "8"
     }
 
     "contain an EntryDateTime" in {
-      (batchTrailer \ "EntryDateTime").text mustBe "2018-01-30T23:01:43"
+      (batchTrailer \ "EntryDateTime").text shouldBe "2018-01-30T23:01:43"
     }
 
     "contain a TotalNNDRreportCount" in {
-      (batchTrailer \ "TotalNNDRreportCount").text mustBe "0"
+      (batchTrailer \ "TotalNNDRreportCount").text shouldBe "0"
     }
 
     "contain a TotalCtaxReportCount" in {
-      (batchTrailer \ "TotalCtaxReportCount").text mustBe "8"
+      (batchTrailer \ "TotalCtaxReportCount").text shouldBe "8"
     }
-
   }
 
-  private val multipleReportBatch = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
-
-  "A BAReport containing multiple BAReports" must {
+  "A BAReport containing multiple BAReports" should {
+    val multipleReportBatch = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
 
     "hold the correct number of reports" in {
-      (multipleReportBatch \ "BApropertyReport").size mustBe 4
+      (multipleReportBatch \ "BApropertyReport").size shouldBe 4
     }
 
     "state the correct batch size in the trailer" in {
-      (multipleReportBatch \ "BAreportTrailer" \ "RecordCount").text mustBe "4"
+      (multipleReportBatch \ "BAreportTrailer" \ "RecordCount").text shouldBe "4"
     }
   }
 
-  "A BA batch submission" must {
-
+  "A BA batch submission" should {
     val report: Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), UTF_8))
     val result       = xmlParser.oneReportPerBatch(report)
 
     "be parsed into multiple smaller batches" in {
-
-      result.size mustBe 4
+      result.size shouldBe 4
     }
 
     "each batch should contain a single (non-empty) header node" in {
       val nonEmptyHeaders: Seq[NodeSeq] = result.map(_ \ "BAreportHeader")
 
-      nonEmptyHeaders.size mustBe 4
-      nonEmptyHeaders.forall(_.sizeIs == 1) mustBe true
+      nonEmptyHeaders.size                  shouldBe 4
+      nonEmptyHeaders.forall(_.sizeIs == 1) shouldBe true
     }
 
     "each batch should contain a single (non-empty) trailer node" in {
       val nonEmptyTrailers: Seq[NodeSeq] = result.map(_ \ "BAreportTrailer")
 
-      nonEmptyTrailers.size mustBe 4
-      nonEmptyTrailers.forall(_.sizeIs == 1) mustBe true
+      nonEmptyTrailers.size                  shouldBe 4
+      nonEmptyTrailers.forall(_.sizeIs == 1) shouldBe true
     }
 
     "each batch should contain a single (non-empty) property report" in {
       val nonEmptyPropertyReports: Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
 
-      nonEmptyPropertyReports.size mustBe 4
-      nonEmptyPropertyReports.forall(_.sizeIs == 1) mustBe true
+      nonEmptyPropertyReports.size                  shouldBe 4
+      nonEmptyPropertyReports.forall(_.sizeIs == 1) shouldBe true
     }
   }

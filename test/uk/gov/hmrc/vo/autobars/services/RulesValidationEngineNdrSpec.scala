@@ -16,34 +16,34 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import javax.xml.transform.stream.StreamSource
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
-import NdrValidationRules.{Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation, Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation}
 import uk.gov.hmrc.vo.autobars.models.ReportErrorDetailCode as ErrorCode
+import uk.gov.hmrc.vo.autobars.services.NdrValidationRules.{Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation, Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation}
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
+
+import javax.xml.transform.stream.StreamSource
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite:
+class RulesValidationEngineNdrSpec extends BaseAppSpec:
 
-  "Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation" must {
+  "Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation" should {
     "report missing existing entry" in {
       val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT1_NO_PROPERTIES.xml")))
 
       val result = Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
     }
   }
 
-  "Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation" must {
+  "Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation" should {
     "report missing existing entry" in {
       val reports = EbarsValidator().fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesValidationEngine/ndr/NDR_EASTRIDING_RT5_NO_PROPERTIES.xml")))
 
       val result = Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply(reports)
 
-      result.map(_.errorCode) mustBe Some(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
+      result.map(_.errorCode) shouldBe Some(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
     }
   }

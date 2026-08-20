@@ -17,10 +17,8 @@
 package uk.gov.hmrc.vo.autobars.services
 
 import ebars.xml.{BandType, CtaxReasonForReportCodeContentType}
-import org.scalatest.matchers.should
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.OptionValues
 import services.EbarsValidator
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import javax.xml.transform.stream.StreamSource
 import scala.jdk.CollectionConverters.*
@@ -28,7 +26,7 @@ import scala.jdk.CollectionConverters.*
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterCTSpec extends AnyWordSpec with should.Matchers with OptionValues:
+class EbarsXmlCutterCTSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
 

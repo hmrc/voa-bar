@@ -16,21 +16,19 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import org.scalatest.matchers.should
-import org.scalatest.wordspec.AnyWordSpec
+import services.EbarsValidator
+import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import javax.xml.transform.stream.StreamSource
-import org.scalatest.OptionValues
-import services.EbarsValidator
 
 /**
   * Created by rgallet on 09/12/15.
   */
-class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with OptionValues:
+class EbarsXmlCutterNDRSpec extends BaseSpec:
 
   private val ebarsValidator = EbarsValidator()
 
-  "extracting CR code" should {
+  "Extracting CR code" should {
     "return 11" in {
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_BOTH_PROPERTIES.xml")))
 
@@ -48,7 +46,7 @@ class EbarsXmlCutterNDRSpec extends AnyWordSpec with should.Matchers with Option
     }
   }
 
-  "working from a file with just a proposed entry" should {
+  "Working from a file with just a proposed entry" should {
     "move first existing entry to proposed" in {
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/NDR_EASTRIDING_EXISTING_PROPERTIES.xml")))
 

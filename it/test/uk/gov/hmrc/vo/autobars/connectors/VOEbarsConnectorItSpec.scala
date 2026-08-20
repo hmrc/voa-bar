@@ -16,55 +16,50 @@
 
 package uk.gov.hmrc.vo.autobars.connectors
 
-import java.util.UUID
-import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import ebars.xml.BAreports
 import jakarta.xml.bind.JAXBContext
-
-import javax.xml.transform.stream.StreamSource
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatest.Assertion
 import play.api.Configuration
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK, UNAUTHORIZED}
-import play.api.test.Injecting
+import play.api.test.FutureAwaits
+import play.api.test.Helpers.*
 import services.EbarsValidator
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
-import com.github.tomakehurst.wiremock.client.WireMock.*
-import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.vo.autobars.WiremockHelper
 import uk.gov.hmrc.vo.autobars.connectors.{DefaultVOEbarsConnector, VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 import uk.gov.hmrc.vo.autobars.services.{EbarsApiError, EbarsClientV2}
+import uk.gov.hmrc.vo.integration.test.BaseServerSpec
 
-import scala.concurrent.duration.*
-import scala.concurrent.{Await, ExecutionContext, Future}
+import java.util.UUID
+import javax.xml.transform.stream.StreamSource
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-class VOEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting:
+class VOEbarsConnectorItSpec extends BaseServerSpec with FutureAwaits:
 
-  def voEbarsConnector(port: Int): VOEbarsConnector =
+  private def voEbarsConnector(port: Int): VOEbarsConnector =
     val config         = inject[Configuration]
     val servicesConfig = ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
-    val ebarsClientV2 = EbarsClientV2(inject[HttpClientV2], servicesConfig)
-    DefaultVOEbarsConnector(ebarsClientV2, inject[VOBarAuditConnector])
+    val eBarsClientV2 = EbarsClientV2(inject[HttpClientV2], servicesConfig)
+    DefaultVOEbarsConnector(eBarsClientV2, inject[VOBarAuditConnector])
 
   given ExecutionContext = inject[ExecutionContext]
   given HeaderCarrier    = HeaderCarrier()
 
-  private val ebarsValidator = EbarsValidator()
-  private val timeout        = 1 seconds
+  private val eBarsValidator = EbarsValidator()
   private val loginDetails   = LoginDetails("BA5090", "BA5090")
-  private val jsonString     = ebarsValidator.toJson(aBaReport)
+  private val jsonString     = eBarsValidator.toJson(aBaReport)
 
-  val loginPath         = "/ebars_dmz_pres_ApplicationWeb/Welcome.do"
-  val uploadXmlPath     = "/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
-  val uploadContentType = "application/x-www-form-urlencoded"
+  private val loginPath         = "/ebars_dmz_pres_ApplicationWeb/Welcome.do"
+  private val uploadXmlPath     = "/ebars_dmz_pres_ApplicationWeb/uploadXmlSubmission"
+  private val uploadContentType = "application/x-www-form-urlencoded"
 
-  def aBaReport: BAreports =
+  private def aBaReport: BAreports =
     val ctx          = JAXBContext.newInstance("ebars.xml")
     val unmarshaller = ctx.createUnmarshaller()
     val streamSource = StreamSource("test/resources/xml/CTValid2.xml")
@@ -79,49 +74,49 @@ class VOEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneA
 
   private def testEbarsGetCall(
     path: String,
-    ebarsCall: VOEbarsConnector => Future[Try[?]],
+    eBarsCall: VOEbarsConnector => Future[Try[?]],
     expectedResult: Try[Int],
     responseStatus: Int,
     responseBody: String
-  ): Unit =
-    withWiremockServer { wireMockServer =>
-      wireMockServer.stubFor(
-        get(urlEqualTo(path))
-          .willReturn(
-            aResponse().withStatus(responseStatus)
-              .withBody(responseBody)
-          )
-      )
-    } { (port: Int, wireMockServer: WireMockServer) =>
-      val result = ebarsCall(voEbarsConnector(port))
+  ): Assertion =
+    wireMockServer.stubFor(
+      get(urlEqualTo(path))
+        .willReturn(
+          aResponse().withStatus(responseStatus)
+            .withBody(responseBody)
+        )
+    )
 
-      val httpResult = Await.result(result, timeout)
-      httpResult.isSuccess mustBe expectedResult.isSuccess
-      httpResult.toString mustBe expectedResult.toString
+    val result = await(eBarsCall(voEbarsConnector(wireMockServer.port)))
 
-      wireMockServer.verify(getRequestedFor(urlEqualTo(path)))
-    }
+    wireMockServer.verify(getRequestedFor(urlEqualTo(path)))
 
-  private def testSendBAReport(path: String, baReport: BAReportRequest, requestContentType: String, responseStatus: Int, responseBody: String): Unit =
-    withWiremockServer { wireMockServer =>
-      wireMockServer.stubFor(
-        post(urlEqualTo(path))
-          .willReturn(
-            aResponse().withStatus(responseStatus)
-              .withBody(responseBody)
-          )
-      )
-    } { (port: Int, wireMockServer: WireMockServer) =>
-      val result = voEbarsConnector(port).sendBAReport(baReport)
+    result.isSuccess shouldBe expectedResult.isSuccess
+    result.toString  shouldBe expectedResult.toString
 
-      val httpResult = Await.result(result, timeout)
-      httpResult mustBe responseStatus
+  private def testSendBAReport(
+    path: String,
+    baReport: BAReportRequest,
+    requestContentType: String,
+    responseStatus: Int,
+    responseBody: String
+  ): Assertion =
+    wireMockServer.stubFor(
+      post(urlEqualTo(path))
+        .willReturn(
+          aResponse().withStatus(responseStatus)
+            .withBody(responseBody)
+        )
+    )
 
-      wireMockServer.verify(postRequestedFor(urlEqualTo(path))
-        .withHeader("Content-Type", equalTo(requestContentType)))
-    }
+    val result = await(voEbarsConnector(wireMockServer.port).sendBAReport(baReport))
 
-  "VOEbarsConnector" must {
+    wireMockServer.verify(postRequestedFor(urlEqualTo(path))
+      .withHeader("Content-Type", equalTo(requestContentType)))
+
+    result shouldBe responseStatus
+
+  "VO eBars сonnector" should {
     "send reports as application/x-www-form-urlencoded content" in
       testSendBAReport(uploadXmlPath, report, uploadContentType, OK, <root><result>success</result></root>.toString)
 
@@ -137,7 +132,7 @@ class VOEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneA
           </x>.toString
         )
       }
-      thrown.getMessage mustBe "UNAUTHORIZED"
+      thrown.getMessage shouldBe "UNAUTHORIZED"
     }
 
     "handle 500 eBars server response" in {
@@ -152,7 +147,7 @@ class VOEbarsConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneA
           </x>.toString
         )
       }
-      thrown.getMessage mustBe "eBars INTERNAL_SERVER_ERROR"
+      thrown.getMessage shouldBe "eBars INTERNAL_SERVER_ERROR"
     }
 
     "do login" in

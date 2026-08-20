@@ -16,48 +16,39 @@
 
 package uk.gov.hmrc.vo.autobars.connectors
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import org.scalatest.{BeforeAndAfterEach, EitherValues}
-import org.scalatestplus.play.PlaySpec
-import play.api.http.Status.OK
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits, WsTestClient}
-import uk.gov.hmrc.http.{HeaderCarrier, RequestId}
-import uk.gov.hmrc.vo.autobars.WiremockHelper
+import play.api.test.FutureAwaits
+import play.api.test.Helpers.*
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, RequestId}
 import uk.gov.hmrc.vo.autobars.connectors.DefaultUpscanConnector
+import uk.gov.hmrc.vo.integration.test.BaseServerSpec
 
-import uk.gov.hmrc.http.HeaderNames
-
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class UpscanConnectorSpec extends PlaySpec with WiremockHelper with FutureAwaits with DefaultAwaitTimeout with EitherValues with BeforeAndAfterEach:
+class UpscanConnectorSpec extends BaseServerSpec with FutureAwaits:
 
   private val upScanPath = "/upscan/submission.xml"
 
-  def url(port: Int): String = s"http://localhost:$port$upScanPath"
+  private def upScanUrl: String = s"$wireMockBaseUrl$upScanPath"
 
-  "upscan connector" should {
-    "Include requestId" in
-      withWiremockServer { wireMockServer =>
-        wireMockServer.stubFor(
-          get(urlEqualTo(upScanPath))
-            .willReturn(
-              aResponse().withStatus(OK)
-                .withBody("""<root>test</root>""")
-            )
-        )
-      } { (port: Int, wireMockServer: WireMockServer) =>
-        WsTestClient.withClient { client =>
-          given HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
-
-          val connector = DefaultUpscanConnector(client)
-          val response  = await(connector.downloadReport(url(port)))
-          response mustBe Symbol("right")
-
-          wireMockServer.verify(
-            getRequestedFor(urlEqualTo(upScanPath))
-              .withHeader(HeaderNames.xRequestId, equalTo("this-is-request-id"))
+  "UpScan connector" should {
+    "include requestId" in {
+      wireMockServer.stubFor(
+        get(urlEqualTo(upScanPath))
+          .willReturn(
+            aResponse().withStatus(OK)
+              .withBody("""<root>test</root>""")
           )
-        }
-      }
+      )
+
+      given HeaderCarrier = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
+
+      val connector = DefaultUpscanConnector(wsClient)
+      val response  = await(connector.downloadReport(upScanUrl))
+
+      response shouldBe Symbol("right")
+
+      wireMockServer.verify(
+        getRequestedFor(urlEqualTo(upScanPath))
+          .withHeader(HeaderNames.xRequestId, equalTo("this-is-request-id"))
+      )
+    }
   }

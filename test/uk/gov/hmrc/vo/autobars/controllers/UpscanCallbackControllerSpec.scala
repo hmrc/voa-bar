@@ -16,31 +16,25 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.SpanSugar
-import org.scalatest.{EitherValues, OptionValues}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json, Writes}
-import play.api.test.Helpers.{contentAsString, status}
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
+import play.api.test.FakeRequest
+import play.api.test.Helpers.*
 import play.api.{Application, Configuration}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.vo.autobars.connectors.{UpscanConnector, VOEbarsConnector}
-import uk.gov.hmrc.vo.autobars.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.UpScanRequests.{FailureDetails, UploadConfirmation, UploadConfirmationError, UploadDetails}
+import uk.gov.hmrc.vo.autobars.models.{BarError, Done, Error, Failed, ReportStatusType, Submitted}
 import uk.gov.hmrc.vo.autobars.repositories.{DefaultUserReportUploadsRepository, SubmissionStatusRepositoryImpl, UserReportUpload}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.{BA_CODE_MATCH, TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.byId
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
 import java.net.URI
 import java.nio.file.Paths
@@ -52,22 +46,11 @@ import scala.util.Using
 /**
   * @author Yuriy Tumakha
   */
-class UpscanCallbackControllerSpec
-  extends PlaySpec
-  with OptionValues
-  with EitherValues
-  with Eventually
-  with SpanSugar
-  with DefaultAwaitTimeout
-  with FutureAwaits
-  with GuiceOneAppPerSuite
-  with MockitoSugar
-  with Status
-  with Injecting:
+class UpscanCallbackControllerSpec extends BaseAppSpec with Eventually with SpanSugar:
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = 9 seconds, interval = 1 second)
 
-  override def fakeApplication(): Application = {
+  override def fakeApplication(): Application =
     val voEbarsConnector = mock[VOEbarsConnector]
 
     when(voEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
@@ -79,7 +62,6 @@ class UpscanCallbackControllerSpec
         bind[UpscanConnector].to(StubUpscanConnector)
       )
       .build()
-  }
 
   private val controller = inject[UpscanCallbackController]
 
@@ -117,26 +99,26 @@ class UpscanCallbackControllerSpec
 
   private def verifySubmissionReport(submissionReference: String, expectedBaCode: String, expectedStatus: ReportStatusType, expectedErrors: Seq[Error]) =
     eventually {
-      await(submissionRepository.getByReference(submissionReference)).value.status must not be Submitted.value
+      submissionRepository.getByReference(submissionReference).futureValue.value.status should not be Submitted.value
     }
 
-    val submissionReport = await(submissionRepository.getByReference(submissionReference))
+    val submissionReport = submissionRepository.getByReference(submissionReference).futureValue
 
-    submissionReport.value.status mustBe expectedStatus.value
-    submissionReport.value.baCode mustBe expectedBaCode
-    submissionReport.value.errors mustBe expectedErrors
+    submissionReport.value.status shouldBe expectedStatus.value
+    submissionReport.value.baCode shouldBe expectedBaCode
+    submissionReport.value.errors shouldBe expectedErrors
 
-  "UpscanCallbackController " must {
+  "UpscanCallbackController " should {
     "handle upscan callback with `UploadConfirmation`" in {
-      await(submissionRepository.collection.deleteOne(byId(reference)).toFutureOption())
-      await(userReportUploadsRepository.collection.deleteOne(byId(reference)).toFutureOption())
-      await(userReportUploadsRepository.save(UserReportUpload(reference, username, password)))
+      submissionRepository.collection.deleteOne(byId(reference)).toFutureOption().futureValue
+      userReportUploadsRepository.collection.deleteOne(byId(reference)).toFutureOption().futureValue
+      userReportUploadsRepository.save(UserReportUpload(reference, username, password)).futureValue
 
       val request = buildUploadConfirmation(reference)
 
       val result = controller.onConfirmation(username)(request)
-      status(result) mustBe ACCEPTED
-      contentAsString(result) mustBe ""
+      status(result)          shouldBe ACCEPTED
+      contentAsString(result) shouldBe ""
 
       verifySubmissionReport(reference, username, Done, Seq.empty)
     }
@@ -149,8 +131,8 @@ class UpscanCallbackControllerSpec
       val request = buildUploadConfirmationError(reference2, FailureDetails("QUARANTINE", "This file has a virus"))
 
       val result = controller.onConfirmation(username)(request)
-      status(result) mustBe ACCEPTED
-      contentAsString(result) mustBe ""
+      status(result)          shouldBe ACCEPTED
+      contentAsString(result) shouldBe ""
 
       verifySubmissionReport(reference2, username, Failed, Seq(Error(UPSCAN_ERROR, Seq("QUARANTINE", "This file has a virus"))))
     }
@@ -163,8 +145,8 @@ class UpscanCallbackControllerSpec
       val request = buildUploadConfirmation(reference3)
 
       val result = controller.onConfirmation("BA4444")(request)
-      status(result) mustBe ACCEPTED
-      contentAsString(result) mustBe ""
+      status(result)          shouldBe ACCEPTED
+      contentAsString(result) shouldBe ""
 
       verifySubmissionReport(reference3, "BA4444", Failed, Seq(Error(BA_CODE_MATCH, Seq("5090"))))
     }
@@ -176,8 +158,8 @@ class UpscanCallbackControllerSpec
       val request = buildUploadConfirmation(reference4)
 
       val result = controller.onConfirmation(username)(request)
-      status(result) mustBe ACCEPTED
-      contentAsString(result) mustBe ""
+      status(result)          shouldBe ACCEPTED
+      contentAsString(result) shouldBe ""
 
       verifySubmissionReport(reference4, username, Failed, Seq(Error(TIMEOUT_ERROR, Seq(s"Couldn't get user session for reference: $reference4"))))
     }
@@ -190,8 +172,8 @@ class UpscanCallbackControllerSpec
       val request = buildUploadConfirmation(reference5)
 
       val result = controller.onConfirmation(username)(request)
-      status(result) mustBe ACCEPTED
-      contentAsString(result) mustBe ""
+      status(result)          shouldBe ACCEPTED
+      contentAsString(result) shouldBe ""
 
       verifySubmissionReport(reference5, username, Failed, Seq(Error(UNKNOWN_ERROR, Seq("Unable to decrypt value"))))
     }
@@ -204,8 +186,8 @@ class UpscanCallbackControllerSpec
         .withBody(Json.obj("bad" -> "json"))
 
       val result = controller.onConfirmation(username)(request)
-      status(result) mustBe BAD_REQUEST
-      contentAsString(result) mustBe "Unable to parse request"
+      status(result)          shouldBe BAD_REQUEST
+      contentAsString(result) shouldBe "Unable to parse request"
     }
   }
 

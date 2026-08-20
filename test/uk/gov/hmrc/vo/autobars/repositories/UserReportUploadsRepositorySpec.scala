@@ -16,59 +16,31 @@
 
 package uk.gov.hmrc.vo.autobars.repositories
 
-import org.mongodb.scala.SingleObservableFuture
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits, Injecting}
-import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 
 import java.time.Instant
 import java.util.UUID
 
-class UserReportUploadsRepositorySpec
-  extends PlaySpec
-  with BeforeAndAfterAll
-  with OptionValues
-  with EitherValues
-  with DefaultAwaitTimeout
-  with FutureAwaits
-  with GuiceOneAppPerSuite
-  with MockitoSugar
-  with Injecting:
+class UserReportUploadsRepositorySpec extends MongoDBAppSpec[UserReportUpload, DefaultUserReportUploadsRepository]:
 
-  override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID.toString))
-    .build()
-
-  private val mongoComponent = inject[MongoComponent]
-  private val repo           = inject[UserReportUploadsRepository]
-
-  "repository " should {
+  "UserReportUploadsRepository" should {
     "save to mongo" in {
       val id  = UUID.randomUUID.toString
       val now = Instant.ofEpochMilli(Instant.now.toEpochMilli)
 
       val userReportUpload = UserReportUpload(id, "BA8885", "superS3cr3dPa$$w0rd", now)
 
-      val result = await(repo.save(userReportUpload))
+      val result = mongoRepository.save(userReportUpload).futureValue
 
-      result mustBe Symbol("right")
+      result shouldBe Symbol("right")
 
-      val resultFromDatabase = await(repo.getById(id))
+      val resultFromDatabase = mongoRepository.getById(id).futureValue
 
-      resultFromDatabase mustBe Symbol("right")
+      resultFromDatabase shouldBe Symbol("right")
 
       val optionResultFromDatabase = resultFromDatabase.value
 
-      optionResultFromDatabase mustBe defined
-      optionResultFromDatabase.value mustBe userReportUpload
+      optionResultFromDatabase shouldBe defined
+      optionResultFromDatabase shouldBe Some(userReportUpload)
     }
   }
-
-  override protected def afterAll(): Unit =
-    await(mongoComponent.database.drop().toFutureOption())
-    mongoComponent.client.close()

@@ -16,19 +16,16 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import java.nio.file.{Files, Paths, StandardCopyOption}
-import java.util.UUID
-
-import org.scalatestplus.play.*
 import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.api.mvc.*
 import play.api.test.*
 import play.api.test.Helpers.*
 import uk.gov.hmrc.vo.autobars.services.{V1ValidationService, ValidationService}
+import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import java.nio.file.{Files, Paths, StandardCopyOption}
+import java.util.UUID
 
-class ValidateControllerSpec extends PlaySpec with Results:
+class ValidateControllerSpec extends BaseAppSpec:
 
   val BA_LOGIN = "BA5090"
 
@@ -38,7 +35,7 @@ class ValidateControllerSpec extends PlaySpec with Results:
     "validate correct xml" in {
       val controller = ValidateController(Helpers.stubControllerComponents(), aSubmissionProcessingService())
       val response   = controller.validate(BA_LOGIN).apply(aSuccessfulRequest)
-      status(response) mustBe OK
+      status(response) shouldBe OK
     }
   }
 
@@ -49,6 +46,7 @@ class ValidateControllerSpec extends PlaySpec with Results:
     Files.copy(path, tempPath, StandardCopyOption.REPLACE_EXISTING)
 
     val tempFile = SingletonTemporaryFileCreator.create(tempPath)
+
     FakeRequest(POST, "/sss").withBody(tempFile)
       .withHeaders("X-Request-ID" -> requestId)
 

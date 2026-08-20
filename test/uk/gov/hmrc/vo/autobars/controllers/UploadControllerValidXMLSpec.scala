@@ -17,18 +17,12 @@
 package uk.gov.hmrc.vo.autobars.controllers
 
 import org.apache.commons.io.IOUtils
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.mongodb.scala.SingleObservableFuture
-import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Application, Configuration}
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Injecting}
+import play.api.test.FakeRequest
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
@@ -37,6 +31,7 @@ import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.byId
+import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 
 import java.net.URI
 import java.nio.file.Paths
@@ -44,34 +39,24 @@ import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadControllerIntSpec
-  extends PlaySpec
-  with BeforeAndAfterAll
-  with OptionValues
-  with EitherValues
-  with DefaultAwaitTimeout
-  with FutureAwaits
-  with GuiceOneAppPerSuite
-  with Injecting
-  with MockitoSugar:
+class UploadControllerValidXMLSpec extends MongoDBAppSpec[ReportStatus, SubmissionStatusRepositoryImpl]:
 
-  private val voEbarsConnector = mock[VOEbarsConnector]
+  override def fakeApplication(): Application =
+    val voEbarsConnector = mock[VOEbarsConnector]
 
-  when(voEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
-    .thenAnswer(_ => Future.successful(OK))
+    when(voEbarsConnector.sendBAReport(any[BAReportRequest])(using any[ExecutionContext], any[HeaderCarrier]))
+      .thenAnswer(_ => Future.successful(OK))
 
-  override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> "mongodb://localhost:27017/voa-bar")
-    .bindings(
-      bind[VOEbarsConnector].to(voEbarsConnector),
-      bind[UpscanConnector].to[UploadControllerIntSpecUpscanConnector]
-    )
-    .build()
+    GuiceApplicationBuilder()
+      .overrides(
+        bind[MongoComponent].toInstance(mongoComponent),
+        bind[VOEbarsConnector].to(voEbarsConnector),
+        bind[UpscanConnector].to[TestUpscanConnector]
+      )
+      .build()
 
-  private val controller           = inject[UploadController]
-  private val mongoComponent       = inject[MongoComponent]
-  private val submissionRepository = inject[SubmissionStatusRepositoryImpl]
-  private val configuration        = inject[Configuration]
+  private val controller    = inject[UploadController]
+  private val configuration = inject[Configuration]
 
   private val crypto = ApplicationCrypto(configuration.underlying).JsonCrypto
 
@@ -85,35 +70,30 @@ class UploadControllerIntSpec
       )
       .withBody(UploadDetails("1234", xmlURL))
 
-  "Upload controller " must {
-
+  "Upload controller " should {
     "properly handle correct XML " in {
-      await(submissionRepository.collection.deleteOne(byId("1234")).toFutureOption())
+      mongoRepository.collection.deleteOne(byId("1234")).toFutureOption().futureValue
 
       val reportStatus = ReportStatus("1234", baCode = "BA5090")
 
-      await(submissionRepository.saveOrUpdate(reportStatus, upsert = true))
+      mongoRepository.saveOrUpdate(reportStatus, upsert = true).futureValue
 
       controller.upload()(fakeRequestWithXML)
 
       SECONDS.sleep(2)
 
-      val report = await(submissionRepository.getByReference("1234"))
+      val report = mongoRepository.getByReference("1234").futureValue
 
-      report mustBe Symbol("right")
+      report shouldBe Symbol("right")
 
       Console.println(report)
 
-      report.value.status mustBe "Done"
+      report.value.status shouldBe "Done"
     }
-
   }
 
-  override protected def afterAll(): Unit =
-    mongoComponent.client.close()
-
 @Singleton
-class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector:
+class TestUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector:
 
   override def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
     Future(Right(IOUtils.toByteArray(URI(url).toURL.openStream())))
