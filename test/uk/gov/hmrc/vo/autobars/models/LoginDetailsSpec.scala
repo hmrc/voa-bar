@@ -24,7 +24,7 @@ class LoginDetailsSpec extends BaseSpec:
   val password = "pass"
 
   "LoginDetails model" should {
-    "Given a username and password produce a login model" in {
+    "given a username and password produce a login model" in {
       val result = LoginDetails(username, password)
 
       result.username shouldBe username
