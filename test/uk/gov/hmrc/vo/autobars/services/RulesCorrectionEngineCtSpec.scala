@@ -389,7 +389,7 @@ class RulesCorrectionEngineCtSpec extends BaseSpec:
 
     }
 
-    "Throw assertion error for submissions with more that one report" in {
+    "throw assertion error for submissions with more that one report" in {
       val reports = ebarsValidator.fromXml(StreamSource(getClass.getResourceAsStream("/xml/CTValid2.xml")))
       assertThrows[AssertionError] {
         RemarksTrimmer.apply(reports)

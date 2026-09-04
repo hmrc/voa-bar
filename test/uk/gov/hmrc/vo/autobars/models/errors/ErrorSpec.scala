@@ -30,7 +30,7 @@ class ErrorSpec extends BaseSpec:
   val error = Error(code, errorValue)
 
   "Error model" should {
-    "Given an error code and an error value produce an Error model" in {
+    "given an error code and an error value produce an Error model" in {
       error.code   shouldBe code
       error.values shouldBe errorValue
     }

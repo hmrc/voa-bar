@@ -3,10 +3,11 @@ import sbt.*
 object AppDependencies {
 
   private val bootstrapVersion          = "10.8.0"
+  private val voServiceVersion          = "0.12.0"
   private val hmrcMongoVersion          = "2.13.0"
   private val autoBarsXsdVersion        = "9.20.0"
   private val jacksonModuleScalaVersion = "2.22.2"
-  private val catsEffectVersion         = "3.7.0"
+  private val catsEffectVersion         = "3.7.1"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"
   private val xercesVersion             = "2.12.2"
@@ -19,6 +20,7 @@ object AppDependencies {
 
   private val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
+    "uk.gov.hmrc"                  %% "vo-backend-service"        % voServiceVersion,
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
     "uk.gov.hmrc"                  %% "autobars-xsd"              % autoBarsXsdVersion,
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % jacksonModuleScalaVersion,

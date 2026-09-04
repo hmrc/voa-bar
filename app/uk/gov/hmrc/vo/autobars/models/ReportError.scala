@@ -17,6 +17,7 @@
 package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.{Format, Json, OFormat}
+import uk.gov.hmrc.vo.service.model.Scala3EnumJsonFormat
 
 case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[String] = Seq.empty[String])
 

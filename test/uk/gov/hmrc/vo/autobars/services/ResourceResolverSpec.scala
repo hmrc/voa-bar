@@ -25,7 +25,7 @@ class ResourceResolverSpec extends BaseSpec:
   private val nonExistingFile = "file.xsd"
 
   "ResourceResolver" should {
-    "Given a valid systemId representing an existing file in the /resources/xsd/ folder should return an input" in {
+    "given a valid systemId representing an existing file in the /resources/xsd/ folder should return an input" in {
       val result = resolver.resolveResource("type", "namespace", "publicID", existingFile, "publicURI")
       result.isInstanceOf[Input] shouldBe true
     }

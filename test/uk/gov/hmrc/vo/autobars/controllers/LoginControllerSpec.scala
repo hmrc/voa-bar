@@ -52,7 +52,7 @@ class LoginControllerSpec extends BaseAppSpec:
   private def controller = LoginController(mockVOEbarsConnector, mockAudit, applicationCrypto, stubControllerComponents())
 
   "LoginController" should {
-    "Given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
+    "given some Json representing a Login with an enquiry, the verify login method creates a Right(loginDetails)" in {
       val result = controller.verifyLogin(Some(Json.parse(goodJson)))
 
       result.isRight  shouldBe true
@@ -76,7 +76,7 @@ class LoginControllerSpec extends BaseAppSpec:
       status(result) shouldBe BAD_REQUEST
     }
 
-    "Given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
+    "given some wrong Json format, the createContact method returns a Left(Unable to parse)" in {
       val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
       result.isLeft shouldBe true
     }
