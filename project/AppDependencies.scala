@@ -3,10 +3,10 @@ import sbt.*
 object AppDependencies {
 
   private val bootstrapVersion          = "10.8.0"
-  private val voServiceVersion          = "0.17.0"
+  private val voServiceVersion          = "0.18.0"
   private val hmrcMongoVersion          = "2.14.0"
   private val autoBarsXsdVersion        = "9.21.0"
-  private val jacksonModuleScalaVersion = "2.22.3.1"
+  private val jacksonModuleScalaVersion = "2.22.4"
   private val catsEffectVersion         = "3.7.1"
   private val jerichoHtmlVersion        = "3.4"
   private val httpComponentsVersion     = "4.5.14"

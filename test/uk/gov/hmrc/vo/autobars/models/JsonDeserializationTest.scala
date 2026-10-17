@@ -17,10 +17,10 @@
 package uk.gov.hmrc.vo.autobars.models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 import uk.gov.hmrc.vo.unit.test.BaseSpec
 
-import java.time.format.DateTimeFormatter.ISO_DATE_TIME
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 
 class JsonDeserializationTest extends BaseSpec:
 
@@ -47,17 +47,15 @@ class JsonDeserializationTest extends BaseSpec:
       |  "errors" : [ { "code" : "4500", "values" : [ ] } ],
       |  "status" : "Failed" }""".stripMargin
 
-  "Formatters" should {
-    "deserialize old version of data from database and populate missing values with defaults" in {
+  "Play JSON deserializer" should {
+    "deserialize data from database and populate missing values with defaults" in {
       val json   = Json.parse(reportDataWithoutReportErrors)
       val report = json.as[ReportStatus]
 
-      report.id          should be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
-      report.createdAt shouldBe Instant.ofEpochMilli(createdAt)
+      report.id should be("82ad71a8-3dbc-4d05-a035-536f4a9d89db")
 
-      val createdAtZoned = report.createdAt.atZone(ZoneOffset.UTC)
-      createdAtZoned.format(ISO_DATE_TIME) shouldBe "2022-11-26T20:55:13.08Z"
-      createdAtZoned.toString              shouldBe "2022-11-26T20:55:13.080Z"
+      report.createdAt                      shouldBe Instant.ofEpochMilli(createdAt)
+      report.createdAt.formatIsoDateTimeUTC shouldBe "2022-11-26T20:55:13Z"
 
       report.reportErrors shouldBe empty
     }

@@ -29,10 +29,10 @@ import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 
 import java.io.ByteArrayInputStream
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.Inject
 import javax.xml.transform.stream.StreamSource
@@ -152,7 +152,7 @@ class ReportUploadService @Inject() (
         login.username,
         login.password,
         reportStatus.filename.getOrElse("filename unavailable"),
-        reportStatus.createdAt.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME),
+        reportStatus.createdAt.formatIsoDateTimeUTC,
         reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n")
       )
       .map(_ => Right(()))
