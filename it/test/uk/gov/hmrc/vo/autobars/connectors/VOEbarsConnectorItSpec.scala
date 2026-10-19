@@ -27,11 +27,12 @@ import services.EbarsValidator
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, UnauthorizedException}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.vo.autobars.connectors.{DefaultVOEbarsConnector, VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.connectors.{DefaultVOEbarsConnector, VOEbarsConnector}
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 import uk.gov.hmrc.vo.autobars.services.{EbarsApiError, EbarsClientV2}
 import uk.gov.hmrc.vo.integration.test.BaseServerSpec
+import uk.gov.hmrc.vo.service.connectors.AuditService
 
 import java.util.UUID
 import javax.xml.transform.stream.StreamSource
@@ -46,7 +47,7 @@ class VOEbarsConnectorItSpec extends BaseServerSpec with FutureAwaits:
     val servicesConfig = ServicesConfig(Configuration("microservice.services.voa-ebars.port" -> port).withFallback(config))
 
     val eBarsClientV2 = EbarsClientV2(inject[HttpClientV2], servicesConfig)
-    DefaultVOEbarsConnector(eBarsClientV2, inject[VOBarAuditConnector])
+    DefaultVOEbarsConnector(eBarsClientV2, inject[AuditService])
 
   given ExecutionContext = inject[ExecutionContext]
   given HeaderCarrier    = HeaderCarrier()

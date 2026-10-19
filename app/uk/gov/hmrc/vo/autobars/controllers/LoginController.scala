@@ -21,8 +21,10 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.vo.autobars.connectors.{VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.connectors.VOEbarsConnector
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
+import uk.gov.hmrc.vo.autobars.models.event.UserLogin
+import uk.gov.hmrc.vo.service.connectors.AuditService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,7 +33,7 @@ import scala.util.{Failure, Success}
 @Singleton
 class LoginController @Inject() (
   val voEbarsConnector: VOEbarsConnector,
-  audit: VOBarAuditConnector,
+  audit: AuditService,
   applicationCrypto: ApplicationCrypto,
   controllerComponents: ControllerComponents
 )(using ec: ExecutionContext
@@ -53,7 +55,7 @@ class LoginController @Inject() (
       case Right(loginDetails) =>
         voEbarsConnector.validate(loginDetails) map {
           case Success(_)  =>
-            audit.userLogin(loginDetails.username)
+            audit.send(UserLogin(loginDetails.username))
             Ok
           case Failure(ex) =>
             logger.warn("Validating login fails with message " + ex.getMessage, ex)
