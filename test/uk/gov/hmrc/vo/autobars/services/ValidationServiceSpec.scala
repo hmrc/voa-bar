@@ -90,9 +90,9 @@ class ValidationServiceSpec extends BaseSpec:
 
       val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
 
-      validationError.errors should have size 3
+      validationError.reportErrors should have size 3
 
-      validationError.errors should contain(ReportError(
+      validationError.reportErrors should contain(ReportError(
         Some("200000"),
         Some("1111111111111"),
         Seq(1L, 2L),
@@ -101,7 +101,7 @@ class ValidationServiceSpec extends BaseSpec:
         )
       ))
 
-      validationError.errors should contain(ReportError(
+      validationError.reportErrors should contain(ReportError(
         None,
         Some("6831841467181"),
         Seq(3L, 4L),
@@ -125,8 +125,8 @@ class ValidationServiceSpec extends BaseSpec:
       validationResult.left.value shouldBe a[BarSubmissionValidationError]
       val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
 
-      validationError.errors should have size 1
-      validationError.errors should contain only ReportError(
+      validationError.reportErrors should have size 1
+      validationError.reportErrors should contain only ReportError(
         Some("41348"),
         Some("WET012006000N"),
         Seq.empty,

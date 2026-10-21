@@ -21,7 +21,7 @@ import play.api.Logging
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HeaderNames.*
-import uk.gov.hmrc.vo.autobars.models.{BarError, UnknownError}
+import uk.gov.hmrc.vo.autobars.models.{BarError, BarUnknownError}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,5 +42,5 @@ class DefaultUpscanConnector @Inject() (httpClient: WSClient)(using ec: Executio
       }.recover {
         case e: Exception =>
           logger.warn("Unable to download file from upscan", e)
-          Left(UnknownError("Unable to download file, please try later"))
+          Left(BarUnknownError("Unable to download file, please try later"))
       }

@@ -14,7 +14,7 @@ object AppDependencies {
   private val apachePOIVersion          = "5.5.1"
 
   // Test dependencies
-  private val voTestVersion   = "0.9.0"
+  private val voTestVersion   = "0.10.0"
   private val wiremockVersion = "3.13.2"
   private val xmlunitVersion  = "2.14.0"
 

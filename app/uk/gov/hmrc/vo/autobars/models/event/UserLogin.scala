@@ -32,4 +32,4 @@ object UserLogin:
   implicit val format: OFormat[UserLogin] = Json.format
 
   def apply(username: String): UserLogin =
-    UserLogin(username, BillingAuthorities.find(username).getOrElse("NONE"))
+    UserLogin(username, BillingAuthorities.getByUsername(username))

@@ -48,7 +48,7 @@ object OutboundCall:
   ): OutboundCall =
     OutboundCall(
       username,
-      BillingAuthorities.find(username).getOrElse("NONE"),
+      BillingAuthorities.getByUsername(username),
       autobarsJobId,
       billingAuthority,
       transactionId,
