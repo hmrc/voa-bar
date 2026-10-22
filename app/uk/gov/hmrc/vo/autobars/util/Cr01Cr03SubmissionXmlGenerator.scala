@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.vo.autobars.util
 
-import java.math.BigInteger
-import java.time.{Instant, LocalDate}
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
-import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
+import ebars.xml.*
 import jakarta.xml.bind.JAXBElement
-
-import javax.xml.datatype.DatatypeFactory
-import DateConversion.*
 import uk.gov.hmrc.vo.autobars.models.{AddProperty, Cr01Cr03Submission, OtherReason}
+import uk.gov.hmrc.vo.autobars.util.XmlDateSupport.*
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 
+import java.math.BigInteger
+import javax.xml.datatype.DatatypeFactory
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 
@@ -51,7 +50,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val body = BAreportBodyStructure()
 
     val bodyElements = ListBuffer(
-      OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
+      OF.createBAreportBodyStructureDateSent(nowInUK.toXmlDate),
       OF.createBAreportBodyStructureTransactionIdentityBA(
         submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)
       ), // TODO submissionID
@@ -59,7 +58,7 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
       typeOfTax,
       proposedEntries(),
-      OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
+      OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXmlDate)
     )
 
     if submission.planningRef.isDefined then
@@ -165,8 +164,8 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     val header = ReportHeaderStructure()
     header.setBillingAuthority(baName)
     header.setBillingAuthorityIdentityCode(baCode)
-    header.setProcessDate(LocalDate.now().toXml)
-    header.setEntryDateTime(Instant.now().toXml)
+    header.setProcessDate(nowInUK.toXmlDate)
+    header.setEntryDateTime(nowInUK.toXmlDateTime)
     header
 
   private def generateReportTrailer(): ReportTrailerStructure =
@@ -174,5 +173,5 @@ class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int
     trailer.setRecordCount(BigInteger.ONE)
     trailer.setTotalCtaxReportCount(BigInteger.ONE)
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
-    trailer.setEntryDateTime(Instant.now().toXml)
+    trailer.setEntryDateTime(nowInUK.toXmlDateTime)
     trailer

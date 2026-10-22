@@ -23,16 +23,18 @@ import models.Purpose
 import play.api.Logging
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.vo.autobars.connectors.{EmailConnector, UpscanConnector, VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.connectors.{EmailConnector, UpscanConnector, VOEbarsConnector}
 import uk.gov.hmrc.vo.autobars.models
 import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
+import uk.gov.hmrc.vo.autobars.models.event.{ReportUploadFailed, ReportUploadSuccessful}
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
+import uk.gov.hmrc.vo.service.connectors.AuditService
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 
 import java.io.ByteArrayInputStream
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.Inject
 import javax.xml.transform.stream.StreamSource
@@ -46,7 +48,7 @@ class ReportUploadService @Inject() (
   voEbarsConnector: VOEbarsConnector,
   emailConnector: EmailConnector,
   upscanConnector: UpscanConnector,
-  audit: VOBarAuditConnector
+  audit: AuditService
 )(using executionContext: ExecutionContext
 ) extends Logging:
 
@@ -68,8 +70,8 @@ class ReportUploadService @Inject() (
     val processingResult =
       for
         _ <- EitherT(eBarsUpload(baReports, baLogin, uploadReference))
-        _  = audit.successfulReportUploaded(baLogin.username, baReports.getBApropertyReport.size())
-        _ <- EitherT(statusRepository.update(uploadReference, Done, baReports.getBApropertyReport.size()))
+        _  = audit.send(ReportUploadSuccessful(baLogin.username, baReports.getBApropertyReport.size))
+        _ <- EitherT(statusRepository.update(uploadReference, Done, baReports.getBApropertyReport.size))
         _ <- EitherT(sendConfirmationEmail(uploadReference, baLogin))
       yield "ok"
 
@@ -81,7 +83,7 @@ class ReportUploadService @Inject() (
       .recover {
         case exception: Exception =>
           logger.warn("Unexpected error when processing file, trying to recover", exception)
-          Left(UnknownError(exception.getMessage))
+          Left(BarUnknownError(exception.getMessage))
       }
       .map { res =>
         logger.debug(s"Upload result: $res")
@@ -91,7 +93,7 @@ class ReportUploadService @Inject() (
       .flatMap {
         case Right(v)       => Future.successful(v)
         case Left(barError) =>
-          audit.reportUploadFailed(login.username, barError)
+          audit.send(ReportUploadFailed(login.username, barError))
           handleError(uploadReference, barError, login)
             .map(_ => "failed")
       }
@@ -131,7 +133,7 @@ class ReportUploadService @Inject() (
 
     }.toEither.leftMap { e =>
       logger.warn("Unable to automatically fix XML", e)
-      UnknownError("Unable to process upload")
+      BarUnknownError("Unable to process upload")
     }
 
     for
@@ -152,7 +154,7 @@ class ReportUploadService @Inject() (
         login.username,
         login.password,
         reportStatus.filename.getOrElse("filename unavailable"),
-        reportStatus.createdAt.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME),
+        reportStatus.createdAt.formatIsoDateTimeUTC,
         reportStatus.errors.map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n")
       )
       .map(_ => Right(()))
@@ -217,7 +219,7 @@ class ReportUploadService @Inject() (
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))).flatMap { _ =>
           statusRepository.updateStatus(submissionId, Done)
         }
-      case UnknownError(detail)                 =>
+      case BarUnknownError(detail)              =>
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(detail))).flatMap { _ =>
           statusRepository.updateStatus(submissionId, Failed)
             .map(_ => sendConfirmationEmail(submissionId, login))

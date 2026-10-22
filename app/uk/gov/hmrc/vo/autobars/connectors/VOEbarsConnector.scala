@@ -25,7 +25,9 @@ import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.*
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
+import uk.gov.hmrc.vo.autobars.models.event.OutboundCall
 import uk.gov.hmrc.vo.autobars.services.{EbarsApiError, EbarsClientV2}
+import uk.gov.hmrc.vo.service.connectors.AuditService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +39,7 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class DefaultVOEbarsConnector @Inject() (
   ebarsClientV2: EbarsClientV2,
-  audit: VOBarAuditConnector
+  audit: AuditService
 ) extends VOEbarsConnector
   with Logging:
 
@@ -73,7 +75,17 @@ class DefaultVOEbarsConnector @Inject() (
 
         val fileName = s"$billingAuthority-$transactionId-$reportNumber.xml"
 
-        audit.sendReport(baReportRequest.username, baReportRequest.uuid, billingAuthority, transactionId, reportNumber, xml, fileName)
+        audit.send(
+          OutboundCall(
+            username = baReportRequest.username,
+            autobarsJobId = baReportRequest.uuid,
+            billingAuthority = billingAuthority,
+            transactionId = transactionId,
+            reportNumber = reportNumber,
+            fileName = fileName,
+            xml = xml
+          )
+        )
 
         Future.successful(OK)
       case Failure(e: EbarsApiError) =>

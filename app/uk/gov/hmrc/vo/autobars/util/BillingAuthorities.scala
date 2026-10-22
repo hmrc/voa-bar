@@ -20,6 +20,8 @@ object BillingAuthorities:
 
   def find(baCode: String): Option[String] = billingAuthorities.get(baCode.toUpperCase)
 
+  def getByUsername(username: String): String = find(username).getOrElse("NONE")
+
   val billingAuthorities: Map[String, String] = Map(
     "BA0114" -> "Bath and North East Somerset",
     "BA0116" -> "Bristol",

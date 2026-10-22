@@ -16,21 +16,20 @@
 
 package uk.gov.hmrc.vo.autobars.services
 
-import java.io.{FilterInputStream, InputStream}
-import java.math.BigInteger
-import java.time.{ZoneId, ZonedDateTime}
-import java.util.GregorianCalendar
 import ebars.xml.CtaxReasonForReportCodeContentType.*
 import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeContentType}
 import jakarta.xml.bind.JAXBElement
-
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
-import javax.xml.namespace.QName
 import models.EbarsBAreports.*
 import models.Purpose
 import org.apache.commons.lang3.StringUtils
 import org.apache.poi.util.ReplacingInputStream
+import uk.gov.hmrc.vo.autobars.util.XmlDateSupport.*
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 
+import java.io.{FilterInputStream, InputStream}
+import java.math.BigInteger
+import javax.xml.datatype.DatatypeFactory
+import javax.xml.namespace.QName
 import scala.util.{Success, Try}
 
 class RulesCorrectionEngine:
@@ -79,26 +78,22 @@ object CorrectionInputStream:
     ReplacingInputStream(input, "&nbsp;", " ")
 
 case object FixHeader extends Rule:
-  private val zoneId = ZoneId.of("Europe/London")
 
   override def apply(baReports: BAreports): Unit =
+    given DatatypeFactory = DatatypeFactory.newInstance
+
     val header = baReports.getBAreportHeader
     if header.getEntryDateTime == null then
-      val now    = ZonedDateTime.now(zoneId)
-      val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
-      header.setEntryDateTime(xmlNow)
+      header.setEntryDateTime(nowInUK.toXmlDateTime)
 
     if header.getProcessDate == null then
-      val now    = ZonedDateTime.now(zoneId)
-      val xmlNow = DatatypeFactory.newInstance()
-        .newXMLGregorianCalendarDate(now.getYear, now.getMonthValue, now.getDayOfMonth, DatatypeConstants.FIELD_UNDEFINED)
-      header.setProcessDate(xmlNow)
+      header.setProcessDate(nowInUK.toXmlDate)
 
 case object FixCTaxTrailer extends Rule:
 
-  private val zoneId = ZoneId.of("Europe/London")
-
   override def apply(baReports: BAreports): Unit =
+    given DatatypeFactory = DatatypeFactory.newInstance
+
     val trailer = baReports.getBAreportTrailer
     // Always set properly number of records
     trailer.setRecordCount(BigInteger.valueOf(baReports.getBApropertyReport.size()))
@@ -107,9 +102,7 @@ case object FixCTaxTrailer extends Rule:
     // NDR REPORTS are not supported
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
     if trailer.getEntryDateTime == null then
-      val now    = ZonedDateTime.now(zoneId)
-      val xmlNow = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(now))
-      trailer.setEntryDateTime(xmlNow)
+      trailer.setEntryDateTime(nowInUK.toXmlDateTime)
 
 /**
   * Strip whitespace characters in remarks element.

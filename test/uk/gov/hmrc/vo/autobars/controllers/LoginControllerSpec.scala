@@ -20,8 +20,9 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
-import uk.gov.hmrc.vo.autobars.connectors.{VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.connectors.VOEbarsConnector
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
+import uk.gov.hmrc.vo.service.connectors.AuditService
 import uk.gov.hmrc.vo.unit.test.BaseAppSpec
 
 import scala.concurrent.Future
@@ -41,7 +42,7 @@ class LoginControllerSpec extends BaseAppSpec:
     Future.successful(Failure(RuntimeException("Received exception from upstream service")))
   )
 
-  private val mockAudit = mock[VOBarAuditConnector]
+  private val mockAudit = mock[AuditService]
 
   private val applicationCrypto = app.injector.instanceOf[ApplicationCrypto]
   private val encryptedPassword = applicationCrypto.JsonCrypto.encrypt(PlainText("xxxdyyy")).value

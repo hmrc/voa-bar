@@ -21,10 +21,10 @@ import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
 import jakarta.xml.bind.JAXBElement
 import uk.gov.hmrc.vo.autobars.models.*
-import uk.gov.hmrc.vo.autobars.util.DateConversion.*
+import uk.gov.hmrc.vo.autobars.util.XmlDateSupport.*
+import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 
 import java.math.BigInteger
-import java.time.{Instant, LocalDate}
 import javax.xml.datatype.DatatypeFactory
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
@@ -47,7 +47,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
 
   private def generateBody(): BAreportBodyStructure =
     val bodyElements: ListBuffer[JAXBElement[?]] = ListBuffer(
-      OF.createBAreportBodyStructureDateSent(LocalDate.now().toXml),
+      OF.createBAreportBodyStructureDateSent(nowInUK.toXmlDate),
       OF.createBAreportBodyStructureTransactionIdentityBA(submissionId.replaceAll("-", "").substring(0, transactionIdentityLength)), // TODO submissionID
       OF.createBAreportBodyStructureBAidentityNumber(baCode),
       OF.createBAreportBodyStructureBAreportNumber(submission.baReport),
@@ -57,7 +57,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     submission match
       case submission: Cr01Cr03Submission =>
         bodyElements += cr01Cr03PropertyEntries()
-        bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
+        bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXmlDate)
 
         if submission.planningRef.isDefined then
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.getOrElse(""))
@@ -70,7 +70,7 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
       case submission: Cr05Submission =>
         bodyElements += OF.createBAreportBodyStructureExistingEntries(createProperties(submission.existingPropertis))
         bodyElements += OF.createBAreportBodyStructureProposedEntries(createProperties(submission.proposedProperties))
-        bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
+        bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXmlDate)
 
         if submission.planningRef.isDefined then
           bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.getOrElse(""))
@@ -195,8 +195,8 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     val header = ReportHeaderStructure()
     header.setBillingAuthority(baName)
     header.setBillingAuthorityIdentityCode(baCode)
-    header.setProcessDate(LocalDate.now().toXml)
-    header.setEntryDateTime(Instant.now().toXml)
+    header.setProcessDate(nowInUK.toXmlDate)
+    header.setEntryDateTime(nowInUK.toXmlDateTime)
     header
 
   private def generateReportTrailer(): ReportTrailerStructure =
@@ -204,5 +204,5 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
     trailer.setRecordCount(BigInteger.ONE)
     trailer.setTotalCtaxReportCount(BigInteger.ONE)
     trailer.setTotalNNDRreportCount(BigInteger.ZERO)
-    trailer.setEntryDateTime(Instant.now().toXml)
+    trailer.setEntryDateTime(nowInUK.toXmlDateTime)
     trailer

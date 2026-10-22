@@ -1,0 +1,23 @@
+{
+  "username": "ba1445",
+  "baName": "Brighton and Hove",
+  "reportErrors": [
+    {
+      "reportNumber": "reportNumber",
+      "baTransaction": "baTransaction",
+      "uprn": [
+        1,
+        2,
+        3
+      ],
+      "errors": [
+        {
+          "errorCode": "InvalidNdrCode",
+          "values": [
+            "CR06"
+          ]
+        }
+      ]
+    }
+  ]
+}

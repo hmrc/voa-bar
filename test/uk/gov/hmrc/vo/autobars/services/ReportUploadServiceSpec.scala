@@ -25,11 +25,12 @@ import org.w3c.dom.Document
 import play.api.http.Status.OK
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.vo.autobars.connectors.{EmailConnector, UpscanConnector, VOBarAuditConnector, VOEbarsConnector}
+import uk.gov.hmrc.vo.autobars.connectors.{EmailConnector, UpscanConnector, VOEbarsConnector}
 import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.vo.autobars.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
+import uk.gov.hmrc.vo.service.connectors.AuditService
 import uk.gov.hmrc.vo.unit.test.BaseSpec
 
 import java.net.{URI, URL}
@@ -51,14 +52,14 @@ class ReportUploadServiceSpec extends BaseSpec:
   "ReportUploadService" should {
     "process request" in {
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.futureValue shouldBe "ok"
     }
 
     "process request for jaxbInput " in {
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val jaxbInput           = aJaxbInput(getClass.getResource("/xml/CTValid1.xml"))
       val res                 = reportUploadService.upload(loginDetails, jaxbInput, uploadReference)
       res.futureValue shouldBe "ok"
@@ -68,7 +69,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       val statusRepository = aCorrectStatusRepository()
 
       val reportUploadService =
-        ReportUploadService(statusRepository, aValidationThrowError(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(statusRepository, aValidationThrowError(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
 
       res.map { result =>
@@ -86,7 +87,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       val xmlParser         = mock[XmlParser]
 
       val reportUploadService =
-        ReportUploadService(statusRepository, validationService, voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(statusRepository, validationService, voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.map { result =>
         verify(statusRepository, times(1)).updateStatus(same(uploadReference), same(Pending))
@@ -98,7 +99,7 @@ class ReportUploadServiceSpec extends BaseSpec:
     "handle full XML" in {
       val fullXmlUrl          = Paths.get("test/resources/xml/CTValid2.xml").toAbsolutePath.toUri.toURL.toString
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, fullXmlUrl, uploadReference)
       res.futureValue shouldBe "ok"
     }
@@ -108,7 +109,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       val voEbarsConnector = aVOEbarsConnector()
 
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, baReport, uploadReference)
 
       res.map { result =>
@@ -124,7 +125,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Left(BarXmlError("validation error")))
       val statusRepository    = aCorrectStatusRepository()
       val reportUploadService =
-        ReportUploadService(statusRepository, validationService, aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(statusRepository, validationService, aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val result              = reportUploadService.upload(loginDetails, aXmlUrl, "reference1")
 
       result.map { value =>
@@ -144,7 +145,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       when(validationService.validate(any[BAreports], any[LoginDetails])).thenReturn(Left(xmlValidationError))
       val statusRepository    = aCorrectStatusRepository()
       val reportUploadService =
-        ReportUploadService(statusRepository, validationService, aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(statusRepository, validationService, aVOEbarsConnector(), aEmailConnector(), aUpscanConnector(), aAuditService())
       val result              = reportUploadService.upload(loginDetails, aXmlUrl, "reference1")
 
       result.map { value =>
@@ -160,7 +161,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       }
 
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), emailConnector, aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), aVOEbarsConnector(), emailConnector, aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.futureValue shouldBe "failed"
     }
@@ -172,7 +173,7 @@ class ReportUploadServiceSpec extends BaseSpec:
       }
 
       val reportUploadService =
-        ReportUploadService(aCorrectStatusRepository(), aValidationService(), voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditConnector())
+        ReportUploadService(aCorrectStatusRepository(), aValidationService(), voEbarsConnector, aEmailConnector(), aUpscanConnector(), aAuditService())
       val res                 = reportUploadService.upload(loginDetails, aXmlUrl, uploadReference)
       res.futureValue shouldBe "failed"
     }
@@ -230,6 +231,5 @@ class ReportUploadServiceSpec extends BaseSpec:
       override def downloadReport(url: String)(using hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] =
         Future.successful(Right(IOUtils.toByteArray(URI(url).toURL.openStream())))
 
-  private def aAuditConnector() =
-    val hmrcAudit = mock[AuditConnector]
-    VOBarAuditConnector(hmrcAudit)
+  private def aAuditService() =
+    AuditService(mock[AuditConnector])

@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.vo.autobars.modules
+package uk.gov.hmrc.vo.autobars.models.event
 
-import com.google.inject.Provides
-import com.google.inject.AbstractModule
-import play.api.Configuration
-import services.EbarsValidator
-import uk.gov.hmrc.crypto.{ApplicationCrypto, Decrypter, Encrypter}
+import play.api.libs.json.Json
+import uk.gov.hmrc.vo.unit.test.{BaseSpec, JsonAssertions}
 
-class VOBARModule extends AbstractModule:
+/**
+  * @author Yuriy Tumakha
+  */
+class OutboundCallSpec extends BaseSpec with JsonAssertions("event"):
 
-  override def configure(): Unit =
-    bind(classOf[EbarsValidator]).toInstance(new EbarsValidator)
+  "OutboundCall" should {
+    "serialize to expected JSON" in {
+      val event = OutboundCall("ba1445", "jobId", "billingAuthority", "transactionId", "reportNumber", "BA-trans-report.xml", "<BAreports/>")
 
-  @Provides
-  def jsonCryptoProvider(config: Configuration): Encrypter & Decrypter =
-    ApplicationCrypto(config.underlying).JsonCrypto
+      val eventJson = Json.toJson(event)
+
+      event.auditType shouldBe "OutboundCall"
+
+      compareJson(eventJson, "OutboundCall.json")
+    }
+  }

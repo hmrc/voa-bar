@@ -1,0 +1,10 @@
+{
+  "username": "ba1445",
+  "baName": "Brighton and Hove",
+  "autobarsJobId": "jobId",
+  "billingAuthority": "billingAuthority",
+  "transactionId": "transactionId",
+  "reportNumber": "reportNumber",
+  "fileName": "BA-trans-report.xml",
+  "xml": "<BAreports/>"
+}
