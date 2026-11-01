@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Base64
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*

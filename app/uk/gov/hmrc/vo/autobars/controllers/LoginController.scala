@@ -26,7 +26,7 @@ import uk.gov.hmrc.vo.autobars.models.LoginDetails
 import uk.gov.hmrc.vo.autobars.models.event.UserLogin
 import uk.gov.hmrc.vo.service.connectors.AuditService
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 

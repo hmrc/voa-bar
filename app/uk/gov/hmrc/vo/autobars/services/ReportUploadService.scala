@@ -36,7 +36,7 @@ import uk.gov.hmrc.vo.service.conversion.DateConversion.*
 import java.io.ByteArrayInputStream
 import java.time.Instant
 import java.util.concurrent.TimeUnit.SECONDS
-import javax.inject.Inject
+import jakarta.inject.Inject
 import javax.xml.transform.stream.StreamSource
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.*

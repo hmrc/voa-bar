@@ -19,7 +19,7 @@ package uk.gov.hmrc.vo.autobars.services
 import java.io.ByteArrayInputStream
 import ebars.xml.BAreports
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import javax.xml.transform.stream.StreamSource
 import play.api.Logging
 import services.EbarsValidator

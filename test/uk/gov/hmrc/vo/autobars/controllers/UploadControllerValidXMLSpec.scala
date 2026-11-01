@@ -36,7 +36,7 @@ import uk.gov.hmrc.vo.unit.test.db.MongoDBAppSpec
 import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit.SECONDS
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 class UploadControllerValidXMLSpec extends MongoDBAppSpec[ReportStatus, SubmissionStatusRepositoryImpl]:

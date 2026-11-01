@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{Action, ControllerComponents}

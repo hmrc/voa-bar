@@ -29,7 +29,7 @@ import uk.gov.hmrc.vo.autobars.repositories.{SubmissionStatusRepository, UserRep
 import uk.gov.hmrc.vo.autobars.services.{ReportUploadService, WebBarsService}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.{TIMEOUT_ERROR, UNKNOWN_ERROR, UPSCAN_ERROR}
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 

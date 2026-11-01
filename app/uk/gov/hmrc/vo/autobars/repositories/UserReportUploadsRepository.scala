@@ -27,7 +27,7 @@ import uk.gov.hmrc.vo.autobars.models.BarError
 import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.{byId, handleMongoError, indexOptionsWithTTL}
 
 import java.time.Instant
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 final case class UserReportUpload(_id: String, userId: String, userPassword: String, createdAt: Instant = Instant.now)

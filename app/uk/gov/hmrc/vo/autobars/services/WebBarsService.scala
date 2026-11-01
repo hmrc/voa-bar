@@ -26,7 +26,7 @@ import uk.gov.hmrc.vo.autobars.models.*
 import uk.gov.hmrc.vo.autobars.util.{BillingAuthorities, XmlSubmissionGenerator}
 
 import java.io.StringWriter
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[DefaultWebBarsService])
