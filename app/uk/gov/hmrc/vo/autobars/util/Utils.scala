@@ -22,7 +22,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.Authorization
 import uk.gov.hmrc.vo.autobars.models.LoginDetails
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 
 @Singleton
 class Utils @Inject() (crypto: Encrypter & Decrypter):

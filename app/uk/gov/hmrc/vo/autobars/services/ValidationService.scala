@@ -23,7 +23,7 @@ import services.EbarsValidator
 import uk.gov.hmrc.vo.autobars.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}
 import uk.gov.hmrc.vo.autobars.util.ErrorCode.*
 
-import javax.inject.Singleton
+import jakarta.inject.Singleton
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 

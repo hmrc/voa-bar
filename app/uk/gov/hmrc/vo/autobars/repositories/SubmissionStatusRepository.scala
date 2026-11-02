@@ -35,7 +35,7 @@ import uk.gov.hmrc.vo.autobars.util.PlayMongoUtil.*
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 object SubmissionStatusRepository:

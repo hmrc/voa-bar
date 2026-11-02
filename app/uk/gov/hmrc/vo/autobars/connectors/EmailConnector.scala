@@ -31,7 +31,7 @@ import uk.gov.hmrc.vo.autobars.models.LoginDetails
 import uk.gov.hmrc.vo.autobars.util.Utils
 
 import java.net.URL
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

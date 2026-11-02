@@ -29,7 +29,7 @@ import uk.gov.hmrc.vo.autobars.models.event.OutboundCall
 import uk.gov.hmrc.vo.autobars.services.{EbarsApiError, EbarsClientV2}
 import uk.gov.hmrc.vo.service.connectors.AuditService
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 

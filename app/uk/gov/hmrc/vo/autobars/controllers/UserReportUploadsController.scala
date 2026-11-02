@@ -19,7 +19,7 @@ package uk.gov.hmrc.vo.autobars.controllers
 import cats.data.EitherT
 import cats.implicits.*
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}

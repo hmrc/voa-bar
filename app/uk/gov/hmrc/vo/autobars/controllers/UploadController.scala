@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.vo.autobars.controllers
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
